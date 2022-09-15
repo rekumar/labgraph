@@ -1,0 +1,42 @@
+{
+  "conditions": [],
+  "file_links": [],
+  "material": {
+    "id": "cake-d576929a6c518c058db29324c13db0c3",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "name": "Final Taste",
+  "notes": null,
+  "parameters": [],
+  "properties": [
+    {
+      "file_links": [],
+      "name": "Tastiness",
+      "notes": null,
+      "origin": "measured",
+      "template": {
+        "id": "tastiness",
+        "scope": "citrine-demo-template",
+        "type": "link_by_uid"
+      },
+      "type": "property",
+      "value": {
+        "lower_bound": 4,
+        "type": "uniform_integer",
+        "upper_bound": 5
+      }
+    }
+  ],
+  "source": null,
+  "spec": {
+    "id": "taste",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "tags": [],
+  "type": "measurement_run",
+  "uids": {
+    "citrine-demo": "taste--cake-d576929a6c518c058db29324c13db0c3"
+  }
+}

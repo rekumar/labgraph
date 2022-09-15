@@ -1,0 +1,4338 @@
+[
+  {
+    "file_links": [
+      {
+        "filename": "Photo",
+        "type": "file_link",
+        "url": "https://storcpdkenticomedia.blob.core.windows.net/media/recipemanagementsystem/media/recipe-media-files/recipes/retail/x17/16730-beckys-butter-cake-600x600.jpg?ext=.jpg"
+      }
+    ],
+    "name": "Cake",
+    "notes": "The spec says \"Butter cake recipe reminiscent of the 1-2-3-4 cake that Grandma may have baked.\"; Tr\u00e8s d\u00e9licieux! \ud83d\ude00",
+    "process": {
+      "id": "icing-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "cake::butter cake",
+      "dessert::baked::cake",
+      "iced::chocolate"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "material": {
+      "id": "cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Final Appearance",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Visual Appeal",
+        "notes": null,
+        "origin": "measured",
+        "template": null,
+        "type": "property",
+        "value": {
+          "nominal": 5,
+          "type": "nominal_integer"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "appearance",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "appearance--cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Appearance",
+    "notes": null,
+    "parameters": [],
+    "tags": [],
+    "template": null,
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "appearance"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "material": {
+      "id": "cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Final Taste",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Tastiness",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "tastiness",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "lower_bound": 4,
+          "type": "uniform_integer",
+          "upper_bound": 5
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "taste",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "taste--cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "bounds": {
+      "lower_bound": 1,
+      "type": "integer_bounds",
+      "upper_bound": 10
+    },
+    "description": "Yumminess on a fairly arbitrary scale",
+    "name": "Tastiness",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "tastiness"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Taste",
+    "notes": null,
+    "parameters": [],
+    "tags": [],
+    "template": {
+      "id": "taste-test",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "taste"
+    }
+  },
+  {
+    "conditions": [],
+    "description": null,
+    "name": "Taste test",
+    "parameters": [],
+    "properties": [
+      [
+        {
+          "id": "tastiness",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "measurement_template",
+    "uids": {
+      "citrine-demo-template": "taste-test"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Icing Cake",
+    "notes": "The spec says \"The act of covering a baked output with frosting\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "spreading"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "icing-cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "substrate"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "baked-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "baked cake",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "icing-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "baked-cake--icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "substrate"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "baked-cake--icing-cake-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Baked Cake",
+    "notes": "The spec says \"The cakey part of the cake\"",
+    "process": {
+      "id": "baking-baked-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "substrate"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "baked-cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "material": {
+      "id": "baked-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Baking doneness",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Toothpick test",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "toothpick-test",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "category": "crumbs",
+          "type": "nominal_categorical"
+        }
+      },
+      {
+        "file_links": [],
+        "name": "Color",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "color",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "probabilities": {
+            "Deep brown": 0.3,
+            "Golden brown": 0.65,
+            "Pale": 0.05
+          },
+          "type": "discrete_categorical"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "doneness",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "doneness--baked-cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "bounds": {
+      "categories": [
+        "Black",
+        "Deep brown",
+        "Golden brown",
+        "Pale"
+      ],
+      "type": "categorical_bounds"
+    },
+    "description": "Visual observation of the color of a baked good",
+    "name": "Baked color",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "color"
+    }
+  },
+  {
+    "bounds": {
+      "categories": [
+        "completely clean",
+        "crumbs",
+        "wet"
+      ],
+      "type": "categorical_bounds"
+    },
+    "description": "Results of inserting a toothpick to check doneness",
+    "name": "Toothpick test",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "toothpick-test"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Doneness",
+    "notes": null,
+    "parameters": [],
+    "tags": [],
+    "template": {
+      "id": "doneness",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "doneness"
+    }
+  },
+  {
+    "conditions": [],
+    "description": "An ensemble of tests to determine the doneness of a baked good",
+    "name": "Doneness test",
+    "parameters": [],
+    "properties": [
+      [
+        {
+          "id": "toothpick-test",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ],
+      [
+        {
+          "id": "color",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "measurement_template",
+    "uids": {
+      "citrine-demo-template": "doneness"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Cooking time",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "cooking-time",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "nominal": 48.0,
+          "type": "nominal_real",
+          "units": "minute"
+        }
+      },
+      {
+        "file_links": [],
+        "name": "Oven temperature",
+        "notes": null,
+        "origin": "measured",
+        "template": null,
+        "type": "condition",
+        "value": {
+          "nominal": 362.0,
+          "type": "nominal_real",
+          "units": "degree_Fahrenheit"
+        }
+      }
+    ],
+    "file_links": [],
+    "name": "Baking Baked Cake",
+    "notes": "The spec says \"Using heat to convert batter into a solid matrix\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "baking-baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "oven::baking"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "baking-baked-cake-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "precursor"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "batter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "batter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "baking-baked-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "batter--baking-baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "batter--baking-baked-cake-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Batter",
+    "notes": "The spec says \"The fluid that converts to cake with heat\"",
+    "process": {
+      "id": "mixing-batter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "batter-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Batter",
+    "notes": "The spec says \"Combining ingredients to make a baking feedstock\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixing"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "mixing-batter-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 0.9723210738148822,
+      "std": 0.05,
+      "type": "normal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "milk-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "milk",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "milk--mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "milk--mixing-batter-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Greenbrook Milk",
+    "notes": null,
+    "process": {
+      "id": "procuring-milk-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "milk",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "milk-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Greenbrook Milk",
+    "notes": "The spec says \"Purchasing milk\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-milk",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::produce"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-milk-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Milk",
+    "notes": "Purchasing milk",
+    "parameters": [],
+    "tags": [
+      "purchase::produce"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-milk"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Milk",
+    "notes": "",
+    "process": {
+      "id": "procuring-milk",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "milk"
+    }
+  },
+  {
+    "description": null,
+    "name": "Generic",
+    "properties": [],
+    "tags": [],
+    "type": "material_template",
+    "uids": {
+      "citrine-demo-template": "generic-material"
+    }
+  },
+  {
+    "allowed_labels": [],
+    "allowed_names": [],
+    "conditions": [],
+    "description": "Buyin' stuff",
+    "name": "Procuring",
+    "parameters": [],
+    "tags": [],
+    "type": "process_template",
+    "uids": {
+      "citrine-demo-template": "procuring"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 1.0,
+      "type": "nominal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "milk",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "milk",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "milk--mixing-batter"
+    },
+    "volume_fraction": null
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Batter",
+    "notes": "Combining ingredients to make a baking feedstock",
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Mixer speed setting",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "mixer-speed-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 2,
+          "type": "nominal_integer"
+        }
+      }
+    ],
+    "tags": [
+      "mixing"
+    ],
+    "template": {
+      "id": "mixing",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "mixing-batter"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 3.052,
+      "type": "nominal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "dry ingredients",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "dry-ingredients--mixing-batter"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Dry Ingredients",
+    "notes": "The dry fraction of a batter",
+    "process": {
+      "id": "mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "mixture"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "dry-ingredients"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Dry Ingredients",
+    "notes": "Combining dry ingredients to make a baking feedstock",
+    "parameters": [],
+    "tags": [
+      "mixing"
+    ],
+    "template": {
+      "id": "mixing",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "mixing-dry-ingredients"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "dry",
+      "seasoning"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "salt",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "salt",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning",
+      "dry-goods"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "salt--mixing-dry-ingredients"
+    },
+    "volume_fraction": {
+      "nominal": 0.0034,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Salt",
+    "notes": "Plain old NaCl",
+    "process": {
+      "id": "procuring-salt",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Formula",
+          "notes": null,
+          "origin": "unknown",
+          "template": null,
+          "type": "property",
+          "value": {
+            "formula": "NaCl",
+            "type": "empirical_formula"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "raw material",
+      "seasoning",
+      "dry-goods"
+    ],
+    "template": {
+      "id": "formulaic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "salt"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Salt",
+    "notes": "Purchasing salt",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-salt"
+    }
+  },
+  {
+    "description": "A material with chemical characterization",
+    "name": "Formulaic Material",
+    "properties": [
+      [
+        {
+          "id": "chemical-formula",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ],
+      [
+        {
+          "id": "molecular-structure",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "material_template",
+    "uids": {
+      "citrine-demo-template": "formulaic-material"
+    }
+  },
+  {
+    "bounds": {
+      "type": "molecular_structure_bounds"
+    },
+    "description": "The molecular structure of the material",
+    "name": "Molecular Structure",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "molecular-structure"
+    }
+  },
+  {
+    "bounds": {
+      "components": [
+        "Ac",
+        "Ag",
+        "Al",
+        "Am",
+        "Ar",
+        "As",
+        "At",
+        "Au",
+        "B",
+        "Ba",
+        "Be",
+        "Bi",
+        "Bk",
+        "Br",
+        "C",
+        "Ca",
+        "Cd",
+        "Ce",
+        "Cf",
+        "Cl",
+        "Cm",
+        "Co",
+        "Cr",
+        "Cs",
+        "Cu",
+        "Dy",
+        "Er",
+        "Es",
+        "Eu",
+        "F",
+        "Fe",
+        "Fm",
+        "Fr",
+        "Ga",
+        "Gd",
+        "Ge",
+        "H",
+        "He",
+        "Hf",
+        "Hg",
+        "Ho",
+        "I",
+        "In",
+        "Ir",
+        "K",
+        "Kr",
+        "La",
+        "Li",
+        "Lr",
+        "Lu",
+        "Md",
+        "Mg",
+        "Mn",
+        "Mo",
+        "N",
+        "Na",
+        "Nb",
+        "Nd",
+        "Ne",
+        "Ni",
+        "No",
+        "Np",
+        "O",
+        "Os",
+        "P",
+        "Pa",
+        "Pb",
+        "Pd",
+        "Pm",
+        "Po",
+        "Pr",
+        "Pt",
+        "Pu",
+        "Ra",
+        "Rb",
+        "Re",
+        "Rh",
+        "Rn",
+        "Ru",
+        "S",
+        "Sb",
+        "Sc",
+        "Se",
+        "Si",
+        "Sm",
+        "Sn",
+        "Sr",
+        "Ta",
+        "Tb",
+        "Tc",
+        "Te",
+        "Th",
+        "Ti",
+        "Tl",
+        "Tm",
+        "U",
+        "V",
+        "W",
+        "Xe",
+        "Y",
+        "Yb",
+        "Zn",
+        "Zr"
+      ],
+      "type": "composition_bounds"
+    },
+    "description": "The chemical formula of a material",
+    "name": "Chemical Formula",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "chemical-formula"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "leavening",
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "baking-powder",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "baking powder",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "leavening",
+      "dry-goods"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "baking-powder--mixing-dry-ingredients"
+    },
+    "volume_fraction": {
+      "nominal": 0.0137,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Baking Powder",
+    "notes": "Leavening agent for cake",
+    "process": {
+      "id": "procuring-baking-powder",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material",
+      "leavening",
+      "dry-goods"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "baking-powder"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Baking Powder",
+    "notes": "Purchasing baking powder",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-baking-powder"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "flour",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "flour",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "flour",
+      "dry-goods"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "flour--mixing-dry-ingredients"
+    },
+    "volume_fraction": {
+      "nominal": 0.9829,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Flour",
+    "notes": "All-purpose flour",
+    "process": {
+      "id": "procuring-flour",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [
+          {
+            "file_links": [],
+            "name": "Serving Size",
+            "notes": null,
+            "origin": "specified",
+            "template": {
+              "id": "sample-mass",
+              "scope": "citrine-demo-template",
+              "type": "link_by_uid"
+            },
+            "type": "condition",
+            "value": {
+              "nominal": 30.0,
+              "type": "nominal_real",
+              "units": "gram"
+            }
+          }
+        ],
+        "property": {
+          "file_links": [],
+          "name": "Nutritional Information",
+          "notes": null,
+          "origin": "specified",
+          "template": {
+            "id": "nutritional-information",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "quantities": {
+              "dietary-fiber": 1,
+              "other": 4,
+              "other-carbohydrate": 20,
+              "protein": 4,
+              "sugars": 1
+            },
+            "type": "nominal_composition"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "raw material",
+      "flour",
+      "dry-goods"
+    ],
+    "template": {
+      "id": "nutritional-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "flour"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Flour",
+    "notes": "Purchasing all purpose flour",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-flour"
+    }
+  },
+  {
+    "bounds": {
+      "default_units": "gram",
+      "lower_bound": 0.001,
+      "type": "real_bounds",
+      "upper_bound": 10000.0
+    },
+    "description": "Sample size in mass units, to go along with FDA Nutrition Facts",
+    "name": "Sample Mass",
+    "tags": [],
+    "type": "condition_template",
+    "uids": {
+      "citrine-demo-template": "sample-mass"
+    }
+  },
+  {
+    "bounds": {
+      "components": [
+        "calcium",
+        "cholesterol",
+        "dietary-fiber",
+        "iron",
+        "other",
+        "other-carbohydrate",
+        "other-fat",
+        "potassium",
+        "protein",
+        "saturated-fat",
+        "sodium",
+        "sugars",
+        "trans-fat",
+        "vitamin-d"
+      ],
+      "type": "composition_bounds"
+    },
+    "description": "FDA Nutrition Facts, mass basis.  Please be attentive to g vs. mg.  `other-carbohydrate` and `other-fat` are the total values minus the broken-out quantities. Other is the difference between the total and the serving size.",
+    "name": "Nutritional Information",
+    "tags": [],
+    "type": "property_template",
+    "uids": {
+      "citrine-demo-template": "nutritional-information"
+    }
+  },
+  {
+    "description": "A material with FDA Nutrition Facts attached",
+    "name": "Nutritional Material",
+    "properties": [
+      [
+        {
+          "id": "nutritional-information",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "material_template",
+    "uids": {
+      "citrine-demo-template": "nutritional-material"
+    }
+  },
+  {
+    "allowed_labels": [
+      "wet",
+      "dry",
+      "leavening",
+      "seasoning",
+      "sweetener",
+      "shortening",
+      "flavoring"
+    ],
+    "allowed_names": [],
+    "conditions": [],
+    "description": "Physically combining ingredients",
+    "name": "Mixing",
+    "parameters": [
+      [
+        {
+          "id": "mixer-speed-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "process_template",
+    "uids": {
+      "citrine-demo-template": "mixing"
+    }
+  },
+  {
+    "bounds": {
+      "lower_bound": 0,
+      "type": "integer_bounds",
+      "upper_bound": 10
+    },
+    "description": "What speed setting to use on the mixer",
+    "name": "Mixer speed setting",
+    "tags": [],
+    "type": "parameter_template",
+    "uids": {
+      "citrine-demo-template": "mixer-speed-setting"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "wet ingredients",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "wet-ingredients--mixing-batter"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Wet Ingredients",
+    "notes": "The wet fraction of a batter",
+    "process": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "mixture"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "wet-ingredients"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Wet Ingredients",
+    "notes": "Combining wet ingredients to make a baking feedstock",
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Mixer speed setting",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "mixer-speed-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 2,
+          "type": "nominal_integer"
+        }
+      }
+    ],
+    "tags": [
+      "mixing"
+    ],
+    "template": {
+      "id": "mixing",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "mixing-wet-ingredients"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 2.0,
+      "type": "nominal_real",
+      "units": "teaspoon"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "flavoring"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "vanilla",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "vanilla",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "vanilla--mixing-wet-ingredients"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Vanilla",
+    "notes": "Vanilla Extract is mostly alcohol but the most important component is vanillin (see attached structure)",
+    "process": {
+      "id": "procuring-vanilla",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Component Structure",
+          "notes": null,
+          "origin": "unknown",
+          "template": {
+            "id": "molecular-structure",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "inchi": "InChI=1S/C8H8O3/c1-11-8-4-6(5-9)2-3-7(8)10/h2-5,10H,1H3",
+            "type": "inchi"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "vanilla"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Vanilla",
+    "notes": "Purchasing vanilla",
+    "parameters": [],
+    "tags": [
+      "purchase::solution"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-vanilla"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 4.0,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "eggs",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "eggs",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "eggs--mixing-wet-ingredients"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Eggs",
+    "notes": "A custard waiting to happen",
+    "process": {
+      "id": "procuring-eggs",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material",
+      "produce"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "eggs"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Eggs",
+    "notes": "Purchasing eggs",
+    "parameters": [],
+    "tags": [
+      "purchase::produce"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-eggs"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 1.0,
+      "type": "nominal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "shortening"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "butter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "butter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "butter--mixing-wet-ingredients"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Butter",
+    "notes": "Shortening for making rich, buttery baked goods",
+    "process": {
+      "id": "procuring-butter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "butter"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Butter",
+    "notes": "Purchasing butter",
+    "parameters": [],
+    "tags": [
+      "purchase::produce"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-butter"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 2.0,
+      "type": "nominal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "sweetener"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "sugar",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "sugar--mixing-wet-ingredients"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Sugar",
+    "notes": "Sugar",
+    "process": {
+      "id": "procuring-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Formula",
+          "notes": null,
+          "origin": "unknown",
+          "template": null,
+          "type": "property",
+          "value": {
+            "formula": "C12H22O11",
+            "type": "empirical_formula"
+          }
+        },
+        "type": "property_and_conditions"
+      },
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "SMILES",
+          "notes": null,
+          "origin": "unknown",
+          "template": {
+            "id": "molecular-structure",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "smiles": "C(C1C(C(C(C(O1)OC2(C(C(C(O2)CO)O)O)CO)O)O)O)O",
+            "type": "smiles"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "template": {
+      "id": "formulaic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "sugar"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Sugar",
+    "notes": "Purchasing granulated sugar",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-sugar"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Batter",
+    "notes": "The fluid that converts to cake with heat",
+    "process": {
+      "id": "mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "mixture"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "batter"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 2.930681527767544,
+      "std": 0.1526,
+      "type": "normal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "dry-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "dry ingredients",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "dry-ingredients--mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "dry-ingredients--mixing-batter-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Dry Ingredients",
+    "notes": "The spec says \"The dry fraction of a batter\"",
+    "process": {
+      "id": "mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "dry-ingredients-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Dry Ingredients",
+    "notes": "The spec says \"Combining dry ingredients to make a baking feedstock\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixing"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "dry",
+      "seasoning"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "salt-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "salt",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "salt--mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning",
+      "dry-goods"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "salt--mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": {
+      "mean": 0.008640667744667676,
+      "std": 0.005,
+      "type": "normal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Acme Salt",
+    "notes": "The spec says \"Plain old NaCl\"",
+    "process": {
+      "id": "procuring-salt-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "salt",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning",
+      "dry-goods"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "salt-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Sample Mass",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "mean": 99.91884975934369,
+          "std": 1.5,
+          "type": "normal_real",
+          "units": "milligram"
+        }
+      }
+    ],
+    "file_links": [],
+    "material": {
+      "id": "salt-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Salt elemental analysis",
+    "notes": null,
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Expected Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 0.1,
+          "type": "nominal_real",
+          "units": "gram"
+        }
+      }
+    ],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Composition",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "chemical-formula",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "formula": "NaClCa0.006Si0.006O0.018K0.000015I0.000015",
+          "type": "empirical_formula"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "elemental analysis",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "elemental analysis--salt-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "bounds": {
+      "default_units": "gram",
+      "lower_bound": 0.001,
+      "type": "real_bounds",
+      "upper_bound": 10000.0
+    },
+    "description": "Specified sample size in mass units, to go along with FDA Nutrition Facts",
+    "name": "Expected Sample Mass",
+    "tags": [],
+    "type": "parameter_template",
+    "uids": {
+      "citrine-demo-template": "expected-sample-mass"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "nominal": 100.0,
+          "type": "nominal_real",
+          "units": "milligram"
+        }
+      }
+    ],
+    "file_links": [],
+    "name": "Elemental analysis",
+    "notes": null,
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Expected Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 0.1,
+          "type": "nominal_real",
+          "units": "gram"
+        }
+      }
+    ],
+    "tags": [],
+    "template": {
+      "id": "elemental-analysis",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "elemental analysis"
+    }
+  },
+  {
+    "conditions": [
+      [
+        {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "description": null,
+    "name": "Elemental Analysis",
+    "parameters": [
+      [
+        {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "properties": [
+      [
+        {
+          "id": "chemical-formula",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "measurement_template",
+    "uids": {
+      "citrine-demo-template": "elemental-analysis"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Acme Salt",
+    "notes": "The spec says \"Purchasing salt\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-salt",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-salt-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "leavening",
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "baking-powder-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "baking powder",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "baking-powder--mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "leavening",
+      "dry-goods"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "baking-powder--mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": {
+      "mean": 0.01879049251244904,
+      "std": 0.005,
+      "type": "normal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Acme Baking Powder",
+    "notes": "The spec says \"Leavening agent for cake\"",
+    "process": {
+      "id": "procuring-baking-powder-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "baking-powder",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "leavening",
+      "dry-goods"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "baking-powder-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Acme Baking Powder",
+    "notes": "The spec says \"Purchasing baking powder\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-baking-powder",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-baking-powder-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "dry"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "flour-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "flour",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "flour--mixing-dry-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "flour",
+      "dry-goods"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "flour--mixing-dry-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": {
+      "mean": 0.987429797219438,
+      "std": 0.005,
+      "type": "normal_real",
+      "units": "dimensionless"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "A1 Flour",
+    "notes": "The spec says \"All-purpose flour\"",
+    "process": {
+      "id": "procuring-flour-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "flour",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "flour",
+      "dry-goods"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "flour-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Sample Mass",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "mean": 99.08690088584619,
+          "std": 1.5,
+          "type": "normal_real",
+          "units": "milligram"
+        }
+      }
+    ],
+    "file_links": [],
+    "material": {
+      "id": "flour-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Flour nutritional analysis",
+    "notes": null,
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Expected Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 0.1,
+          "type": "nominal_real",
+          "units": "gram"
+        }
+      }
+    ],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Nutritional Information",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "nutritional-information",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "quantities": {
+            "dietary-fiber": 0.992044205530397,
+            "other": 3.981161669377761,
+            "other-carbohydrate": 19.943591752193853,
+            "protein": 3.9875164577983178,
+            "sugars": 0.9975985460127468
+          },
+          "type": "nominal_composition"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "nutritional analysis",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "nutritional analysis--flour-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "nominal": 100.0,
+          "type": "nominal_real",
+          "units": "milligram"
+        }
+      }
+    ],
+    "file_links": [],
+    "name": "Nutritional analysis",
+    "notes": null,
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Expected Sample Mass",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 0.1,
+          "type": "nominal_real",
+          "units": "gram"
+        }
+      }
+    ],
+    "tags": [],
+    "template": {
+      "id": "nutritional-analysis",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "nutritional analysis"
+    }
+  },
+  {
+    "conditions": [
+      [
+        {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "description": null,
+    "name": "Nutritional Analysis",
+    "parameters": [
+      [
+        {
+          "id": "expected-sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "properties": [
+      [
+        {
+          "id": "nutritional-information",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "measurement_template",
+    "uids": {
+      "citrine-demo-template": "nutritional-analysis"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring A1 Flour",
+    "notes": "The spec says \"Purchasing all purpose flour\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-flour",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-flour-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "wet ingredients",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-batter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "wet-ingredients--mixing-batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "wet-ingredients--mixing-batter-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Wet Ingredients",
+    "notes": "The spec says \"The wet fraction of a batter\"",
+    "process": {
+      "id": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Wet Ingredients",
+    "notes": "The spec says \"Combining wet ingredients to make a baking feedstock\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixing"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 2.020403745809996,
+      "std": 0.1,
+      "type": "normal_real",
+      "units": "teaspoon"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "flavoring"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "vanilla-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "vanilla",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "vanilla--mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "vanilla--mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "A1 Vanilla",
+    "notes": "The spec says \"Vanilla Extract is mostly alcohol but the most important component is vanillin (see attached structure)\"",
+    "process": {
+      "id": "procuring-vanilla-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "vanilla",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "vanilla-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring A1 Vanilla",
+    "notes": "The spec says \"Purchasing vanilla\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-vanilla",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::solution"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-vanilla-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 4.086407845168961,
+      "std": 0.2,
+      "type": "normal_real",
+      "units": "dimensionless"
+    },
+    "file_links": [],
+    "labels": [
+      "wet"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "eggs-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "eggs",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "eggs--mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "eggs--mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Greenbrook Eggs",
+    "notes": "The spec says \"A custard waiting to happen\"",
+    "process": {
+      "id": "procuring-eggs-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "eggs",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "eggs-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Greenbrook Eggs",
+    "notes": "The spec says \"Purchasing eggs\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-eggs",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::produce"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-eggs-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 1.0044941480603216,
+      "std": 0.05,
+      "type": "normal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "shortening"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "butter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "butter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "butter--mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "butter--mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Fresh Farm Butter",
+    "notes": "The spec says \"Shortening for making rich, buttery baked goods\"",
+    "process": {
+      "id": "procuring-butter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "butter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "butter-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Fresh Farm Butter",
+    "notes": "The spec says \"Purchasing butter\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-butter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::produce"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-butter-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 1.9898418092567707,
+      "std": 0.1,
+      "type": "normal_real",
+      "units": "cup"
+    },
+    "file_links": [],
+    "labels": [
+      "wet",
+      "sweetener"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "sugar-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "sugar",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "sugar--mixing-wet-ingredients",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "sugar--mixing-wet-ingredients-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Reliable Sugar",
+    "notes": "The spec says \"Sugar\"",
+    "process": {
+      "id": "procuring-sugar-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "sugar-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Reliable Sugar",
+    "notes": "The spec says \"Purchasing granulated sugar\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-sugar-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "precursor"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "batter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "batter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "baking-baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixture"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "batter--baking-baked-cake"
+    },
+    "volume_fraction": null
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Cooking time",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "cooking-time",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "mean": 50,
+          "std": 5,
+          "type": "normal_real",
+          "units": "minute"
+        }
+      }
+    ],
+    "file_links": [],
+    "name": "Baking Baked Cake",
+    "notes": "Using heat to convert batter into a solid matrix",
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Oven temperature setting",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "oven-temperature-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 350.0,
+          "type": "nominal_real",
+          "units": "degree_Fahrenheit"
+        }
+      }
+    ],
+    "tags": [
+      "oven::baking"
+    ],
+    "template": {
+      "id": "baking",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "baking-baked-cake"
+    }
+  },
+  {
+    "file_links": [],
+    "name": "Baked Cake",
+    "notes": "The cakey part of the cake",
+    "process": {
+      "id": "baking-baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Toothpick test",
+          "notes": null,
+          "origin": "unknown",
+          "template": {
+            "id": "toothpick-test",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "category": "completely clean",
+            "type": "nominal_categorical"
+          }
+        },
+        "type": "property_and_conditions"
+      },
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Color",
+          "notes": null,
+          "origin": "specified",
+          "template": {
+            "id": "color",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "category": "Golden brown",
+            "type": "nominal_categorical"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "substrate"
+    ],
+    "template": {
+      "id": "baked-good",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "baked-cake"
+    }
+  },
+  {
+    "description": null,
+    "name": "Baked Good",
+    "properties": [
+      [
+        {
+          "id": "toothpick-test",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ],
+      [
+        {
+          "id": "color",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "material_template",
+    "uids": {
+      "citrine-demo-template": "baked-good"
+    }
+  },
+  {
+    "bounds": {
+      "default_units": "hour",
+      "lower_bound": 0,
+      "type": "real_bounds",
+      "upper_bound": 168.0
+    },
+    "description": "The time elapsed during a cooking process",
+    "name": "Cooking time",
+    "tags": [],
+    "type": "condition_template",
+    "uids": {
+      "citrine-demo-template": "cooking-time"
+    }
+  },
+  {
+    "bounds": {
+      "default_units": "kelvin",
+      "lower_bound": 0,
+      "type": "real_bounds",
+      "upper_bound": 2000.0
+    },
+    "description": "Where the knob points",
+    "name": "Oven temperature setting",
+    "tags": [],
+    "type": "parameter_template",
+    "uids": {
+      "citrine-demo-template": "oven-temperature-setting"
+    }
+  },
+  {
+    "allowed_labels": [
+      "precursor"
+    ],
+    "allowed_names": [
+      "batter"
+    ],
+    "conditions": [
+      [
+        {
+          "id": "oven-temperature",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        {
+          "default_units": "degree_Fahrenheit",
+          "lower_bound": 0,
+          "type": "real_bounds",
+          "upper_bound": 700
+        }
+      ]
+    ],
+    "description": "Using heat to promote chemical reactions in a material",
+    "name": "Baking",
+    "parameters": [
+      [
+        {
+          "id": "oven-temperature-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        {
+          "default_units": "degree_Fahrenheit",
+          "lower_bound": 100,
+          "type": "real_bounds",
+          "upper_bound": 550
+        }
+      ]
+    ],
+    "tags": [],
+    "type": "process_template",
+    "uids": {
+      "citrine-demo-template": "baking"
+    }
+  },
+  {
+    "bounds": {
+      "default_units": "kelvin",
+      "lower_bound": 0,
+      "type": "real_bounds",
+      "upper_bound": 2000.0
+    },
+    "description": "Actual temperature measured by the thermocouple",
+    "name": "Oven temperature",
+    "tags": [],
+    "type": "condition_template",
+    "uids": {
+      "citrine-demo-template": "oven-temperature"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "substrate"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "baked-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "baked cake",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "substrate"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "baked-cake--icing-cake"
+    },
+    "volume_fraction": null
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Icing Cake",
+    "notes": "The act of covering a baked output with frosting",
+    "parameters": [],
+    "tags": [
+      "spreading"
+    ],
+    "template": {
+      "id": "icing",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "icing-cake"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "nominal": 0.751,
+      "type": "nominal_real",
+      "units": "kilogram"
+    },
+    "file_links": [],
+    "labels": [
+      "coating"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "frosting",
+    "notes": "Seems like a lot of frosting",
+    "number_fraction": null,
+    "process": {
+      "id": "icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "frosting::chocolate",
+      "topping::chocolate"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "frosting--icing-cake"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Frosting",
+    "notes": "Chocolate frosting",
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "frosting::chocolate",
+      "topping::chocolate"
+    ],
+    "template": {
+      "id": "dessert",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "frosting"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Frosting",
+    "notes": "Combining ingredients to make a sweet frosting",
+    "parameters": [
+      {
+        "file_links": [],
+        "name": "Mixer speed setting",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "mixer-speed-setting",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "parameter",
+        "value": {
+          "nominal": 2,
+          "type": "nominal_integer"
+        }
+      }
+    ],
+    "tags": [
+      "mixing"
+    ],
+    "template": {
+      "id": "mixing",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "mixing-frosting"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "nominal": 0.6387,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "material": {
+      "id": "powdered-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "powdered sugar",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "powdered-sugar--mixing-frosting"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Powdered Sugar",
+    "notes": "Granulated sugar mixed with corn starch",
+    "process": {
+      "id": "procuring-powdered-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "powdered-sugar"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Powdered Sugar",
+    "notes": "Purchasing powdered sugar",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-powdered-sugar"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "nominal": 0.1132,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "material": {
+      "id": "chocolate",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "chocolate",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "chocolate--mixing-frosting"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Chocolate",
+    "notes": "",
+    "process": {
+      "id": "procuring-chocolate",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [],
+    "tags": [
+      "raw material"
+    ],
+    "template": {
+      "id": "generic-material",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "chocolate"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Chocolate",
+    "notes": "Purchasing chocolate",
+    "parameters": [],
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "template": {
+      "id": "procuring",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "process_spec",
+    "uids": {
+      "citrine-demo": "procuring-chocolate"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [],
+    "mass_fraction": {
+      "nominal": 0.0816,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "material": {
+      "id": "milk",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "milk",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "milk--mixing-frosting"
+    },
+    "volume_fraction": null
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "nominal": 0.0231,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "material": {
+      "id": "vanilla",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "vanilla",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "vanilla--mixing-frosting"
+    },
+    "volume_fraction": null
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "shortening"
+    ],
+    "mass_fraction": {
+      "nominal": 0.1434,
+      "type": "nominal_real",
+      "units": "dimensionless"
+    },
+    "material": {
+      "id": "butter",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "butter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "type": "ingredient_spec",
+    "uids": {
+      "citrine-demo": "butter--mixing-frosting"
+    },
+    "volume_fraction": null
+  },
+  {
+    "description": null,
+    "name": "Dessert",
+    "properties": [
+      [
+        {
+          "id": "tastiness",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        null
+      ]
+    ],
+    "tags": [],
+    "type": "material_template",
+    "uids": {
+      "citrine-demo-template": "dessert"
+    }
+  },
+  {
+    "file_links": [
+      {
+        "filename": "Becky's Butter Cake",
+        "type": "file_link",
+        "url": "https://www.landolakes.com/recipe/16730/becky-s-butter-cake/"
+      }
+    ],
+    "name": "Cake",
+    "notes": "Butter cake recipe reminiscent of the 1-2-3-4 cake that Grandma may have baked.",
+    "process": {
+      "id": "icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "properties": [
+      {
+        "conditions": [],
+        "property": {
+          "file_links": [],
+          "name": "Tastiness",
+          "notes": null,
+          "origin": "specified",
+          "template": {
+            "id": "tastiness",
+            "scope": "citrine-demo-template",
+            "type": "link_by_uid"
+          },
+          "type": "property",
+          "value": {
+            "nominal": 5,
+            "type": "nominal_integer"
+          }
+        },
+        "type": "property_and_conditions"
+      }
+    ],
+    "tags": [
+      "cake::butter cake",
+      "dessert::baked::cake",
+      "iced::chocolate"
+    ],
+    "template": {
+      "id": "dessert",
+      "scope": "citrine-demo-template",
+      "type": "link_by_uid"
+    },
+    "type": "material_spec",
+    "uids": {
+      "citrine-demo": "cake"
+    }
+  },
+  {
+    "allowed_labels": [
+      "coating",
+      "substrate"
+    ],
+    "allowed_names": [],
+    "conditions": [],
+    "description": "Applying a coating to a substrate",
+    "name": "Icing",
+    "parameters": [],
+    "tags": [],
+    "type": "process_template",
+    "uids": {
+      "citrine-demo-template": "icing"
+    }
+  },
+  {
+    "absolute_quantity": {
+      "mean": 0.7742382272965047,
+      "std": 0.03755,
+      "type": "normal_real",
+      "units": "kilogram"
+    },
+    "file_links": [],
+    "labels": [
+      "coating"
+    ],
+    "mass_fraction": null,
+    "material": {
+      "id": "frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "frosting",
+    "notes": "The spec says \"Seems like a lot of frosting\"",
+    "number_fraction": null,
+    "process": {
+      "id": "icing-cake-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "frosting--icing-cake",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "frosting::chocolate",
+      "topping::chocolate"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "frosting--icing-cake-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Frosting",
+    "notes": "The spec says \"Chocolate frosting\"",
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "frosting::chocolate",
+      "topping::chocolate"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "frosting-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "material": {
+      "id": "frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Frosting Sweetness",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Sweetness (Sucrose-basis)",
+        "notes": null,
+        "origin": "measured",
+        "template": null,
+        "type": "property",
+        "value": {
+          "nominal": 1.7,
+          "type": "nominal_real",
+          "units": "dimensionless"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "sweetness",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "sweetness--frosting-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Sweetness",
+    "notes": null,
+    "parameters": [],
+    "tags": [],
+    "template": null,
+    "type": "measurement_spec",
+    "uids": {
+      "citrine-demo": "sweetness"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "material": {
+      "id": "frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Frosting Taste",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Tastiness",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "tastiness",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "nominal": 4,
+          "type": "nominal_integer"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "taste",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "taste--frosting-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Mixing Frosting",
+    "notes": "The spec says \"Combining ingredients to make a sweet frosting\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "gwash",
+      "performed_date": "2015-03-14",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "mixing"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "lower_bound": 0.5752450757806378,
+      "type": "uniform_real",
+      "units": "dimensionless",
+      "upper_bound": 0.6391150757806378
+    },
+    "material": {
+      "id": "powdered-sugar-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "powdered sugar",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "powdered-sugar--mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "powdered-sugar--mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "A1 Powdered Sugar",
+    "notes": "The spec says \"Granulated sugar mixed with corn starch\"",
+    "process": {
+      "id": "procuring-powdered-sugar-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "powdered-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "sweetener",
+      "dry-goods"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "powdered-sugar-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [
+      {
+        "file_links": [],
+        "name": "Sample Mass",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "sample-mass",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "condition",
+        "value": {
+          "mean": 99.24965232570642,
+          "std": 1.5,
+          "type": "normal_real",
+          "units": "milligram"
+        }
+      }
+    ],
+    "file_links": [],
+    "material": {
+      "id": "powdered-sugar-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "Sugar elemental analysis",
+    "notes": null,
+    "parameters": [],
+    "properties": [
+      {
+        "file_links": [],
+        "name": "Composition",
+        "notes": null,
+        "origin": "measured",
+        "template": {
+          "id": "chemical-formula",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "formula": "C11.996H21.995O10.997S0.00015",
+          "type": "empirical_formula"
+        }
+      }
+    ],
+    "source": null,
+    "spec": {
+      "id": "elemental analysis",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [],
+    "type": "measurement_run",
+    "uids": {
+      "citrine-demo": "elemental analysis--powdered-sugar-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring A1 Powdered Sugar",
+    "notes": "The spec says \"Purchasing powdered sugar\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-powdered-sugar",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-powdered-sugar-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "lower_bound": 0.1097829379512667,
+      "type": "uniform_real",
+      "units": "dimensionless",
+      "upper_bound": 0.12110293795126671
+    },
+    "material": {
+      "id": "chocolate-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "chocolate",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "chocolate--mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "chocolate--mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "file_links": [],
+    "name": "Reliable Chocolate",
+    "notes": null,
+    "process": {
+      "id": "procuring-chocolate-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "sample_type": "unknown",
+    "spec": {
+      "id": "chocolate",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material"
+    ],
+    "type": "material_run",
+    "uids": {
+      "citrine-demo": "chocolate-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "conditions": [],
+    "file_links": [],
+    "name": "Procuring Reliable Chocolate",
+    "notes": "The spec says \"Purchasing chocolate\"",
+    "parameters": [],
+    "source": {
+      "performed_by": "hamilton",
+      "performed_date": "2015-02-17",
+      "type": "performed_source"
+    },
+    "spec": {
+      "id": "procuring-chocolate",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "purchase::dry-goods"
+    ],
+    "type": "process_run",
+    "uids": {
+      "citrine-demo": "procuring-chocolate-d576929a6c518c058db29324c13db0c3"
+    }
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [],
+    "mass_fraction": {
+      "lower_bound": 0.0757074301480406,
+      "type": "uniform_real",
+      "units": "dimensionless",
+      "upper_bound": 0.08386743014804059
+    },
+    "material": {
+      "id": "milk-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "milk",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "milk--mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "dairy"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "milk--mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "flavoring"
+    ],
+    "mass_fraction": {
+      "lower_bound": 0.021287374790468525,
+      "type": "uniform_real",
+      "units": "dimensionless",
+      "upper_bound": 0.023597374790468525
+    },
+    "material": {
+      "id": "vanilla-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "vanilla",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "vanilla--mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "seasoning"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "vanilla--mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  },
+  {
+    "absolute_quantity": null,
+    "file_links": [],
+    "labels": [
+      "shortening"
+    ],
+    "mass_fraction": {
+      "lower_bound": 0.14000850580995353,
+      "type": "uniform_real",
+      "units": "dimensionless",
+      "upper_bound": 0.15434850580995355
+    },
+    "material": {
+      "id": "butter-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "name": "butter",
+    "notes": null,
+    "number_fraction": null,
+    "process": {
+      "id": "mixing-frosting-d576929a6c518c058db29324c13db0c3",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "spec": {
+      "id": "butter--mixing-frosting",
+      "scope": "citrine-demo",
+      "type": "link_by_uid"
+    },
+    "tags": [
+      "raw material",
+      "produce",
+      "shortening",
+      "dairy"
+    ],
+    "type": "ingredient_run",
+    "uids": {
+      "citrine-demo": "butter--mixing-frosting-d576929a6c518c058db29324c13db0c3"
+    },
+    "volume_fraction": null
+  }
+]

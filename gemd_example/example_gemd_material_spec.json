@@ -1,0 +1,52 @@
+{
+  "file_links": [
+    {
+      "filename": "Becky's Butter Cake",
+      "type": "file_link",
+      "url": "https://www.landolakes.com/recipe/16730/becky-s-butter-cake/"
+    }
+  ],
+  "name": "Cake",
+  "notes": "Butter cake recipe reminiscent of the 1-2-3-4 cake that Grandma may have baked.",
+  "process": {
+    "id": "icing-cake",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "properties": [
+    {
+      "conditions": [],
+      "property": {
+        "file_links": [],
+        "name": "Tastiness",
+        "notes": null,
+        "origin": "specified",
+        "template": {
+          "id": "tastiness",
+          "scope": "citrine-demo-template",
+          "type": "link_by_uid"
+        },
+        "type": "property",
+        "value": {
+          "nominal": 5,
+          "type": "nominal_integer"
+        }
+      },
+      "type": "property_and_conditions"
+    }
+  ],
+  "tags": [
+    "cake::butter cake",
+    "dessert::baked::cake",
+    "iced::chocolate"
+  ],
+  "template": {
+    "id": "dessert",
+    "scope": "citrine-demo-template",
+    "type": "link_by_uid"
+  },
+  "type": "material_spec",
+  "uids": {
+    "citrine-demo": "cake"
+  }
+}

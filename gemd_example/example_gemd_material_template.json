@@ -1,0 +1,19 @@
+{
+  "description": null,
+  "name": "Dessert",
+  "properties": [
+    [
+      {
+        "id": "tastiness",
+        "scope": "citrine-demo-template",
+        "type": "link_by_uid"
+      },
+      null
+    ]
+  ],
+  "tags": [],
+  "type": "material_template",
+  "uids": {
+    "citrine-demo-template": "dessert"
+  }
+}

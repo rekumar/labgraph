@@ -1,0 +1,24 @@
+{
+  "conditions": [],
+  "file_links": [],
+  "name": "Icing Cake",
+  "notes": "The spec says \"The act of covering a baked output with frosting\"",
+  "parameters": [],
+  "source": {
+    "performed_by": "gwash",
+    "performed_date": "2015-03-14",
+    "type": "performed_source"
+  },
+  "spec": {
+    "id": "icing-cake",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "tags": [
+    "spreading"
+  ],
+  "type": "process_run",
+  "uids": {
+    "citrine-demo": "icing-cake-d576929a6c518c058db29324c13db0c3"
+  }
+}

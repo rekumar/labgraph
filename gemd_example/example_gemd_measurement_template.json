@@ -1,0 +1,21 @@
+{
+  "conditions": [],
+  "description": null,
+  "name": "Taste test",
+  "parameters": [],
+  "properties": [
+    [
+      {
+        "id": "tastiness",
+        "scope": "citrine-demo-template",
+        "type": "link_by_uid"
+      },
+      null
+    ]
+  ],
+  "tags": [],
+  "type": "measurement_template",
+  "uids": {
+    "citrine-demo-template": "taste-test"
+  }
+}

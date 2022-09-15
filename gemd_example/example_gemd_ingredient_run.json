@@ -1,0 +1,40 @@
+{
+  "absolute_quantity": {
+    "mean": 0.7742382272965047,
+    "std": 0.03755,
+    "type": "normal_real",
+    "units": "kilogram"
+  },
+  "file_links": [],
+  "labels": [
+    "coating"
+  ],
+  "mass_fraction": null,
+  "material": {
+    "id": "frosting-d576929a6c518c058db29324c13db0c3",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "name": "frosting",
+  "notes": "The spec says \"Seems like a lot of frosting\"",
+  "number_fraction": null,
+  "process": {
+    "id": "icing-cake-d576929a6c518c058db29324c13db0c3",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "spec": {
+    "id": "frosting--icing-cake",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "tags": [
+    "frosting::chocolate",
+    "topping::chocolate"
+  ],
+  "type": "ingredient_run",
+  "uids": {
+    "citrine-demo": "frosting--icing-cake-d576929a6c518c058db29324c13db0c3"
+  },
+  "volume_fraction": null
+}

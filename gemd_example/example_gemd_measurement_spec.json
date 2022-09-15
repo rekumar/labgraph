@@ -1,0 +1,17 @@
+{
+  "conditions": [],
+  "file_links": [],
+  "name": "Taste",
+  "notes": null,
+  "parameters": [],
+  "tags": [],
+  "template": {
+    "id": "taste-test",
+    "scope": "citrine-demo-template",
+    "type": "link_by_uid"
+  },
+  "type": "measurement_spec",
+  "uids": {
+    "citrine-demo": "taste"
+  }
+}

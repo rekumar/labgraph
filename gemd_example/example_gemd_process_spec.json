@@ -1,0 +1,19 @@
+{
+  "conditions": [],
+  "file_links": [],
+  "name": "Icing Cake",
+  "notes": "The act of covering a baked output with frosting",
+  "parameters": [],
+  "tags": [
+    "spreading"
+  ],
+  "template": {
+    "id": "icing",
+    "scope": "citrine-demo-template",
+    "type": "link_by_uid"
+  },
+  "type": "process_spec",
+  "uids": {
+    "citrine-demo": "icing-cake"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "allowed_labels": [
+    "wet",
+    "dry",
+    "leavening",
+    "seasoning",
+    "sweetener",
+    "shortening",
+    "flavoring"
+  ],
+  "allowed_names": [],
+  "conditions": [],
+  "description": "Physically combining ingredients",
+  "name": "Mixing",
+  "parameters": [
+    [
+      {
+        "id": "mixer-speed-setting",
+        "scope": "citrine-demo-template",
+        "type": "link_by_uid"
+      },
+      null
+    ]
+  ],
+  "tags": [],
+  "type": "process_template",
+  "uids": {
+    "citrine-demo-template": "mixing"
+  }
+}

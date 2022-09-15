@@ -1,0 +1,31 @@
+{
+  "file_links": [
+    {
+      "filename": "Photo",
+      "type": "file_link",
+      "url": "https://storcpdkenticomedia.blob.core.windows.net/media/recipemanagementsystem/media/recipe-media-files/recipes/retail/x17/16730-beckys-butter-cake-600x600.jpg?ext=.jpg"
+    }
+  ],
+  "name": "Cake",
+  "notes": "The spec says \"Butter cake recipe reminiscent of the 1-2-3-4 cake that Grandma may have baked.\"; Tr\u00e8s d\u00e9licieux! \ud83d\ude00",
+  "process": {
+    "id": "icing-cake-d576929a6c518c058db29324c13db0c3",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "sample_type": "unknown",
+  "spec": {
+    "id": "cake",
+    "scope": "citrine-demo",
+    "type": "link_by_uid"
+  },
+  "tags": [
+    "cake::butter cake",
+    "dessert::baked::cake",
+    "iced::chocolate"
+  ],
+  "type": "material_run",
+  "uids": {
+    "citrine-demo": "cake-d576929a6c518c058db29324c13db0c3"
+  }
+}
