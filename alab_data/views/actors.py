@@ -26,6 +26,7 @@ class ActorView:
                 "created_at": datetime.now(),
             }
         )
+        actor.id = result.inserted_id
         return cast(ObjectId, result.inserted_id)
 
     def get(self, id: ObjectId) -> Actor:

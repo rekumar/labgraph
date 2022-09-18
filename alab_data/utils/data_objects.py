@@ -8,8 +8,7 @@ import pymongo
 from pymongo import collection, database
 
 from .db_lock import MongoLock
-
-
+    
 class _GetMongoCollection:
     client: Optional[pymongo.MongoClient] = None
     db: Optional[database.Database] = None
