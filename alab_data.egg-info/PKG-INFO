@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: alab-data
+Version: 0.0.1
+Summary: A library for storing experimental materials science data.
+Download-URL: https://github.com/rekumar/alab_data
+Author: Rishi Kumar
+Author-email: rekumar@lbl.gov
+License: MIT
+Keywords: materials,science,machine,automation,data,mongodb,storage
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Intended Audience :: Science/Research
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Scientific/Engineering :: Information Analysis
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Description-Content-Type: text/markdown
