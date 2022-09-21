@@ -1,4 +1,5 @@
-from .units import (
+from .groups import SampleView
+from .nodes import (
     MaterialView,
     ActionView,
     MeasurementView,

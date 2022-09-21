@@ -1,8 +1,13 @@
-from alab_data.units.nodes import (
+from alab_data.data import (
     Material,
     Action,
     Measurement,
     Analysis,
     Ingredient,
+    WholeIngredient,
+    Actor,
+    AnalysisMethod,
+    Sample,
 )
-from alab_data.units.actors import Actor, AnalysisMethod
+
+from alab_data.views import SampleView

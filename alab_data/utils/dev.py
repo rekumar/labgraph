@@ -6,6 +6,7 @@ def drop_collections():
         AnalysisView,
         AnalysisMethodView,
         ActorView,
+        SampleView,
     )
 
     for view in [
@@ -15,5 +16,6 @@ def drop_collections():
         AnalysisView(),
         AnalysisMethodView(),
         ActorView(),
+        SampleView(),
     ]:
         view._collection.drop()
