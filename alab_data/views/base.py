@@ -1,7 +1,8 @@
 from bson import ObjectId
 from datetime import datetime
-from typing import cast
+from typing import cast, List, Dict
 from alab_data.utils.data_objects import get_collection
+from alab_data.data.nodes import BaseObject
 
 
 class NotFoundInDatabaseError(ValueError):
@@ -32,12 +33,11 @@ class BaseView:
         try:
             self.get(id=entry.id)
             found_in_db = True
-        except ValueError:
+        except NotFoundInDatabaseError:
             pass
         if not self.allow_duplicate_names and not found_in_db:
             try:
                 self.get_by_name(name=entry.name)
-                found_in_db = True
             except NotFoundInDatabaseError:
                 pass  # entry is not in db, we can proceed to add it
         if found_in_db:
@@ -57,19 +57,25 @@ class BaseView:
         entry._id = result.inserted_id
         return cast(ObjectId, result.inserted_id)
 
-    def get_by_tags(self, tags: list):
-        data = self._collection.find({"tags": {"$all": tags}})
-        return [self._entry_to_object(entry) for entry in data]
+    def get_by_tags(self, tags: list) -> List[BaseObject]:
+        results = self._collection.find({"tags": {"$all": tags}})
+        entries = [self._entry_to_object(entry) for entry in results]
+        if len(entries) is None:
+            raise NotFoundInDatabaseError(
+                f"Cannot find a {self._entry_class.__name__} with tags: {tags}"
+            )
+        return entries
 
-    def get_by_name(self, name: str):
-        data = self._collection.find_one({"name": name})
-        if data is None:
+    def get_by_name(self, name: str) -> List[BaseObject]:
+        results = self._collection.find({"name": name})
+        entries = [self._entry_to_object(entry) for entry in results]
+        if len(entries) == 0:
             raise NotFoundInDatabaseError(
                 f"Cannot find an {self._entry_class.__name__} with name: {name}"
             )
-        return self._entry_to_object(data)
+        return entries
 
-    def get(self, id: ObjectId):
+    def get(self, id: ObjectId) -> BaseObject:
         data = self._collection.find_one({"_id": id})
         if data is None:
             raise NotFoundInDatabaseError(
@@ -84,28 +90,58 @@ class BaseView:
                 f"Could not find a {self._entry_class.__name__} with id: {id}. Nothing was removed from the database."
             )
 
+    def filter(
+        self,
+        filter_dict: Dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> List[BaseObject]:
+        """Thin wrapper around pymongo find method, with an extra datetime filter
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            List[BaseObject]: List of Objects (nodes or samples) that match the filter
+        """
+        if datetime_min is not None:
+            if "created_at" in filter_dict:
+                filter_dict["created_at"]["$gte"] = datetime_max
+            else:
+                filter_dict["created_at"] = {"$gte": datetime_min}
+        if datetime_max is not None:
+            if "created_at" in filter_dict:
+                filter_dict["created_at"]["$lte"] = datetime_max
+            else:
+                filter_dict["created_at"] = {"$lte": datetime_max}
+
+        results = self._collection.find(filter_dict)
+        return [self._entry_to_object(result) for result in results]
+
+    def filter_one(
+        self,
+        filter_dict: Dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ):
+        """Return only the first entry from BaseView.filter. Useful if only one matching entry is expected."""
+        return self.filter(filter_dict, datetime_min, datetime_max)[0]
+
     def _entry_to_object(self, entry: dict):
         id = entry.pop("_id")
         entry.pop("created_at")
+
+        is_dag_node = "upstream" in entry
+        if is_dag_node:
+            us = entry.pop("upstream")
+            ds = entry.pop("downstream")
+
         obj = self._entry_class(**entry)
         obj._id = id
+
+        if is_dag_node:
+            obj.upstream = us
+            obj.downstream = ds
         return obj
-
-
-# class BaseCompositeView:
-#     def __init__(self, base_collection: BaseView):
-#         self._base_collection = base_collection
-
-#     def get(self, id: ObjectId):
-#         return self._base_collection.get(id=id)
-
-#     def get_by_name(self, name: str):
-#         return self._base_collection.get_by_name(name=name)
-
-#     def get_by_tags(self, tags: list):
-#         return self._base_collection.get_by_tags(tags=tags)
-
-#     def add(self, entry, pass_if_already_in_db: bool = False) -> ObjectId:
-#         return self._base_collection.add(
-#             entry=entry, pass_if_already_in_db=pass_if_already_in_db
-#         )

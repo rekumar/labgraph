@@ -2,6 +2,7 @@ from typing import List, Union
 import networkx as nx
 from bson import ObjectId
 import matplotlib.pyplot as plt
+import itertools as itt
 
 from .nodes import (
     Material,
@@ -48,11 +49,19 @@ class Sample:
             raise ValueError(
                 "Node must be a Material, Action, Analysis, or Measurement object!"
             )
-        self.graph.add_node(node.id, type=type(node), name=node.name)
+        self.graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
         for upstream in node.upstream:
-            self.graph.add_edge(upstream, node.id)
+            if upstream["node_id"] not in self.graph.nodes:
+                self.graph.add_node(
+                    upstream["node_id"], type=upstream["node_type"], name=""
+                )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
+            self.graph.add_edge(upstream["node_id"], node.id)
         for downstream in node.downstream:
-            self.graph.add_edge(node.id, downstream)
+            if downstream["node_id"] not in self.graph.nodes:
+                self.graph.add_node(
+                    downstream["node_id"], type=downstream["node_type"], name=""
+                )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
+            self.graph.add_edge(node.id, downstream["node_id"])
         self.nodes.append(node)
 
     def add_linear_process(self, actions: List[Action]):
@@ -68,9 +77,9 @@ class Sample:
                     "All Actions of a linear process (except the final Action) must generate exactly one material!"
                 )
         # add the initial action + ingredient materials
-        self.add_node(actions[0])
         for ingredient in actions[0].ingredients:
             self.add_node(ingredient.material)
+        self.add_node(actions[0])
 
         # add the intervening actions and implicit intermediate materials
         for action0, action1 in zip(actions, actions[1:]):
@@ -92,6 +101,32 @@ class Sample:
         return nx.is_directed_acyclic_graph(self.graph) and (
             len(list(nx.isolates(self.graph))) == 0
         )
+
+    def get_action_graph(self, include_outside_nodes: bool = False) -> nx.DiGraph:
+        """
+        Return a reduced version of the Sample graph that only contains Actions. useful for comparing the process involved in making two Samples
+
+        Args:
+            include_outside_nodes (bool, optional): If True, include nodes that are not part of the Sample (ie Actions that are immediately upstream of the first Action within this Sample) in the returned graph. Defaults to False.
+        """
+        g = self.graph.copy()
+
+        nodes_to_delete = [
+            nid for nid, ndata in g.nodes(data=True) if ndata["type"] != "Action"
+        ]
+
+        for node in nodes_to_delete:
+            g.add_edges_from(itt.product(g.predecessors(node), g.successors(node)))
+            g.remove_node(node)
+
+        if not include_outside_nodes:
+            nodes_to_delete = []
+            for nid in g.nodes:
+                if not any([nid == node.id for node in self.nodes]):
+                    nodes_to_delete.append(nid)
+            for nid in nodes_to_delete:
+                g.remove_node(nid)
+        return g
 
     def to_dict(self) -> dict:
         node_dict = {
@@ -121,7 +156,9 @@ class Sample:
 
         color_key = {
             nodetype: plt.cm.tab10(i)
-            for i, nodetype in enumerate([Material, Action, Analysis, Measurement])
+            for i, nodetype in enumerate(
+                ["Material", "Action", "Analysis", "Measurement"]
+            )
         }
         node_colors = []
         node_labels = {}
@@ -136,5 +173,40 @@ class Sample:
             ax=ax,
         )
 
+    def _sort_nodes(self):
+        """
+        sort the node list in graph hierarchical order
+        """
+        weights = list(nx.topological_sort(self.graph))
+        self.nodes.sort(key=lambda node: weights.index(node.id))
+
     def __repr__(self):
-        return f"Sample({self.name})"
+        return f"<Sample: {self.name}>"
+
+    def __eq__(self, other):
+        if not isinstance(other, Sample):
+            return False
+        return other.id == self.id
+
+
+def action_sequence_distance(
+    s1: Sample, s2: Sample, include_outside_nodes: float = False
+) -> float:
+    """
+    Compute the distance between action sequences of two samples. This is the graph edit distance between subgraphs of each sample, where each subgraph is reduced to contain only Actions. Actions are considered equivalent if they have the same name.
+
+    Args:
+        s1 (Sample): Sample 1
+        s2 (Sample): Sample 2
+        include_outside_nodes (bool, optional): If True, include nodes that are not part of the Sample (ie Actions that are immediately upstream of the first Action within this Sample) in the returned graph. Defaults to False.
+
+    Returns:
+        float: distance between the two samples Action sequences. 0 means identical.
+    """
+
+    def node_match(n1, n2):
+        return (n1["type"] == n2["type"]) and (n1["name"] == n2["name"])
+
+    g1 = s1.get_action_graph(include_outside_nodes=include_outside_nodes)
+    g2 = s2.get_action_graph(include_outside_nodes=include_outside_nodes)
+    return nx.graph_edit_distance(g1, g2, node_match=node_match)

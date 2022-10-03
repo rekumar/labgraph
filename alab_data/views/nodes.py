@@ -28,11 +28,12 @@ class MeasurementView(BaseView):
     
     def _entry_to_object(self, entry: dict):
         actor = actorview.get(id=entry.pop("actor_id"))
-        id = entry.pop("_id")
+        _id = entry.pop("_id")
         entry.pop("created_at")
-        material = materialview.get(id=entry.pop("upstream")[0])
+        upstream_material_id = entry.pop("upstream")[0]["node_id"]
+        material = materialview.get(id=upstream_material_id)
         obj = Measurement(material=material, actor=actor, **entry)
-        obj._id = id
+        obj._id = _id
 
         return obj
 
@@ -49,17 +50,15 @@ class ActionView(BaseView):
         ]
         downstream = entry.pop("downstream")
         generated_materials = [
-            materialview.get(id=mat_id) for mat_id in downstream
+            materialview.get(id=ds["node_id"]) for ds in downstream
         ]
         upstream = entry.pop("upstream")
         entry.pop("created_at")
         id = entry.pop("_id")
         obj = Action(ingredients = ingredients, generated_materials=generated_materials, actor=actor, **entry)
         obj._id = id
-        for nodeid in upstream:
-            obj.add_upstream(nodeid)
-        for nodeid in downstream:
-            obj.add_downstream(nodeid)
+        obj.upstream = upstream
+        obj.downstream = downstream
 
         return obj
 
@@ -72,8 +71,8 @@ class AnalysisView(BaseView):
         id = entry.pop("_id")
         entry.pop("created_at")
         measurements = [
-            measurementview.get(id=meas_id)
-            for meas_id in entry.pop("upstream")
+            measurementview.get(id=meas["node_id"])
+            for meas in entry.pop("upstream")
         ]
         obj = Analysis(measurements=measurements, analysis_method=method, **entry)
         obj._id = id

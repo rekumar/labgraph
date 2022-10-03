@@ -1,5 +1,6 @@
+import datetime
 from bson import ObjectId
-from typing import List
+from typing import Dict, List
 from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
 
@@ -8,8 +9,8 @@ class BaseObject(ABC):
     def __init__(
         self,
         name: str,
-        upstream: List[ObjectId] = None,
-        downstream: List[ObjectId] = None,
+        upstream: List[Dict[str, ObjectId]] = None,
+        downstream: List[Dict[str, ObjectId]] = None,
         tags: List[str] = None,
     ):
         self.name = name
@@ -17,27 +18,40 @@ class BaseObject(ABC):
         if upstream is None:
             self.upstream = []
         else:
-            self.upstream = upstream
+            for us in upstream:
+                self.add_upstream(us)
         if downstream is None:
             self.downstream = []
         else:
-            self.downstream = downstream
+            for ds in downstream:
+                self.add_downstream(ds)
         if tags is None:
             self.tags = []
         else:
             self.tags = tags
 
-    def add_upstream(self, upstream: ObjectId):
-        self.upstream.append(upstream)
+    def add_upstream(self, upstream: "BaseObject"):
+        if not isinstance(upstream, BaseObject):
+            raise TypeError("Upstream nodes must be a BaseObject")
 
-    def add_downstream(self, downstream: ObjectId):
-        self.downstream.append(downstream)
+        self.upstream.append(
+            {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
+        )
+
+    def add_downstream(self, downstream: "BaseObject"):
+        if not isinstance(downstream, BaseObject):
+            raise TypeError("Upstream nodes must be a BaseObject")
+        self.downstream.append(
+            {"node_type": downstream.__class__.__name__, "node_id": downstream._id}
+        )
 
     def to_dict(self):
         mangle_prefix = "_" + self.__class__.__name__
         d = {
             k: v for k, v in self.__dict__.items() if not k.startswith(mangle_prefix)
         }  # dont include double underscored class attributes
+        params = d.pop("parameters", {})
+        d.update(params)
 
         return d
 
@@ -57,22 +71,45 @@ class BaseObject(ABC):
     def id(self):
         return self._id
 
+    def __hash__(self):
+        return hash(self.name + str(self.id))
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return other.id == self.id
+
+    # @abstractmethod
+    # def _entry_to_object(self, entry: Dict) -> "BaseObject":
+    #     """method to convert a database entry to a BaseObject of the correct type"""
+    #     raise NotImplementedError
+
 
 ## Materials
 class Material(BaseObject):
     def __init__(
         self,
         name: str,
-        intermediate: bool = False,
         tags: List[str] = None,
-        **attributes,
+        **parameters,
     ):
         super(Material, self).__init__(name=name, tags=tags)
-        self.intermediate = intermediate
-        self.attributes = attributes
+        self.parameters = parameters
 
     def is_valid(self) -> bool:
         return True
+
+    def _entry_to_object(self, entry: Dict) -> "Material":
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
+        _id = entry.pop("_id")
+        entry.pop("created_at")
+
+        obj = Material(**entry)
+        obj._id = _id
+        obj.upstream = upstream
+        obj.downstream = downstream
+        return obj
 
 
 ## Actions
@@ -109,49 +146,32 @@ class Action(BaseObject):
         actor: Actor,
         ingredients: List[Ingredient] = [],
         generated_materials: List[Material] = None,
-        final: bool = False,
         tags: List[str] = None,
         **parameters,
     ):
         super(Action, self).__init__(name=name, tags=tags)
         self.parameters = parameters
-        self.is_final_action = final
         self.__actor = actor
         self.actor_id = actor.id
-        self.__materials = set()
+        # self.__materials = set()
         self.ingredients = []
         if len(ingredients) > 0:
             for ingredient in ingredients:
                 self.add_ingredient(ingredient)
-        # else:
-        # if generated_materials is None:
-        #     raise ValueError(
-        #         "If input material is not specified, the generated material(s) must be specified!"
-        #     )
-        # if generated_materials is None:
-        #     generated_material_name = ""
-        #     for ingredient in ingredients:
-        #         generated_material_name += ingredient.name + "+"
-        #     generated_material_name = generated_material_name[:-1] + " - " + name
-        #     self.__generated_materials = [
-        #         Material(name=generated_material_name, intermediate=not final)
-        #     ]
-        # else:
-        #     self.__generated_materials = generated_materials
 
         if generated_materials is None:
             self.__generated_materials = []
         else:
             self.__generated_materials = generated_materials
         for material in self.__generated_materials:
-            material.add_upstream(self.id)
-            self.add_downstream(material.id)
+            material.add_upstream(self)
+            self.add_downstream(material)
 
     def add_ingredient(self, ingredient: Ingredient):
-        self.add_upstream(ingredient.material.id)
-        ingredient.material.add_downstream(self.id)
-        self.__materials.add(ingredient.material.id)
-        self.ingredients.append(ingredient.to_dict())
+        self.add_upstream(ingredient.material)
+        ingredient.material.add_downstream(self)
+        # self.__materials.add(ingredient.material)
+        self.ingredients.append(ingredient)
 
     @property
     def generated_materials(self):
@@ -168,26 +188,54 @@ class Action(BaseObject):
             )
         generated_material_name = ""
         for ingredient in self.ingredients:
-            generated_material_name += ingredient["name"] + "+"
+            generated_material_name += ingredient.name + "+"
 
         if len(generated_material_name) > 0:
             generated_material_name = generated_material_name[:-1] + " - " + self.name
         else:
             generated_material_name = "noingredients - " + self.name
 
-        generic_material = Material(
-            name=generated_material_name, intermediate=not self.is_final_action
-        )
-        generic_material.add_upstream(self.id)
+        generic_material = Material(name=generated_material_name)
+        generic_material.add_upstream(self)
         self.__generated_materials = [generic_material]
-        self.add_downstream(generic_material.id)
+        self.add_downstream(generic_material)
 
         return generic_material
 
     def is_valid(self) -> bool:
-        if len(self.generated_materials) == 0:
-            self.make_generic_generated_material()
+        # TODO do we want to enforce a created material? Or can we "destroy" materials via actions, ie a waste stream?
+        # if len(self.generated_materials) == 0:
+        #     self.make_generic_generated_material()
         return True
+
+    def _entry_to_object(self, entry: Dict) -> "Action":
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
+        _id = entry.pop("_id")
+        entry.pop("created_at")
+
+        ingredients = [
+            Ingredient(
+                name=i["name"],
+                material_id=i["material_id"],
+                amount=i["amount"],
+                unit=i["unit"],
+            )
+            for i in entry.pop("ingredients")
+        ]
+
+        obj = Action(ingredients=ingredients, **entry)
+        obj._id = _id
+        obj.upstream = upstream
+        obj.downstream = downstream
+        return obj
+
+    def to_dict(self):
+        d = super(Action, self).to_dict()
+        ingredients = d.pop("ingredients")
+        d["ingredients"] = [i.to_dict() for i in ingredients]
+
+        return d
 
 
 ## Measurements
@@ -205,8 +253,8 @@ class Measurement(BaseObject):
         self.__material = material
         self.__actor = actor
         self.actor_id = actor.id
-        self.material.add_downstream(self.id)
-        self.add_upstream(material.id)
+        self.material.add_downstream(self)
+        self.add_upstream(material)
 
     @property
     def material(self):
@@ -235,8 +283,8 @@ class Analysis(BaseObject):
         self.parameters = parameters
 
         for meas in self.__measurements:
-            meas.add_downstream(self.id)
-            self.add_upstream(meas.id)
+            meas.add_downstream(self)
+            self.add_upstream(meas)
 
         self.analysismethod_id = analysis_method.id
         self.__analysis_method = analysis_method

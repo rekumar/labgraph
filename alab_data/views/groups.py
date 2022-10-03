@@ -1,8 +1,13 @@
 from datetime import datetime
-from typing import List, cast
+from typing import Dict, List, cast
 from alab_data.data import Action, Analysis, Material, Measurement, Sample
 from alab_data.utils.data_objects import get_collection
-from alab_data.views.nodes import ActionView, MaterialView, AnalysisView, MeasurementView
+from alab_data.views.nodes import (
+    ActionView,
+    MaterialView,
+    AnalysisView,
+    MeasurementView,
+)
 from .base import BaseView, NotFoundInDatabaseError
 from bson import ObjectId
 
@@ -31,12 +36,6 @@ class SampleView(BaseView):
             found_in_db = True
         except ValueError:
             pass
-        if not self.allow_duplicate_names and not found_in_db:
-            try:
-                self.get_by_name(name=entry.name)
-                found_in_db = True
-            except ValueError:
-                pass  # entry is not in db, we can proceed to add it
         if found_in_db:
             raise ValueError(
                 f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
@@ -74,89 +73,30 @@ class SampleView(BaseView):
             node.id for node in sample.nodes
         ]  # all nodes that will be added along with this sample
 
+        # checkifvalid_methods = {
+        #     Action: self._is_valid_action,
+        #     Material: self._is_valid_material,
+        #     Measurement: self._is_valid_measurement,
+        #     Analysis: self._is_valid_analysis,
+        # }
+
         checkifvalid_methods = {
-            Action: self._is_valid_action,
-            Material: self._is_valid_material,
-            Measurement: self._is_valid_measurement,
-            Analysis: self._is_valid_analysis,
+            "Action": self.actionview.get,
+            "Material": self.materialview.get,
+            "Measurement": self.measurementview.get,
+            "Analysis": self.analysisview.get,
         }
+
         for node in sample.nodes:
-            _is_valid = checkifvalid_methods[type(node)]
-            if not _is_valid(node, upcoming_nodes):
-                return False
-        return True
-
-    def _is_valid_action(self, action: Action, upcoming_nodes: List[ObjectId]) -> bool:
-        # check if the action is valid
-        for material_id in action.upstream + action.downstream:
-            if material_id in upcoming_nodes:
-                continue
-            try:
-                self.materialview.get(id=material_id)
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                return False
-        return True
-
-    def _is_valid_material(
-        self, material: Material, upcoming_nodes: List[ObjectId]
-    ) -> bool:
-        # check if the material is valid
-        for id in material.upstream + material.downstream:
-            if id in upcoming_nodes:
-                continue
-            found_in_actions = False
-            found_in_measurements = False
-            try:
-                self.actionview.get(id=id)
-                found_in_actions = True
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                pass
-            try:
-                self.measurementview.get(id=id)
-                found_in_measurements = True
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                pass
-            if not (found_in_actions or found_in_measurements):
-                return False  # TODO this is really janky. we need to differentiate material downstream by Action vs Measurement.
-        return True
-
-    def _is_valid_measurement(
-        self, measurement: Measurement, upcoming_nodes: List[ObjectId]
-    ) -> bool:
-        # check if the measurement is valid
-        for material_id in measurement.upstream:
-            if material_id in upcoming_nodes:
-                continue
-            try:
-                self.materialview.get(id=material_id)
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                return False
-        for analysis_id in measurement.downstream:
-            if analysis_id in upcoming_nodes:
-                continue
-            try:
-                self.analysisview.get(id=analysis_id)
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                return False
-        return True
-
-    def _is_valid_analysis(
-        self, analysis: Analysis, upcoming_nodes: List[ObjectId]
-    ) -> bool:
-        # check if the analysis is valid
-        for measurement_id in analysis.upstream:
-            if measurement_id in upcoming_nodes:
-                continue
-            try:
-                self.measurementview.get(id=measurement_id)
-            except NotFoundInDatabaseError as e:
-                print(str(e))
-                return False
+            for related_node in node.upstream + node.downstream:
+                if related_node["node_id"] in upcoming_nodes:
+                    continue
+                try:
+                    checkifvalid = checkifvalid_methods[related_node["node_type"]]
+                    checkifvalid(id=related_node["node_id"])
+                except NotFoundInDatabaseError as e:
+                    print(str(e))
+                    return False
         return True
 
     def _entry_to_object(self, entry: dict):
@@ -178,17 +118,54 @@ class SampleView(BaseView):
                 elif nodetype == "Analysis":
                     node = self.analysisview.get(id=nodeid)
                 s.add_node(node)
+        s._sort_nodes()
+
         return s
 
+    def get(self, id: ObjectId) -> Sample:
+        entry = self._collection.find_one({"_id": id})
+        if entry is None:
+            raise NotFoundInDatabaseError(
+                f"{self._entry_class.__name__} with id {id} not found in database!"
+            )
+        return self._entry_to_object(entry)
 
-# class ExperimentView:
-#     """
-#     Experiment view manages the experiment status, which is a collection of tasks and samples
-#     """
+    def get_by_node(self, node_type: str, node_id: ObjectId) -> List[Sample]:
+        """Return any Sample(s) that contain the given node
 
-#     def __init__(self):
-#         self._experiment_collection = get_collection("experiment")
-#         self.action_view = ActionView()
-#         self.material_view = MaterialView()
-#         self.measurement_view = MeasurementView()
-#         self.analysis_view = AnalysisView()
+        Args:
+            node_type (str): Type (Action, Material, Measurement, or Analysis) of node
+            node_id (ObjectId): ObjectId of node
+
+        Raises:
+            ValueError: Invalid node type
+            NotFoundInDatabaseError: No Sample found containing specified node
+
+        Returns:
+            List[Sample]: List of Sample(s) containing the specified node. List is sorted from most recent to oldest.
+        """
+        if node_type not in ["Action", "Material", "Measurement", "Analysis"]:
+            raise ValueError(
+                f"node_type must be one of 'Action', 'Material', 'Measurement', 'Analysis'"
+            )
+
+        result = list(self._collection.find({f"nodes.{node_type}": node_id}))
+        result.sort(key=lambda x: x["created_at"], reverse=True)
+        entries = [self._entry_to_object(entry) for entry in result]
+        if len(entries) == 0:
+            raise NotFoundInDatabaseError(
+                f"No Sample found containing node of type {node_type} with id {node_id}!"
+            )
+        return entries
+
+    def get_by_action_node(self, action_id: ObjectId) -> List[Sample]:
+        return self.get_by_node("Action", action_id)
+
+    def get_by_material_node(self, material_id: ObjectId) -> List[Sample]:
+        return self.get_by_node("Material", material_id)
+
+    def get_by_measurement_node(self, measurement_id: ObjectId) -> List[Sample]:
+        return self.get_by_node("Measurement", measurement_id)
+
+    def get_by_analysis_node(self, analysis_id: ObjectId) -> List[Sample]:
+        return self.get_by_node("Analysis", analysis_id)
