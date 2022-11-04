@@ -23,7 +23,7 @@ with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="alab_data",
-    version="0.0.1",
+    version="0.1.0",
     description="A library for storing experimental materials science data.",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -38,16 +38,6 @@ setup(
         "pymongo",
     ],
     packages=find_packages(),
-    # package_data={
-    #     "": [
-    #         "hardware/*.yaml",
-    #         "hardware/*/*.yaml",
-    #         "hardware/*/*/*.yaml",
-    #         "hardware/*/*/*.json",
-    #         "Examples/*.ipynb",
-    #         "experimentaldesign/recipes/liquidhandlerprotocols/*.py",
-    #     ],
-    # },
     include_package_data=True,
     keywords=[
         "materials",

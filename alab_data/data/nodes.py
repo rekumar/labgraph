@@ -1,6 +1,6 @@
 import datetime
 from bson import ObjectId
-from typing import Dict, List
+from typing import Any, Dict, List
 from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
 
@@ -51,6 +51,11 @@ class BaseObject(ABC):
             k: v for k, v in self.__dict__.items() if not k.startswith(mangle_prefix)
         }  # dont include double underscored class attributes
         params = d.pop("parameters", {})
+        for key in params:
+            if key in d:
+                raise ValueError(
+                    f"Parameter name {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
+                )
         d.update(params)
 
         return d
@@ -78,11 +83,6 @@ class BaseObject(ABC):
         if not isinstance(other, self.__class__):
             return False
         return other.id == self.id
-
-    # @abstractmethod
-    # def _entry_to_object(self, entry: Dict) -> "BaseObject":
-    #     """method to convert a database entry to a BaseObject of the correct type"""
-    #     raise NotImplementedError
 
 
 ## Materials
@@ -114,7 +114,14 @@ class Material(BaseObject):
 
 ## Actions
 class Ingredient:
-    def __init__(self, material: Material, amount: float, unit: str, name: str = None):
+    def __init__(
+        self,
+        material: Material,
+        amount: float,
+        unit: str,
+        name: str = None,
+        **parameters,
+    ):
         if name is None:
             self.name = material.name
         else:
@@ -123,19 +130,31 @@ class Ingredient:
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
+        self.parameters = parameters
 
     def to_dict(self):
         d = self.__dict__.copy()
         d.pop("material")
+        parameters = d.pop("parameters", {})
+        for key in parameters:
+            if key in d:
+                raise ValueError(
+                    f"Parameter name {key} in Ingredient conflicts with default attribute {key} -- please rename the parameter!"
+                )
+        d.update(parameters)
         return d
+
+    def __repr__(self):
+        s = f"<Ingredient: {self.name} ({self.amount} {self.unit} of {self.material})>"
+        return s
 
 
 class WholeIngredient(Ingredient):
     """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials"""
 
-    def __init__(self, material: Material, name: str = None):
+    def __init__(self, material: Material, name: str = None, **parameters):
         super(WholeIngredient, self).__init__(
-            material=material, amount=100, unit="percent", name=name
+            material=material, amount=100, unit="percent", name=name, **parameters
         )
 
 

@@ -7,6 +7,7 @@ Author: Rishi Kumar
 Author-email: rekumar@lbl.gov
 License: MIT
 Keywords: materials,science,machine,automation,data,mongodb,storage
+Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
@@ -15,3 +16,6 @@ Classifier: Operating System :: OS Independent
 Classifier: Topic :: Scientific/Engineering :: Information Analysis
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Description-Content-Type: text/markdown
+
+UNKNOWN
+
