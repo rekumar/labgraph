@@ -48,13 +48,13 @@ class SampleView(BaseView):
             )
         for node in entry.nodes:
             if isinstance(node, Action):
-                self.actionview.add(node, pass_if_already_in_db=True)
+                self.actionview.add(node, if_already_in_db="update")
             elif isinstance(node, Material):
-                self.materialview.add(node, pass_if_already_in_db=True)
+                self.materialview.add(node, if_already_in_db="update")
             elif isinstance(node, Analysis):
-                self.analysisview.add(node, pass_if_already_in_db=True)
+                self.analysisview.add(node, if_already_in_db="update")
             elif isinstance(node, Measurement):
-                self.measurementview.add(node, pass_if_already_in_db=True)
+                self.measurementview.add(node, if_already_in_db="update")
             else:
                 raise ValueError(f"Node {node} is not a valid node type")
 
@@ -169,3 +169,72 @@ class SampleView(BaseView):
 
     def get_by_analysis_node(self, analysis_id: ObjectId) -> List[Sample]:
         return self.get_by_node("Analysis", analysis_id)
+
+    def update(self, entry: Sample):
+        """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
+
+        Args:
+            entry (Sample): Sample object to be updated
+
+        Raises:
+            TypeError: Node is of wrong type
+            NotFoundInDatabaseError: Node does not exist in the database
+            ValueError: Upstream nodes can only be added, not removed! Removing can break the graph.
+            ValueError: Downstream nodes can only be added, not removed! Removing can break the graph.
+        """
+        if not isinstance(entry, Sample):
+            raise TypeError(f"Entry must be of type Sample!")
+
+        if not entry.has_valid_graph():
+            raise ValueError(
+                "Sample graph is not valid! Check for isolated nodes or graph cycles."
+            )
+
+        old_entry = self._collection.find_one({"_id": entry.id})
+        if old_entry is None:
+            raise NotFoundInDatabaseError(
+                f"Cannot update Sample with id {entry.id} because it does not exist in the database."
+            )
+
+        for node in entry.nodes:
+            if isinstance(node, Action):
+                self.actionview.add(node, if_already_in_db="update")
+            elif isinstance(node, Material):
+                self.materialview.add(node, if_already_in_db="update")
+            elif isinstance(node, Analysis):
+                self.analysisview.add(node, if_already_in_db="update")
+            elif isinstance(node, Measurement):
+                self.measurementview.add(node, if_already_in_db="update")
+            else:
+                raise ValueError(f"Node {node} is not a valid node type")
+
+        new_entry = entry.to_dict()
+
+        only_adding_nodes = True
+        for key in new_entry:
+            if key == "nodes":
+                continue
+            if new_entry[key] != old_entry.get(
+                key, "random string that will never match"
+            ):
+                only_adding_nodes = False
+                break
+
+        if only_adding_nodes:
+            # no need for version history if we are only adding nodes
+            self._collection.update_one(
+                {"_id": entry.id},
+                {
+                    "$set": {
+                        "nodes": new_entry["nodes"],
+                        "updated_at": datetime.now(),
+                    }
+                },
+            )
+        else:
+            # if other things are changing, lets keep a version history
+            new_entry["created_at"] = old_entry["created_at"]
+            new_entry["updated_at"] = datetime.now()
+            new_entry["version_history"] = old_entry.get("version_history", [])
+            new_entry["version_history"].append(old_entry)
+            self._collection.replace_one({"_id": entry.id}, new_entry)

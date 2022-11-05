@@ -168,6 +168,8 @@ class Sample:
                     f"Parameter name {parameter_name} is not allowed, as it collides with a default key in a Sample entry! Please change this name and try again."
                 )
         entry.update(self.parameters)
+        entry.pop("version_history", None)
+
         return entry
 
     def plot(self, with_labels: bool = True, ax: plt.Axes = None):

@@ -51,6 +51,8 @@ class BaseObject(ABC):
             k: v for k, v in self.__dict__.items() if not k.startswith(mangle_prefix)
         }  # dont include double underscored class attributes
         params = d.pop("parameters", {})
+        params.pop("version_history", None)
+
         for key in params:
             if key in d:
                 raise ValueError(

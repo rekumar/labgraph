@@ -1,6 +1,6 @@
 from bson import ObjectId
 from datetime import datetime
-from typing import cast, List, Dict
+from typing import Literal, cast, List, Dict
 from alab_data.utils.data_objects import get_collection
 from alab_data.data.nodes import BaseObject
 
@@ -24,7 +24,9 @@ class BaseView:
         self._entry_class = entry_class
         self.allow_duplicate_names = allow_duplicate_names
 
-    def add(self, entry, pass_if_already_in_db: bool = False) -> ObjectId:
+    def add(
+        self, entry, if_already_in_db: Literal["raise", "skip", "update"] = "raise"
+    ) -> ObjectId:
         # TODO type check material. maybe this is done within Material class idk
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
@@ -41,7 +43,10 @@ class BaseView:
             except NotFoundInDatabaseError:
                 pass  # entry is not in db, we can proceed to add it
         if found_in_db:
-            if pass_if_already_in_db:
+            if if_already_in_db == "skip":
+                return
+            elif if_already_in_db == "update":
+                self.update(entry)
                 return
             else:
                 raise ValueError(
@@ -52,6 +57,7 @@ class BaseView:
             {
                 **entry.to_dict(),
                 "created_at": datetime.now(),
+                "updated_at": datetime.now(),
             }
         )
         entry._id = result.inserted_id
@@ -76,6 +82,7 @@ class BaseView:
         return entries
 
     def get(self, id: ObjectId) -> BaseObject:
+        ## TODO
         data = self._collection.find_one({"_id": id})
         if data is None:
             raise NotFoundInDatabaseError(
@@ -145,3 +152,71 @@ class BaseView:
             obj.upstream = us
             obj.downstream = ds
         return obj
+
+    def update(self, entry: BaseObject):
+        """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
+
+        Args:
+            entry (BaseObject): Node object to be updated
+
+        Raises:
+            TypeError: Node is of wrong type
+            NotFoundInDatabaseError: Node does not exist in the database
+            ValueError: Upstream nodes can only be added, not removed! Removing can break the graph.
+            ValueError: Downstream nodes can only be added, not removed! Removing can break the graph.
+        """
+        if not isinstance(entry, self._entry_class):
+            raise TypeError(f"Entry must be of type {self._entry_class.__name__}")
+
+        old_entry = self._collection.find_one({"_id": entry.id})
+        if old_entry is None:
+            raise NotFoundInDatabaseError(
+                f"Cannot update {self._entry_class.__name__} with id {entry.id} because it does not exist in the database."
+            )
+
+        new_entry = entry.to_dict()
+
+        if any(
+            [
+                old_upstream_node not in new_entry["upstream"]
+                for old_upstream_node in old_entry["upstream"]
+            ]
+        ):
+            raise ValueError("Cannot remove incoming edges from an existing node!")
+        if any(
+            [
+                old_downstream_node not in new_entry["downstream"]
+                for old_downstream_node in old_entry["downstream"]
+            ]
+        ):
+            raise ValueError("Cannot remove outgoing edges from an existing node!")
+
+        only_adding_nodes = True
+        for key in new_entry:
+            if key in ["upstream", "downstream"]:
+                continue
+            if new_entry[key] != old_entry.get(
+                key, "random string that will never match"
+            ):
+                only_adding_nodes = False
+                break
+
+        if only_adding_nodes:
+            # no need for version history if we are only adding nodes
+            self._collection.update_one(
+                {"_id": entry.id},
+                {
+                    "$set": {
+                        "upstream": new_entry["upstream"],
+                        "downstream": new_entry["downstream"],
+                        "updated_at": datetime.now(),
+                    }
+                },
+            )
+        else:
+            # if other things are changing, lets keep a version history
+            new_entry["created_at"] = old_entry["created_at"]
+            new_entry["updated_at"] = datetime.now()
+            new_entry["version_history"] = old_entry.get("version_history", [])
+            new_entry["version_history"].append(old_entry)
+            self._collection.replace_one({"_id": entry.id}, new_entry)
