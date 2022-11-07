@@ -139,6 +139,8 @@ class BaseView:
     def _entry_to_object(self, entry: dict):
         id = entry.pop("_id")
         entry.pop("created_at")
+        entry.pop("updated_at")
+        entry.pop("version_history", None)
 
         is_dag_node = "upstream" in entry
         if is_dag_node:
@@ -175,6 +177,13 @@ class BaseView:
             )
 
         new_entry = entry.to_dict()
+        old_entry_for_comparison = {
+            k: v
+            for k, v in old_entry.items()
+            if k not in ["version_history", "updated_at", "created_at"]
+        }
+        if new_entry == old_entry_for_comparison:
+            return  # nothing to update
 
         if any(
             [

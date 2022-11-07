@@ -116,9 +116,11 @@ class Sample:
             self.add_node(final_material)
 
     def has_valid_graph(self) -> bool:
-        return nx.is_directed_acyclic_graph(self.graph) and (
-            len(list(nx.isolates(self.graph))) == 0
+        is_acyclic = nx.is_directed_acyclic_graph(self.graph)
+        num_connected_components = len(
+            list(nx.connected_components(self.graph.to_undirected()))
         )
+        return is_acyclic and (num_connected_components == 1)
 
     def get_action_graph(self, include_outside_nodes: bool = False) -> nx.DiGraph:
         """
