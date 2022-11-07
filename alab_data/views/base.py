@@ -200,13 +200,16 @@ class BaseView:
         ):
             raise ValueError("Cannot remove outgoing edges from an existing node!")
 
+        # If we are only connecting new nodes, we won't consider this a version update. Will instead update the current version in place.
+
         only_adding_nodes = True
         for key in new_entry:
             if key in ["upstream", "downstream"]:
                 continue
-            if new_entry[key] != old_entry.get(
-                key, "random string that will never match"
-            ):
+            if key not in old_entry:
+                only_adding_nodes = False
+                break
+            if new_entry[key] != old_entry[key]:
                 only_adding_nodes = False
                 break
 

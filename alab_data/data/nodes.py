@@ -1,5 +1,5 @@
 import datetime
-from bson import ObjectId
+from bson import ObjectId, BSON
 from typing import Any, Dict, List
 from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
@@ -62,8 +62,18 @@ class BaseObject(ABC):
 
         return d
 
-    def to_json(self):
-        return self.to_dict()
+    def is_valid_for_mongodb(self) -> bool:
+        """Checks if the object can be converted to BSON. This is a requirement for MongoDB
+
+        Returns:
+            bool: True if the object can be converted to BSON and successfully inserted into MongoDB
+        """
+        d = self.to_dict()
+        try:
+            BSON.encode(d)
+            return True
+        except TypeError:
+            return False
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.name}>"

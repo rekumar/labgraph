@@ -40,12 +40,15 @@ class SampleView(BaseView):
             raise ValueError(
                 f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
             )
+        self._check_if_nodes_are_valid(
+            entry
+        )  # will throw error if any nodes cannot be encoded to BSON
 
-        # TODO check all nodes before uploading so we dont put half the nodes in before hitting a snag.
         if not self._has_valid_graph_in_db(entry):
             raise ValueError(
                 "Sample graph is not valid! Check for isolated nodes or graph cycles."
             )
+
         for node in entry.nodes:
             if isinstance(node, Action):
                 self.actionview.add(node, if_already_in_db="update")
@@ -65,6 +68,17 @@ class SampleView(BaseView):
             }
         )
         return cast(ObjectId, result.inserted_id)
+
+    def _check_if_nodes_are_valid(self, sample: Sample) -> bool:
+        """ensure that all nodes contained within the sample can be encoded to BSON and added to the database. This will fail if user supplies data formats that cannot be encoded to BSON."""
+        bad_nodes = []
+        for node in sample.nodes:
+            if not node.is_valid_for_mongodb():
+                bad_nodes.append(node)
+        if len(bad_nodes) > 0:
+            raise ValueError(
+                f"Some nodes cannot be added to the mongodb. This is because some values contained in the nodes are in a format that cannot be encoded to BSON. Affected nodes: {bad_nodes}."
+            )
 
     def _has_valid_graph_in_db(self, sample: Sample) -> bool:
         # we need to check the graph in the db to make sure it is valid.
@@ -189,12 +203,15 @@ class SampleView(BaseView):
             raise ValueError(
                 "Sample graph is not valid! Check for isolated nodes or graph cycles."
             )
-
         old_entry = self._collection.find_one({"_id": entry.id})
         if old_entry is None:
             raise NotFoundInDatabaseError(
                 f"Cannot update Sample with id {entry.id} because it does not exist in the database."
             )
+
+        self._check_if_nodes_are_valid(
+            entry
+        )  # will throw error if any nodes cannot be encoded to BSON
 
         for node in entry.nodes:
             if isinstance(node, Action):
@@ -210,13 +227,15 @@ class SampleView(BaseView):
 
         new_entry = entry.to_dict()
 
+        # If we are only adding new nodes, we won't consider this a version update. Will instead update the current version in place.
         only_adding_nodes = True
         for key in new_entry:
             if key == "nodes":
                 continue
-            if new_entry[key] != old_entry.get(
-                key, "random string that will never match"
-            ):
+            if key not in old_entry:
+                only_adding_nodes = False
+                break
+            if new_entry[key] != old_entry[key]:
                 only_adding_nodes = False
                 break
 
