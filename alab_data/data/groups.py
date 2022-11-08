@@ -3,7 +3,7 @@ import networkx as nx
 from bson import ObjectId
 import matplotlib.pyplot as plt
 import itertools as itt
-
+from networkx.drawing.nx_agraph import graphviz_layout
 from .nodes import (
     Material,
     Action,
@@ -11,6 +11,7 @@ from .nodes import (
     Analysis,
     WholeIngredient,
 )
+import warnings
 
 ALLOWED_NODE_TYPE = Union[Material, Action, Measurement, Analysis]
 
@@ -195,11 +196,19 @@ class Sample:
         for node in self.graph.nodes:
             node_labels[node] = self.graph.nodes[node]["name"]
             node_colors.append(color_key[self.graph.nodes[node]["type"]])
+        try:
+            layout = graphviz_layout(self.graph, prog="dot")
+        except:
+            warnings.warn(
+                "Could not use graphviz layout, falling back to default networkx layout. Ensure that graphviz and pygraphviz are installed to enable hierarchical graph layouts. This only affects graph visualization."
+            )
+            layout = nx.spring_layout(self.graph)
         nx.draw(
             self.graph,
             with_labels=with_labels,
             node_color=node_colors,
             labels=node_labels,
+            pos=layout,
             ax=ax,
         )
 

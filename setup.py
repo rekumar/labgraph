@@ -36,6 +36,7 @@ setup(
         "matplotlib",
         "networkx",
         "pymongo",
+        "pygraphviz",
     ],
     packages=find_packages(),
     include_package_data=True,
