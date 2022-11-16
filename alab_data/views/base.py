@@ -32,11 +32,8 @@ class BaseView:
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
 
         found_in_db = False
-        try:
-            self.get(id=entry.id)
-            found_in_db = True
-        except NotFoundInDatabaseError:
-            pass
+        result = self._collection.count_documents({"_id": entry.id})
+        found_in_db = result > 0
         if not self.allow_duplicate_names and not found_in_db:
             try:
                 self.get_by_name(name=entry.name)
@@ -230,5 +227,7 @@ class BaseView:
             new_entry["created_at"] = old_entry["created_at"]
             new_entry["updated_at"] = datetime.now()
             new_entry["version_history"] = old_entry.get("version_history", [])
+            old_entry.pop("_id", None)
+            old_entry.pop("version_history", None)
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)

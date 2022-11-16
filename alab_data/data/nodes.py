@@ -204,6 +204,11 @@ class Action(BaseObject):
         # self.__materials.add(ingredient.material)
         self.ingredients.append(ingredient)
 
+    def add_generated_material(self, material:Material):
+        self.add_downstream(material)
+        material.add_upstream(self)
+        self.__generated_materials.append(material)
+        
     @property
     def generated_materials(self):
         return self.__generated_materials

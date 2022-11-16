@@ -21,7 +21,9 @@ class SampleView(BaseView):
         self.analysisview = AnalysisView()
         self.measurementview = MeasurementView()
 
-    def add(self, entry: Sample) -> ObjectId:
+    def add(
+        self, entry: Sample, additional_incoming_node_ids: List[ObjectId]
+    ) -> ObjectId:
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
 
@@ -44,9 +46,11 @@ class SampleView(BaseView):
             entry
         )  # will throw error if any nodes cannot be encoded to BSON
 
-        if not self._has_valid_graph_in_db(entry):
+        if not self._has_valid_graph_in_db(
+            entry, additional_incoming_node_ids=additional_incoming_node_ids
+        ):
             raise ValueError(
-                "Sample graph is not valid! Check for isolated nodes or graph cycles."
+                "Sample graph is not valid! Check for isolated nodes, graph cycles, or node dependencies that are not covered by either 1. existing database entries 2. nodes in this Sample or 3. nodes in the `additional_incoming_nodes` list."
             )
 
         for node in entry.nodes:
@@ -80,12 +84,16 @@ class SampleView(BaseView):
                 f"Some nodes cannot be added to the mongodb. This is because some values contained in the nodes are in a format that cannot be encoded to BSON. Affected nodes: {bad_nodes}."
             )
 
-    def _has_valid_graph_in_db(self, sample: Sample) -> bool:
+    def _has_valid_graph_in_db(
+        self, sample: Sample, additional_incoming_node_ids: List[ObjectId]
+    ) -> bool:
         # we need to check the graph in the db to make sure it is valid.
 
         upcoming_nodes = [
             node.id for node in sample.nodes
         ]  # all nodes that will be added along with this sample
+
+        upcoming_nodes += additional_incoming_node_ids  # other nodes that should be considered valid (ie are guaranteed to be added).
 
         # checkifvalid_methods = {
         #     Action: self._is_valid_action,
