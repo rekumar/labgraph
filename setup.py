@@ -32,6 +32,7 @@ setup(
     author_email="rekumar@lbl.gov",
     download_url="https://github.com/rekumar/alab_data",
     license="MIT",
+    python_requires=">=3.8",
     install_requires=[
         package.strip("\n")
         for package in (Path(__file__).parent / "requirements.txt")
