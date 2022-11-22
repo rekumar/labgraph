@@ -1,3 +1,4 @@
+from pathlib import Path
 from setuptools import setup
 from setuptools import find_packages
 import os
@@ -32,11 +33,10 @@ setup(
     download_url="https://github.com/rekumar/alab_data",
     license="MIT",
     install_requires=[
-        "numpy",
-        "matplotlib",
-        "networkx",
-        "pymongo",
-        "pygraphviz",
+        package.strip("\n")
+        for package in (Path(__file__).parent / "requirements.txt")
+        .open("r", encoding="utf-8")
+        .readlines()
     ],
     packages=find_packages(),
     include_package_data=True,

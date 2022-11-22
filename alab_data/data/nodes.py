@@ -99,6 +99,8 @@ class BaseObject(ABC):
 
 ## Materials
 class Material(BaseObject):
+    """Class to define a Material node. These nodes capture information about a material in a given state. Each Material is created by an Action. Measurements can act upon a Material to yield raw characterization data."""
+
     def __init__(
         self,
         name: str,
@@ -204,11 +206,11 @@ class Action(BaseObject):
         # self.__materials.add(ingredient.material)
         self.ingredients.append(ingredient)
 
-    def add_generated_material(self, material:Material):
+    def add_generated_material(self, material: Material):
         self.add_downstream(material)
         material.add_upstream(self)
         self.__generated_materials.append(material)
-        
+
     @property
     def generated_materials(self):
         return self.__generated_materials
@@ -333,5 +335,5 @@ class Analysis(BaseObject):
     def analysis_method(self):
         return self.__analysis_method
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         return True
