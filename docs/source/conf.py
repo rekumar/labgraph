@@ -16,6 +16,7 @@ release = "0.1"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
@@ -55,3 +56,38 @@ html_theme_options = {
 
 # html_logo = (Path(__file__).parent / "_static" / "logo.png").as_posix()
 # html_title = "Alab Data"
+
+
+def run_apidoc(_):
+    from pathlib import Path
+
+    ignore_paths = []
+
+    ignore_paths = [
+        (Path(__file__).parent.parent.parent / p).absolute().as_posix()
+        for p in ignore_paths
+    ]
+
+    argv = [
+        "-f",
+        "-e",
+        "-o",
+        Path(__file__).parent.as_posix(),
+        (Path(__file__).parent.parent.parent / "alab_data").absolute().as_posix(),
+    ] + ignore_paths
+
+    try:
+        # Sphinx 1.7+
+        from sphinx.ext import apidoc
+
+        apidoc.main(argv)
+    except ImportError:
+        # Sphinx 1.6 (and earlier)
+        from sphinx import apidoc
+
+        argv.insert(0, apidoc.__file__)
+        apidoc.main(argv)
+
+
+def setup(app):
+    app.connect("builder-inited", run_apidoc)

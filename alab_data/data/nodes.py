@@ -1,6 +1,6 @@
 import datetime
 from bson import ObjectId, BSON
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
 
@@ -104,9 +104,16 @@ class Material(BaseObject):
     def __init__(
         self,
         name: str,
-        tags: List[str] = None,
+        tags: Optional[Union[List[str], None]] = None,
         **parameters,
     ):
+        """Initialize a Material node. This creates the node in memory -- it is not added to the database yet!
+
+        Args:
+            name (str): Name of this Material. This is purely for human readability, and does not need to be unique.
+            tags (Optional[Union[List[str], None]], optional): A list of tags to catalog this Material. If None (default), no tags will be applied. Tags can be an easy way to query nodes.
+            **parameters: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these parameters must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
+        """
         super(Material, self).__init__(name=name, tags=tags)
         self.parameters = parameters
 
