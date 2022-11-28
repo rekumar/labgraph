@@ -22,7 +22,9 @@ class SampleView(BaseView):
         self.measurementview = MeasurementView()
 
     def add(
-        self, entry: Sample, additional_incoming_node_ids: List[ObjectId] = None
+        self,
+        entry: Sample,
+        additional_incoming_node_ids: Optional[List[ObjectId]] = None,
     ) -> ObjectId:
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
@@ -85,7 +87,9 @@ class SampleView(BaseView):
             )
 
     def _has_valid_graph_in_db(
-        self, sample: Sample, additional_incoming_node_ids: Optional[List[ObjectId]] = None
+        self,
+        sample: Sample,
+        additional_incoming_node_ids: Optional[List[ObjectId]] = None,
     ) -> bool:
         # we need to check the graph in the db to make sure it is valid.
 

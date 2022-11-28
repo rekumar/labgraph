@@ -30,10 +30,14 @@ class MeasurementView(BaseView):
         actor = actorview.get(id=entry.pop("actor_id"))
         _id = entry.pop("_id")
         entry.pop("created_at")
-        upstream_material_id = entry.pop("upstream")[0]["node_id"]
+        entry.pop("updated_at")
+        entry.pop("version_history", None)
+        upstream_material_id = entry.pop("upstream")[0]["node_id"] #we know each Measurement has exactly one upstream material
+        downstream = entry.pop("downstream")
         material = materialview.get(id=upstream_material_id)
         obj = Measurement(material=material, actor=actor, **entry)
         obj._id = _id
+        obj.downstream = downstream
 
         return obj
 
@@ -48,15 +52,17 @@ class ActionView(BaseView):
             Ingredient(material=materialview.get(id=ing["material_id"]), amount=ing["amount"], unit=ing["unit"], name=ing["name"])
             for ing in entry.pop("ingredients")
         ]
+        _id = entry.pop("_id")
+        entry.pop("created_at")
+        entry.pop("updated_at")
+        entry.pop("version_history", None)
+        upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
         generated_materials = [
             materialview.get(id=ds["node_id"]) for ds in downstream
         ]
-        upstream = entry.pop("upstream")
-        entry.pop("created_at")
-        id = entry.pop("_id")
         obj = Action(ingredients = ingredients, generated_materials=generated_materials, actor=actor, **entry)
-        obj._id = id
+        obj._id = _id
         obj.upstream = upstream
         obj.downstream = downstream
 
@@ -70,12 +76,18 @@ class AnalysisView(BaseView):
         method = analysismethodview.get(id=entry.pop("analysismethod_id"))
         id = entry.pop("_id")
         entry.pop("created_at")
+        entry.pop("updated_at")
+        entry.pop("version_history", None)
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
         measurements = [
             measurementview.get(id=meas["node_id"])
             for meas in entry.pop("upstream")
         ]
         obj = Analysis(measurements=measurements, analysis_method=method, **entry)
         obj._id = id
+        obj.upstream = upstream
+        obj.downstream = downstream
 
         return obj
 
