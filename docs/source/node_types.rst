@@ -6,7 +6,7 @@ Node Types
 Material
 """"""""
 
-- :py:class:`Material <alab_data.Material>` nodes are the fundamental building blocks of the data model. These represent a material in a given state. 
+- :py:class:`Material <alab_data.Material>` nodes represent a material in a given state/at a certain point within an experiment. "Material" here is used loosely -- in essence, a :py:class:`Material <alab_data.Material>` node is what an experimentalist might consider their "sample". For example, a :py:class:`Material <alab_data.Material>` could describe a chemical, a solution, a powder, or a thin film. 
 
 
 .. autoclass:: alab_data.data.nodes.Material

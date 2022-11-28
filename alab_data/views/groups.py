@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, cast
+from typing import Dict, List, Optional, cast
 from alab_data.data import Action, Analysis, Material, Measurement, Sample
 from alab_data.utils.data_objects import get_collection
 from alab_data.views.nodes import (
@@ -22,7 +22,9 @@ class SampleView(BaseView):
         self.measurementview = MeasurementView()
 
     def add(
-        self, entry: Sample, additional_incoming_node_ids: List[ObjectId]
+        self,
+        entry: Sample,
+        additional_incoming_node_ids: Optional[List[ObjectId]] = None,
     ) -> ObjectId:
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
@@ -85,7 +87,9 @@ class SampleView(BaseView):
             )
 
     def _has_valid_graph_in_db(
-        self, sample: Sample, additional_incoming_node_ids: List[ObjectId]
+        self,
+        sample: Sample,
+        additional_incoming_node_ids: Optional[List[ObjectId]] = None,
     ) -> bool:
         # we need to check the graph in the db to make sure it is valid.
 
@@ -93,7 +97,8 @@ class SampleView(BaseView):
             node.id for node in sample.nodes
         ]  # all nodes that will be added along with this sample
 
-        upcoming_nodes += additional_incoming_node_ids  # other nodes that should be considered valid (ie are guaranteed to be added).
+        if additional_incoming_node_ids is not None:
+            upcoming_nodes += additional_incoming_node_ids  # other nodes that should be considered valid (ie are guaranteed to be added).
 
         # checkifvalid_methods = {
         #     Action: self._is_valid_action,

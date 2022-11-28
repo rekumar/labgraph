@@ -84,6 +84,12 @@ class BaseObject(ABC):
         """method to validate the object. Necessary before adding to database"""
         raise NotImplementedError
 
+    @classmethod
+    @abstractmethod
+    def from_db_entry(cls, db_entry: Dict[str, Any]):
+        """method to create object from database entry"""
+        raise NotImplementedError
+
     @property
     def id(self):
         return self._id
@@ -120,13 +126,13 @@ class Material(BaseObject):
     def is_valid(self) -> bool:
         return True
 
-    def _entry_to_object(self, entry: Dict) -> "Material":
-        upstream = entry.pop("upstream")
-        downstream = entry.pop("downstream")
-        _id = entry.pop("_id")
-        entry.pop("created_at")
+    def from_db_entry(cls, db_entry: Dict[str, Any]):
+        _id = db_entry.pop("_id")
+        upstream = db_entry.pop("upstream")
+        downstream = db_entry.pop("downstream")
+        db_entry.pop("version_history", None)
 
-        obj = Material(**entry)
+        obj = cls(**db_entry)
         obj._id = _id
         obj.upstream = upstream
         obj.downstream = downstream
@@ -253,34 +259,35 @@ class Action(BaseObject):
         #     self.make_generic_generated_material()
         return True
 
-    def _entry_to_object(self, entry: Dict) -> "Action":
-        upstream = entry.pop("upstream")
-        downstream = entry.pop("downstream")
-        _id = entry.pop("_id")
-        entry.pop("created_at")
-
-        ingredients = [
-            Ingredient(
-                name=i["name"],
-                material_id=i["material_id"],
-                amount=i["amount"],
-                unit=i["unit"],
-            )
-            for i in entry.pop("ingredients")
-        ]
-
-        obj = Action(ingredients=ingredients, **entry)
-        obj._id = _id
-        obj.upstream = upstream
-        obj.downstream = downstream
-        return obj
-
     def to_dict(self):
         d = super(Action, self).to_dict()
         ingredients = d.pop("ingredients")
         d["ingredients"] = [i.to_dict() for i in ingredients]
 
         return d
+
+    @classmethod
+    def from_db_entry(cls, db_entry: Dict[str, Any]):
+        _id = db_entry.pop("_id")
+        upstream = db_entry.pop("upstream")
+        downstream = db_entry.pop("downstream")
+        ingredients = []
+        for i in db_entry.pop("ingredients"):
+            m = Material(name=i["name"])
+            m._id = i["material_id"]
+            ingredients.append(
+                Ingredient(
+                    material=m,
+                    **i,
+                )
+            )
+        db_entry.pop("version_history", None)
+
+        obj = cls(ingredients=ingredients, **db_entry)
+        obj._id = _id
+        obj.upstream = upstream
+        obj.downstream = downstream
+        return obj
 
 
 ## Measurements
