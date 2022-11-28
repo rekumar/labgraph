@@ -26,14 +26,18 @@ class MeasurementView(BaseView):
     def __init__(self):
         super().__init__("measurements", Measurement)
     
-    def _entry_to_object(self, entry: dict):
+    def _entry_to_object(self, entry: dict) -> Measurement:
         actor = actorview.get(id=entry.pop("actor_id"))
         _id = entry.pop("_id")
         entry.pop("created_at")
-        upstream_material_id = entry.pop("upstream")[0]["node_id"]
+        entry.pop("updated_at")
+        upstream_material_id = entry.pop("upstream")[0]["node_id"] #we know each measurement has exactly one upstream material
+        downstream = entry.pop("downstream")
         material = materialview.get(id=upstream_material_id)
         obj = Measurement(material=material, actor=actor, **entry)
         obj._id = _id
+        for ds in downstream:
+            obj.downstream = downstream
 
         return obj
 
@@ -42,21 +46,22 @@ class ActionView(BaseView):
     def __init__(self):
         super().__init__("actions", Action)
 
-    def _entry_to_object(self, entry: dict):
+    def _entry_to_object(self, entry: dict) -> Action:
         actor = actorview.get(id=entry.pop("actor_id"))
         ingredients = [
             Ingredient(material=materialview.get(id=ing["material_id"]), amount=ing["amount"], unit=ing["unit"], name=ing["name"])
             for ing in entry.pop("ingredients")
         ]
+        upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
         generated_materials = [
             materialview.get(id=ds["node_id"]) for ds in downstream
         ]
-        upstream = entry.pop("upstream")
+        _id = entry.pop("_id")
         entry.pop("created_at")
-        id = entry.pop("_id")
+        entry.pop("updated_at")
         obj = Action(ingredients = ingredients, generated_materials=generated_materials, actor=actor, **entry)
-        obj._id = id
+        obj._id = _id
         obj.upstream = upstream
         obj.downstream = downstream
 
@@ -66,16 +71,21 @@ class AnalysisView(BaseView):
     def __init__(self):
         super().__init__("analyses", Analysis)
 
-    def _entry_to_object(self, entry: dict):
+    def _entry_to_object(self, entry: dict) -> Analysis:
         method = analysismethodview.get(id=entry.pop("analysismethod_id"))
         id = entry.pop("_id")
         entry.pop("created_at")
+        entry.pop("updated_at")
+
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
         measurements = [
             measurementview.get(id=meas["node_id"])
             for meas in entry.pop("upstream")
         ]
         obj = Analysis(measurements=measurements, analysis_method=method, **entry)
         obj._id = id
+
 
         return obj
 
