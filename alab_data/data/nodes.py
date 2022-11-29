@@ -118,6 +118,12 @@ class Material(BaseObject):
         self.parameters = parameters
 
     def is_valid(self) -> bool:
+        for node in self.upstream:
+            if node["node_type"] != "Action":
+                return False
+        for node in self.downstream:
+            if node["node_type"] not in ["Action", "Measurement"]:
+                return False
         return True
 
     def _entry_to_object(self, entry: Dict) -> "Material":
@@ -147,6 +153,10 @@ class Ingredient:
             self.name = material.name
         else:
             self.name = name
+        if not isinstance(material, Material):
+            raise TypeError(
+                'The "material" argument to an Ingredient must be of type `alab_data.nodes.Material`!'
+            )
         self.material = material
         self.material_id = material.id
         self.amount = amount
@@ -208,12 +218,20 @@ class Action(BaseObject):
             self.add_downstream(material)
 
     def add_ingredient(self, ingredient: Ingredient):
+        if not isinstance(ingredient, Ingredient):
+            raise TypeError(
+                "All ingredients must be of type `alab_data.nodes.Ingredient`!"
+            )
         self.add_upstream(ingredient.material)
         ingredient.material.add_downstream(self)
         # self.__materials.add(ingredient.material)
         self.ingredients.append(ingredient)
 
     def add_generated_material(self, material: Material):
+        if not isinstance(material, Material):
+            raise TypeError(
+                "All generated materials must be of type `alab_data.nodes.Material`!"
+            )
         self.add_downstream(material)
         material.add_upstream(self)
         self.__generated_materials.append(material)
@@ -249,6 +267,9 @@ class Action(BaseObject):
 
     def is_valid(self) -> bool:
         # TODO do we want to enforce a created material? Or can we "destroy" materials via actions, ie a waste stream?
+        for node in self.upstream + self.downstream:
+            if node["node_type"] != "Material":
+                return False
         # if len(self.generated_materials) == 0:
         #     self.make_generic_generated_material()
         return True
@@ -294,6 +315,10 @@ class Measurement(BaseObject):
         **parameters,
     ):
         super(Measurement, self).__init__(name=name, tags=tags)
+        if not isinstance(material, Material):
+            raise TypeError(
+                "The `material` argument to a Measurement must be of type `alab_data.nodes.Material`!"
+            )
         self.parameters = parameters
         self.__material = material
         self.__actor = actor
@@ -310,6 +335,12 @@ class Measurement(BaseObject):
         return self.__actor
 
     def is_valid(self) -> bool:
+        for node in self.upstream:
+            if node["node_type"] != "Material":
+                return False
+        for node in self.downstream:
+            if node["node_type"] != "Analysis":
+                return False
         return True
 
 
@@ -328,6 +359,10 @@ class Analysis(BaseObject):
         self.parameters = parameters
 
         for meas in self.__measurements:
+            if not isinstance(meas, Measurement):
+                raise TypeError(
+                    "All measurements must be of type `alab_data.nodes.Measurement`!"
+                )
             meas.add_downstream(self)
             self.add_upstream(meas)
 
@@ -343,4 +378,10 @@ class Analysis(BaseObject):
         return self.__analysis_method
 
     def is_valid(self) -> bool:
+        for node in self.upstream:
+            if node["node_type"] != "Measurement":
+                return False
+        for node in self.downstream:
+            if node["node_type"] != "Analysis":
+                return False
         return True

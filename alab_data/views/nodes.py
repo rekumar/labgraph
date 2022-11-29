@@ -82,7 +82,7 @@ class AnalysisView(BaseView):
         downstream = entry.pop("downstream")
         measurements = [
             measurementview.get(id=meas["node_id"])
-            for meas in entry.pop("upstream")
+            for meas in upstream
         ]
         obj = Analysis(measurements=measurements, analysis_method=method, **entry)
         obj._id = id
@@ -91,12 +91,3 @@ class AnalysisView(BaseView):
 
         return obj
 
-
-# class MaterialView(BaseCompositeView):
-#     def __init__(self):
-#         self.material_view = OnlyMaterialView()
-#         self.action_view = OnlyActionView()
-
-#         super(MaterialView, self).__init__(base_collection = self.material_view)
-
-    
