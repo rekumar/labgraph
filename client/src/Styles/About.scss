@@ -1,0 +1,50 @@
+#about {
+    min-height: 100vh;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding-top: 0px;
+
+    .about-content {
+        text-align: center;
+        background-color: rgba(#fff4d5, 0.60);
+        padding: 160px 120px;
+        border-radius: 25px;
+        
+        .title {
+            font-family: 'Montserrat', sans-serif;
+            color: rgb(45, 45, 45);
+            font-size: 7vmin;
+            letter-spacing: 2px;
+            font-weight: 00;
+            margin-top: 0px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        a { color: #fd7e14; }
+
+        @media only screen and (max-width: 1086px) {
+            padding: 110px 120px;
+        }
+
+        @media only screen and (max-width: 768px) {
+            padding: 120px 40px;
+        }
+
+        @media only screen and (max-width: 350px) {
+            padding: 80px 20px;
+        }
+    }
+
+    @media only screen and (max-width: 425px) {
+        .mantine-Container-root {
+            padding: 0px;
+        }
+    }
+}

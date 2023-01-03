@@ -1,5 +1,5 @@
-example_data/db_login.json
-
+client/node_modules
+*/__pycache__
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

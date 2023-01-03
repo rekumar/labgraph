@@ -1,0 +1,25 @@
+@import './Styles/About.scss';
+@import './Styles/Header.scss';
+@import './Styles/Footer.scss';
+@import './Styles/Content.scss';
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: rgb(248, 246, 246);
+}
+
+section, footer {
+  padding: 4rem 0rem;
+  padding-right: 60px;
+  padding-left: 60px;
+
+  @media only screen and (max-width: 768px) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+
+    .mantine-Container-root {
+        padding: 0px;
+    }
+  }
+}
