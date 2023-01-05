@@ -61,6 +61,7 @@ export function SampleTable() {
         setTaggedRecords(data);
         setRecords(data.slice(0, ITEMS_PER_PAGE));
     }
+
     useEffect(() => {
         api
             .getSampleSummary()
