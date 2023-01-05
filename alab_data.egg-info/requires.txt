@@ -1,4 +1,8 @@
-numpy
-matplotlib
-networkx
-pymongo
+pymongo>=3.11.2
+networkx>=2.6
+numpy>=1.23.0
+pygraphviz>=1.10
+matplotlib>=3.5.2
+flask>=2.2.0
+pydantic>=1.10.4
+gevent>=22.10.2
