@@ -5,7 +5,8 @@ import {
     Badge,
 } from '@mantine/core';
 import { DataTable } from "mantine-datatable";
-
+import Api from '../../api/api';
+import { samples } from '../../__mock__/samples';
 interface SortableRowData {
     _id: string;
     name: string;
@@ -29,10 +30,6 @@ interface TableSortProps {
     data: RowData[];
 }
 
-interface MultiSelectEntry {
-    value: string;
-    label: string;
-}
 
 function uniqueTags({ data }: TableSortProps) {
     const tags = data.reduce((acc, { tags }) => {
@@ -46,14 +43,37 @@ function uniqueTags({ data }: TableSortProps) {
     tags.sort();
     return tags;
 }
-export function SampleTable({ data }: TableSortProps) {
+export function SampleTable() {
+    const api = new Api();
     const ITEMS_PER_PAGE = 10;
+
+
+
+    const [data, setData] = useState(samples)
     const [page, setPage] = useState(1);
     const [taggedRecords, setTaggedRecords] = useState(data);
     const [records, setRecords] = useState(taggedRecords.slice(0, ITEMS_PER_PAGE));
     const allTags = uniqueTags({ data });
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
+    const handleInitialSetup = (data: RowData[]) => {
+        setData(data);
+        setTaggedRecords(data);
+        setRecords(data.slice(0, ITEMS_PER_PAGE));
+    }
+    useEffect(() => {
+        api
+            .getSampleSummary()
+            .then((response) => {
+                handleInitialSetup(response.data);
+                console.log("received " + response.data.length + " samples");
+
+            })
+            .catch((err) => {
+                console.log("error retrieving samples: " + err);
+            });
+
+    }, []);
 
     const handleTagChange = (tags: string[]) => {
         setSelectedTags(tags);

@@ -20,22 +20,28 @@ def get_sample_summary():
             "_id": 1,
             "name": 1,
             "description": 1,
+            "nodes": 1,
+            "tags": 1,
             "created_at": 1,
-            "updated_at": 1,
+            # "updated_at": 1,
         },
-        sort=[("created_at", pymongo.ASCENDING)],
+        sort=[("created_at", pymongo.DESCENDING)],
     ):
         samples.append(
             {
-                "sample_id": entry["_id"],
+                "_id": str(entry["_id"]),
                 "name": entry["name"],
                 "description": entry["description"],
+                "nodes": {
+                    k: [str(oid) for oid in v] for k, v in entry["nodes"].items()
+                },
+                "tags": entry["tags"],
                 "created_at": entry["created_at"],
-                "updated_at": entry["updated_at"],
+                # "updated_at": entry["updated_at"],
             }
         )
 
-    return {"status": "success", "data": samples}
+    return samples
 
 
 # @sample_bp.route("/submit", methods=["POST"])
@@ -70,4 +76,8 @@ def get_sample(sample_id):
     except ValueError as exception:
         return {"status": "error", "errors": exception.args[0]}, 400
 
-    return {"status": "success", "data": sample_entry}
+    sample_entry["_id"] = str(sample_entry["_id"])
+    sample_entry["nodes"] = {
+        k: [str(oid) for oid in v] for k, v in sample_entry["nodes"].items()
+    }
+    return sample_entry

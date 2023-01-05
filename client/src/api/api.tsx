@@ -1,6 +1,46 @@
 import axios from "axios";
 
-const URL = process.env.NODE_ENV === "production" ? "" : "http://localhost:8896"
+const URL = process.env.NODE_ENV === "production" ? "" : "http://localhost:8895/api"
+
+interface NodeList {
+    Material: string[];
+    Action: string[];
+    Analysis: string[];
+    Measurement: string[];
+}
+interface SampleSummaryData {
+    "_id": string;
+    "name": string;
+    "description": string;
+    "created_at": string;
+    "nodes": NodeList;
+    "tags": string[];
+}
+
+interface SampleData {
+    "name": string;
+    "description": string;
+    "created_at": string;
+    "nodes": NodeList;
+    "tags": string[];
+    [otherOptions: string]: any;
+}
+
+interface EdgeData {
+    "node_type": string;
+    "node_id": string;
+}
+interface NodeData {
+    "_id": string;
+    "name": string;
+    "description": string;
+    "upstream": EdgeData[];
+    "downstream": EdgeData[];
+    "created_at": string;
+    "tags": string[];
+    [otherOptions: string]: any;
+}
+
 
 export default class Api {
     client: any;
@@ -26,24 +66,19 @@ export default class Api {
     };
 
     // Samples
-    getSampleSummary = () => {
+    getSampleSummary = (): Promise<{ data: SampleSummaryData[] }> => {
         return this.init().get("/sample/summary");
     };
 
-    getSample = (sample_id: string) => {
+    getSample = (sample_id: string): Promise<SampleData> => {
         return this.init().get(`/sample/${sample_id}`);
     };
 
     // Nodes
-
-    getNode = (node_type: string, node_id: string) => {
+    getNode = (node_type: string, node_id: string): Promise<NodeData> => {
         return this.init().get(`/${node_type}/${node_id}`);
     };
 
-
-    // getUserList = (params) => {
-    //     return this.init().get("/users", { params: params });
-    // };
     // addNewUser = (data) => {
     //     return this.init().post("/users", data);
     // };

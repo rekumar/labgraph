@@ -39,7 +39,23 @@ def get_node(
     except ValueError as exception:
         return {"status": "error", "errors": exception.args[0]}, 400
 
-    return {"status": "success", "data": node_entry}
+    node_entry["_id"] = str(node_entry["_id"])
+    node_entry["upstream"] = [
+        {
+            "node_type": i["node_type"],
+            "node_id": str(i["node_id"]),
+        }
+        for i in node_entry["upstream"]
+    ]
+    node_entry["downstream"] = [
+        {
+            "node_type": i["node_type"],
+            "node_id": str(i["node_id"]),
+        }
+        for i in node_entry["downstream"]
+    ]
+
+    return node_entry
 
 
 @measurement_bp.route("/<measurement_id>", methods=["GET"])

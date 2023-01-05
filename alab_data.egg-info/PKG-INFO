@@ -16,6 +16,7 @@ Classifier: Topic :: Scientific/Engineering :: Information Analysis
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
+Provides-Extra: dev
 
 # ALab Data
 

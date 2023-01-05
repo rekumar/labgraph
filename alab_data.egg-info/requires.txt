@@ -6,3 +6,14 @@ matplotlib>=3.5.2
 flask>=2.2.0
 pydantic>=1.10.4
 gevent>=22.10.2
+
+[dev]
+sphinx>=3.2.1
+sphinx_book_theme~=0.1.7
+recommonmark~=0.7.1
+sphinx-autodoc-typehints>=1.12.0
+pytest>=6.2.5
+pytest_reraise>=2.1.1
+pylint>=2.11.1
+pytest-env~=0.6.2
+flask_cors>=3.0.10

@@ -1,6 +1,4 @@
-import { Carousel } from '@mantine/carousel';
-import { Text, Container, useMantineTheme, Title, Tabs, Space } from '@mantine/core';
-import '../Styles/SectionOne.scss';
+import { Container, useMantineTheme, Tabs, Space } from '@mantine/core';
 import { SampleTable } from './Tables/Samples';
 import { samples } from '../__mock__/samples';
 import { ActionsTable } from './Tables/Actions';
@@ -15,6 +13,8 @@ import { actors } from '../__mock__/actors';
 import { ActorsTable } from './Tables/Actors';
 import { analysis_methods } from '../__mock__/analysis_methods';
 import { AnalysisMethodsTable } from './Tables/AnalysisMethods';
+import Api from '../api/api';
+
 
 function TabbedTables() {
     return (
@@ -34,7 +34,7 @@ function TabbedTables() {
 
             <Space h="sm" />
             <Tabs.Panel value="samples">
-                <SampleTable data={samples} />
+                <SampleTable />
             </Tabs.Panel>
             <Tabs.Panel value="materials">
                 <MaterialsTable data={materials} />
