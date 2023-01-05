@@ -13,7 +13,7 @@ import { actors } from '../__mock__/actors';
 import { ActorsTable } from './Tables/Actors';
 import { analysis_methods } from '../__mock__/analysis_methods';
 import { AnalysisMethodsTable } from './Tables/AnalysisMethods';
-import Api from '../api/api';
+import { Api } from '../api/api';
 
 
 function TabbedTables() {
@@ -78,66 +78,6 @@ const Tables = () => {
             <Container fluid={true}>
                 <TabbedTables />
 
-
-                {/* <Text color="black" align="center" mb="15px">
-                    <Title order={1}>Explain something in this carousel</Title>
-                </Text>
-
-                <Text color="black" align="center" mb="25px">
-                    You can insert images or some texts if you need.
-                </Text>
-
-                <Carousel
-                    withIndicators
-                    height={300}
-                    slideSize="33.333333%"
-                    slideGap="md"
-                    breakpoints={[
-                        { maxWidth: 'md', slideSize: '50%' },
-                        { maxWidth: 'sm', slideSize: '100%', slideGap: 15 },
-                    ]}
-                    loop
-                    align="start"
-                    pr="10px"
-                    pl="10px"
-                >
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>1</Title>
-                            <Text>Write something here.</Text>
-                        </div>
-                    </Carousel.Slide>
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>2</Title>
-                            <Text>Something here too.</Text>
-                        </div>
-                    </Carousel.Slide>
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>3</Title>
-                            <Text>Mh, maybe here too?</Text>
-                        </div>
-                    </Carousel.Slide>
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>4</Title>
-                            <Text>If you'd like to you could do that here...</Text>
-                        </div>
-                    </Carousel.Slide>
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>5</Title>
-                            <Text>Woah, you are quite convincing..</Text>
-                        </div>
-                    </Carousel.Slide>
-                    <Carousel.Slide>
-                        <div style={carouselContent}>
-                            <Title order={2}>6</Title>
-                            <Text>And we are done with the cards!</Text>
-                        </div>
-                    </Carousel.Slide>
-                </Carousel> */}
             </Container>
         </section>
     );

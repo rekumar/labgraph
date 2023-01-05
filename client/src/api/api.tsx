@@ -2,13 +2,10 @@ import axios from "axios";
 
 const URL = process.env.NODE_ENV === "production" ? "" : "http://localhost:8895/api"
 
-interface NodeList {
-    Material: string[];
-    Action: string[];
-    Analysis: string[];
-    Measurement: string[];
+export interface NodeList {
+    [node_type: string]: string[];
 }
-interface SampleSummaryData {
+export interface SampleSummaryData {
     "_id": string;
     "name": string;
     "description": string;
@@ -17,7 +14,7 @@ interface SampleSummaryData {
     "tags": string[];
 }
 
-interface SampleData {
+export interface SampleData {
     "name": string;
     "description": string;
     "created_at": string;
@@ -26,11 +23,11 @@ interface SampleData {
     [otherOptions: string]: any;
 }
 
-interface EdgeData {
+export interface EdgeData {
     "node_type": string;
     "node_id": string;
 }
-interface NodeData {
+export interface NodeData {
     "_id": string;
     "name": string;
     "description": string;
@@ -42,7 +39,7 @@ interface NodeData {
 }
 
 
-export default class Api {
+export class Api {
     client: any;
     api_token: null;
     api_url: string | undefined;

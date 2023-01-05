@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import {
     createStyles,
-    Table,
     ScrollArea,
     UnstyledButton,
     Group,
     Text,
     Center,
-    TextInput,
-    Pagination
 } from '@mantine/core';
 import { keys } from '@mantine/utils';
-import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons';
+import { IconSelector, IconChevronDown, IconChevronUp } from '@tabler/icons';
 import { DataTable } from "mantine-datatable";
 
 const useStyles = createStyles((theme) => ({
@@ -57,49 +54,8 @@ interface TableSortProps {
     data: RowData[];
 }
 
-interface ThProps {
-    children: React.ReactNode;
-    reversed: boolean;
-    sorted: boolean;
-    onSort(): void;
-}
 
-function Th({ children, reversed, sorted, onSort }: ThProps) {
-    const { classes } = useStyles();
-    const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
-    return (
-        <th className={classes.th}>
-            <UnstyledButton onClick={onSort} className={classes.control}>
-                <Group position="apart">
-                    <Text weight={500} size="sm">
-                        {children}
-                    </Text>
-                    <Center className={classes.icon}>
-                        <Icon size={14} stroke={1.5} />
-                    </Center>
-                </Group>
-            </UnstyledButton>
-        </th>
-    );
-}
 
-interface UnsortableThProps {
-    children: React.ReactNode;
-}
-function UnsortableTh({ children }: UnsortableThProps) {
-    const { classes } = useStyles();
-    return (
-        <th className={classes.th}>
-            <UnstyledButton className={classes.control}>
-                <Group position="apart">
-                    <Text weight={500} size="sm">
-                        {children}
-                    </Text>
-                </Group>
-            </UnstyledButton>
-        </th>
-    );
-}
 
 function prepForFilter(data: any) {
     if (typeof data === 'string') {

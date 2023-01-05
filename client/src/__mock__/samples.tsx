@@ -1,4 +1,6 @@
-export const samples = [
+import { SampleData } from "../api/api";
+
+export const samples: SampleData[] = [
   {
     "_id": "63856fa8f7f9db28bcddf0f9",
     "name": "shortcut_sample",

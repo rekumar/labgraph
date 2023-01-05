@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import {
     ScrollArea,
     MultiSelect,
-    Badge,
 } from '@mantine/core';
 import { DataTable } from "mantine-datatable";
-import Api from '../../api/api';
+import { Api, SampleData } from '../../api/api';
 import { samples } from '../../__mock__/samples';
 interface SortableRowData {
     _id: string;
@@ -15,15 +14,11 @@ interface SortableRowData {
     // updated_at?: string;
 }
 
-interface NodeList {
-    Material: string[];
-    Action: string[];
-    Analysis: string[];
-    Measurement: string[];
-}
 interface RowData extends SortableRowData {
     tags: string[];
-    nodes: NodeList;
+    nodes: {
+        [node_type: string]: string[];
+    };
 }
 
 interface TableSortProps {
@@ -31,7 +26,7 @@ interface TableSortProps {
 }
 
 
-function uniqueTags({ data }: TableSortProps) {
+function uniqueTags(data: SampleData[]) {
     const tags = data.reduce((acc, { tags }) => {
         tags.forEach((tag) => {
             if (!acc.includes(tag)) {
@@ -53,10 +48,10 @@ export function SampleTable() {
     const [page, setPage] = useState(1);
     const [taggedRecords, setTaggedRecords] = useState(data);
     const [records, setRecords] = useState(taggedRecords.slice(0, ITEMS_PER_PAGE));
-    const allTags = uniqueTags({ data });
+    const allTags = uniqueTags(data);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-    const handleInitialSetup = (data: RowData[]) => {
+    const handleInitialSetup = (data: SampleData[]) => {
         setData(data);
         setTaggedRecords(data);
         setRecords(data.slice(0, ITEMS_PER_PAGE));
@@ -78,7 +73,7 @@ export function SampleTable() {
 
     const handleTagChange = (tags: string[]) => {
         setSelectedTags(tags);
-        var thisTaggedRecords: RowData[] = [];
+        var thisTaggedRecords: SampleData[] = [];
         if (tags.length === 0) {
             thisTaggedRecords = data;
         } else {
