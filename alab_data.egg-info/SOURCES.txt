@@ -12,8 +12,10 @@ alab_data/dashboard/__init__.py
 alab_data/dashboard/lab_views.py
 alab_data/dashboard/routes/__init__.py
 alab_data/dashboard/routes/basic_route.py
+alab_data/dashboard/routes/graph.py
 alab_data/dashboard/routes/nodes.py
 alab_data/dashboard/routes/sample.py
+alab_data/dashboard/routes/utils.py
 alab_data/data/__init__.py
 alab_data/data/actors.py
 alab_data/data/groups.py

@@ -27,17 +27,39 @@ export interface EdgeData {
     "node_type": string;
     "node_id": string;
 }
+
 export interface NodeData {
     "_id": string;
     "name": string;
     "description": string;
-    "upstream": EdgeData[];
-    "downstream": EdgeData[];
     "created_at": string;
     "tags": string[];
+    "upstream": EdgeData[];
+    "downstream": EdgeData[];
     [otherOptions: string]: any;
 }
 
+export interface NodeForGraph {
+    "_id": string;
+    "x": number;
+    "y": number;
+    "label": string;
+    "size": number;
+    "contents": { [otherOptions: string]: any };
+}
+
+
+export interface EdgeForGraph {
+    "source": string;
+    "target": string;
+    "contents": {
+        [otherOptions: string]: any;
+    };
+}
+export interface GraphData {
+    "nodes": NodeForGraph[];
+    "edges": EdgeForGraph[];
+}
 
 export class Api {
     client: any;
@@ -67,15 +89,18 @@ export class Api {
         return this.init().get("/sample/summary");
     };
 
-    getSample = (sample_id: string): Promise<SampleData> => {
+    getSample = (sample_id: string): Promise<{ data: SampleData }> => {
         return this.init().get(`/sample/${sample_id}`);
     };
 
     // Nodes
-    getNode = (node_type: string, node_id: string): Promise<NodeData> => {
+    getNode = (node_type: string, node_id: string): Promise<{ data: NodeData }> => {
         return this.init().get(`/${node_type}/${node_id}`);
     };
 
+    getCompleteGraph = (): Promise<{ data: GraphData }> => {
+        return this.init().get("/graph/complete");
+    };
     // addNewUser = (data) => {
     //     return this.init().post("/users", data);
     // };

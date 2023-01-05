@@ -6,3 +6,4 @@ matplotlib>=3.5.2
 flask >= 2.2.0
 pydantic >= 1.10.4
 gevent >= 22.10.2
+pygraphviz >= 1.10

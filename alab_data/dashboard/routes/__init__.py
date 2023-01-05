@@ -1,6 +1,7 @@
 from .basic_route import modules
 from .sample import sample_bp
 from .nodes import material_bp, measurement_bp, analysis_bp, action_bp
+from .graph import graph_bp
 
 
 def init_app(app):
@@ -13,3 +14,4 @@ def init_app(app):
     app.register_blueprint(measurement_bp)
     app.register_blueprint(analysis_bp)
     app.register_blueprint(action_bp)
+    app.register_blueprint(graph_bp)
