@@ -1,4 +1,4 @@
-import { Button, Badge, Burger, Drawer, Code, Title, Anchor, Text } from '@mantine/core';
+import { Button, Badge, Burger, Drawer, Code, Title, Anchor, Text, Space } from '@mantine/core';
 import { UnstyledButton, Group, Avatar } from '@mantine/core';
 import React from 'react';
 import { Link } from 'react-scroll';

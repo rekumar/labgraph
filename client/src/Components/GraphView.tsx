@@ -1,7 +1,7 @@
 import { Title, Text, Container, Grid, Image, Button } from '@mantine/core';
 
-const SectionTwo = () => {
-    //const theme = useMantineTheme();
+const GraphView = () => {
+    // const theme = useMantineTheme();
 
     return (
         <section id="section-two">
@@ -26,4 +26,4 @@ const SectionTwo = () => {
     )
 };
 
-export default SectionTwo;
+export default GraphView;

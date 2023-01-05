@@ -1,146 +1,144 @@
-import {
-  v4 as uuid
-} from 'uuid';
-
 export const samples = [
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'West Virginia',
-      city: 'Parkersburg',
-      street: '2849 Fulton Street'
+    "_id": "63856fa8f7f9db28bcddf0f9",
+    "name": "shortcut_sample",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    "nodes": {
+      "Material": [
+        "63856fa8f7f9db28bcddf0f4",
+        "63856fa8f7f9db28bcddf0fa",
+        "63856fa8f7f9db28bcddf0fb",
+        "63856fa8f7f9db28bcddf0fc"
+      ],
+      "Action": [
+        "63856fa8f7f9db28bcddf0f5",
+        "63856fa8f7f9db28bcddf0f6",
+        "63856fa8f7f9db28bcddf0f7",
+        "63856fa8f7f9db28bcddf0f8"
+      ],
+      "Analysis": [
+        "63856fb7a79739a28f5ba231"
+      ],
+      "Measurement": [
+        "63856faf3b17f370e5b12b76"
+      ]
     },
-    avatarUrl: '/static/images/avatars/avatar_3.png',
-    createdAt: 1555016400000,
-    description: 'ekaterina.tankova@devias.io',
-    name: 'Ekaterina Tankova',
-    phone: '304-428-3097'
+    "tags": ["Rishi", "ALab"],
+    "created_at": "2022-11-28T18:34:16.995000",
   },
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Bristow',
-      city: 'Iowa',
-      street: '1865  Pleasant Hill Road'
+    "_id": "63b4846359d804bbe41fba2a",
+    "name": "first_sample_again",
+    "description": "",
+    "nodes": {
+      "Material": [
+        "63b4846259d804bbe41fba1f",
+        "63b4846259d804bbe41fba22",
+        "63b4846259d804bbe41fba24",
+        "63b4846259d804bbe41fba26"
+      ],
+      "Action": [
+        "63b4846259d804bbe41fba20",
+        "63b4846259d804bbe41fba21",
+        "63b4846259d804bbe41fba23",
+        "63b4846259d804bbe41fba25"
+      ],
+      "Analysis": [
+        "63b4846259d804bbe41fba28"
+      ],
+      "Measurement": [
+        "63b4846259d804bbe41fba27"
+      ]
     },
-    avatarUrl: '/static/images/avatars/avatar_4.png',
-    createdAt: 1555016400000,
-    description: 'cao.yu@devias.io',
-    name: 'Cao Yu',
-    phone: '712-351-5711'
+    "tags": ["ALab"],
+    "created_at": "2023-01-03T11:39:17.290000"
   },
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Georgia',
-      city: 'Atlanta',
-      street: '4894  Lakeland Park Drive'
+    "_id": "63b4846859d804bbe41fba84",
+    "name": "shortcut_sample",
+    "description": "",
+    "nodes": {
+      "Material": [
+        "63b4846759d804bbe41fba7f",
+        "63b4846859d804bbe41fba85",
+        "63b4846859d804bbe41fba86",
+        "63b4846859d804bbe41fba87"
+      ],
+      "Action": [
+        "63b4846759d804bbe41fba80",
+        "63b4846759d804bbe41fba81",
+        "63b4846759d804bbe41fba82",
+        "63b4846759d804bbe41fba83"
+      ],
+      "Analysis": [
+        "63b4846859d804bbe41fba89"
+      ],
+      "Measurement": [
+        "63b4846859d804bbe41fba88"
+      ]
     },
-    avatarUrl: '/static/images/avatars/avatar_2.png',
-    createdAt: 1555016400000,
-    description: 'alexa.richardson@devias.io',
-    name: 'Alexa Richardson',
-    phone: '770-635-2682'
+    "tags": ["Rishi"],
+    "created_at": "2023-01-03T11:39:20.615000"
   },
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Ohio',
-      city: 'Dover',
-      street: '4158  Hedge Street'
+    "_id": "63b484a259d804bbe41fba9a",
+    "name": "Chemical Procurement",
+    "description": "",
+    "nodes": {
+      "Material": [
+        "63b484a259d804bbe41fba96"
+      ],
+      "Action": [
+        "63b484a259d804bbe41fba97"
+      ],
+      "Analysis": [],
+      "Measurement": []
     },
-    avatarUrl: '/static/images/avatars/avatar_5.png',
-    createdAt: 1554930000000,
-    description: 'anje.keizer@devias.io',
-    name: 'Anje Keizer',
-    phone: '908-691-3242'
+    "tags": ["Random"],
+    "created_at": "2023-01-03T11:40:19.004000"
   },
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Texas',
-      city: 'Dallas',
-      street: '75247'
+    "_id": "63b484a359d804bbe41fba9b",
+    "name": "Chemical Procurement",
+    "description": "",
+    "nodes": {
+      "Material": [
+        "63b484a259d804bbe41fba98"
+      ],
+      "Action": [
+        "63b484a259d804bbe41fba99"
+      ],
+      "Analysis": [],
+      "Measurement": []
     },
-    avatarUrl: '/static/images/avatars/avatar_6.png',
-    createdAt: 1554757200000,
-    description: 'clarke.gillebert@devias.io',
-    name: 'Clarke Gillebert',
-    phone: '972-333-4106'
+    "tags": [],
+    "created_at": "2023-01-03T11:40:19.007000"
   },
   {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'California',
-      city: 'Bakerfield',
-      street: '317 Angus Road'
+    "_id": "63b484a659d804bbe41fbaa6",
+    "name": "realistic_sample",
+    "description": "",
+    "nodes": {
+      "Material": [
+        "63b484a259d804bbe41fba96",
+        "63b484a259d804bbe41fba98",
+        "63b484a659d804bbe41fbaa7",
+        "63b484a659d804bbe41fbaa8",
+        "63b484a659d804bbe41fbaa9"
+      ],
+      "Action": [
+        "63b484a659d804bbe41fbaa3",
+        "63b484a659d804bbe41fbaa4",
+        "63b484a659d804bbe41fbaa5"
+      ],
+      "Analysis": [
+        "63b484a759d804bbe41fbaab"
+      ],
+      "Measurement": [
+        "63b484a759d804bbe41fbaaa"
+      ]
     },
-    avatarUrl: '/static/images/avatars/avatar_1.png',
-    createdAt: 1554670800000,
-    description: 'adam.denisov@devias.io',
-    name: 'Adam Denisov',
-    phone: '858-602-3409'
-  },
-  {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'California',
-      city: 'Redondo Beach',
-      street: '2188  Armbrester Drive'
-    },
-    avatarUrl: '/static/images/avatars/avatar_7.png',
-    createdAt: 1554325200000,
-    description: 'ava.gregoraci@devias.io',
-    name: 'Ava Gregoraci',
-    phone: '415-907-2647'
-  },
-  {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Nevada',
-      city: 'Las Vegas',
-      street: '1798  Hickory Ridge Drive'
-    },
-    avatarUrl: '/static/images/avatars/avatar_8.png',
-    createdAt: 1523048400000,
-    description: 'emilee.simchenko@devias.io',
-    name: 'Emilee Simchenko',
-    phone: '702-661-1654'
-  },
-  {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Michigan',
-      city: 'Detroit',
-      street: '3934  Wildrose Lane'
-    },
-    avatarUrl: '/static/images/avatars/avatar_9.png',
-    createdAt: 1554702800000,
-    description: 'kwak.seong.min@devias.io',
-    name: 'Kwak Seong-Min',
-    phone: '313-812-8947'
-  },
-  {
-    id: uuid(),
-    address: {
-      country: 'USA',
-      state: 'Utah',
-      city: 'Salt Lake City',
-      street: '368 Lamberts Branch Road'
-    },
-    avatarUrl: '/static/images/avatars/avatar_10.png',
-    createdAt: 1522702800000,
-    description: 'merrile.burgett@devias.io',
-    name: 'Merrile Burgett',
-    phone: '801-301-7894'
+    "tags": [],
+    "created_at": "2023-01-03T11:40:24.755000"
   }
 ];

@@ -9,7 +9,8 @@ body {
   background-color: rgb(248, 246, 246);
 }
 
-section, footer {
+section,
+footer {
   padding: 4rem 0rem;
   padding-right: 60px;
   padding-left: 60px;
@@ -19,7 +20,7 @@ section, footer {
     padding-right: 1rem;
 
     .mantine-Container-root {
-        padding: 0px;
+      padding: 0px;
     }
   }
 }

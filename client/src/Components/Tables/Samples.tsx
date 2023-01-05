@@ -1,178 +1,129 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-    createStyles,
-    Table,
     ScrollArea,
-    UnstyledButton,
-    Group,
-    Text,
-    Center,
-    TextInput,
+    MultiSelect,
+    Badge,
 } from '@mantine/core';
-import { keys } from '@mantine/utils';
-import { IconSelector, IconChevronDown, IconChevronUp, IconSearch } from '@tabler/icons';
+import { DataTable } from "mantine-datatable";
 
-const useStyles = createStyles((theme) => ({
-    th: {
-        padding: '0 !important',
-    },
-
-    control: {
-        width: '100%',
-        padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-
-        '&:hover': {
-            backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0],
-        },
-    },
-
-    icon: {
-        width: 21,
-        height: 21,
-        borderRadius: 21,
-    },
-}));
-
-interface RowData {
-    id: string;
+interface SortableRowData {
+    _id: string;
     name: string;
     description: string;
-    // tags: string;
-    // nodes: string;
+    created_at: string;
+    // updated_at?: string;
+}
+
+interface NodeList {
+    Material: string[];
+    Action: string[];
+    Analysis: string[];
+    Measurement: string[];
+}
+interface RowData extends SortableRowData {
+    tags: string[];
+    nodes: NodeList;
 }
 
 interface TableSortProps {
     data: RowData[];
 }
 
-interface ThProps {
-    children: React.ReactNode;
-    reversed: boolean;
-    sorted: boolean;
-    onSort(): void;
+interface MultiSelectEntry {
+    value: string;
+    label: string;
 }
 
-function Th({ children, reversed, sorted, onSort }: ThProps) {
-    const { classes } = useStyles();
-    const Icon = sorted ? (reversed ? IconChevronUp : IconChevronDown) : IconSelector;
-    return (
-        <th className={classes.th}>
-            <UnstyledButton onClick={onSort} className={classes.control}>
-                <Group position="apart">
-                    <Text weight={500} size="sm">
-                        {children}
-                    </Text>
-                    <Center className={classes.icon}>
-                        <Icon size={14} stroke={1.5} />
-                    </Center>
-                </Group>
-            </UnstyledButton>
-        </th>
-    );
-}
-
-function filterData(data: RowData[], search: string) {
-    const query = search.toLowerCase().trim();
-    return data.filter((item) =>
-        keys(data[0]).some((key) => item[key].toString().toLowerCase().includes(query))
-    );
-}
-
-function sortData(
-    data: RowData[],
-    payload: { sortBy: keyof RowData | null; reversed: boolean; search: string }
-) {
-    const { sortBy } = payload;
-
-    if (!sortBy) {
-        return filterData(data, payload.search);
-    }
-
-    return filterData(
-        [...data].sort((a, b) => {
-            if (payload.reversed) {
-                return b[sortBy].localeCompare(a[sortBy]);
+function uniqueTags({ data }: TableSortProps) {
+    const tags = data.reduce((acc, { tags }) => {
+        tags.forEach((tag) => {
+            if (!acc.includes(tag)) {
+                acc.push(tag);
             }
-
-            return a[sortBy].localeCompare(b[sortBy]);
-        }),
-        payload.search
-    );
+        });
+        return acc;
+    }, [] as string[]);
+    tags.sort();
+    return tags;
 }
-
 export function SampleTable({ data }: TableSortProps) {
-    const [search, setSearch] = useState('');
-    const [sortedData, setSortedData] = useState(data);
-    const [sortBy, setSortBy] = useState<keyof RowData | null>(null);
-    const [reverseSortDirection, setReverseSortDirection] = useState(false);
+    const ITEMS_PER_PAGE = 10;
+    const [page, setPage] = useState(1);
+    const [taggedRecords, setTaggedRecords] = useState(data);
+    const [records, setRecords] = useState(taggedRecords.slice(0, ITEMS_PER_PAGE));
+    const allTags = uniqueTags({ data });
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-    const setSorting = (field: keyof RowData) => {
-        const reversed = field === sortBy ? !reverseSortDirection : false;
-        setReverseSortDirection(reversed);
-        setSortBy(field);
-        setSortedData(sortData(data, { sortBy: field, reversed, search }));
+
+    const handleTagChange = (tags: string[]) => {
+        setSelectedTags(tags);
+        var thisTaggedRecords: RowData[] = [];
+        if (tags.length === 0) {
+            thisTaggedRecords = data;
+        } else {
+            thisTaggedRecords = data.filter((row) => tags.every(this_tag => row.tags.includes(this_tag)));
+        }
+        setTaggedRecords(thisTaggedRecords);
+        setPage(1);
+        setRecords(thisTaggedRecords.slice(0, ITEMS_PER_PAGE));
     };
 
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = event.currentTarget;
-        setSearch(value);
-        setSortedData(sortData(data, { sortBy, reversed: reverseSortDirection, search: value }));
+    const handlePageChange = (page: number) => {
+        setPage(page);
+        const from = (page - 1) * ITEMS_PER_PAGE;
+        const to = from + ITEMS_PER_PAGE;
+        setRecords(taggedRecords.slice(from, to));
     };
-
-    const rows = sortedData.map((row) => (
-        <tr key={row.id}>
-            <td>{row.name}</td>
-            <td>{row.description}</td>
-        </tr>
-    ));
 
     return (
         <ScrollArea>
-            <TextInput
-                placeholder="Search by any field"
-                mb="md"
-                icon={<IconSearch size={14} stroke={1.5} />}
-                value={search}
-                onChange={handleSearchChange}
+            <MultiSelect
+                label="Tags"
+                data={allTags}
+                value={selectedTags}
+                onChange={(value) => handleTagChange(value)}
+                placeholder="Select tags to filter the table."
+                searchable
+                clearable
+                clearButtonLabel='Clear selection'
+                maxDropdownHeight={160}
             />
-            <Table
-                horizontalSpacing="md"
-                verticalSpacing="xs"
-                sx={{ tableLayout: 'fixed', minWidth: 700 }}
-            >
-                <thead>
-                    <tr>
-                        <Th
-                            sorted={sortBy === 'name'}
-                            reversed={reverseSortDirection}
-                            onSort={() => setSorting('name')}
-                        >
-                            Name
-                        </Th>
-                        <Th
-                            sorted={sortBy === 'description'}
-                            reversed={reverseSortDirection}
-                            onSort={() => setSorting('description')}
-                        >
-                            Description
-                        </Th>
-
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.length > 0 ? (
-                        rows
-                    ) : (
-                        <tr>
-                            <td colSpan={Object.keys(data[0]).length}>
-                                <Text weight={500} align="center">
-                                    Nothing found
-                                </Text>
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </Table>
+            <DataTable
+                withBorder
+                borderRadius="sm"
+                withColumnBorders
+                striped
+                highlightOnHover
+                // provide data
+                records={records}
+                recordsPerPage={ITEMS_PER_PAGE}
+                page={page}
+                totalRecords={taggedRecords.length}
+                onPageChange={(page) => handlePageChange(page)}
+                // define columns
+                columns={[
+                    {
+                        accessor: 'name',
+                    },
+                    {
+                        accessor: 'description',
+                    },
+                    // {
+                    //     accessor: 'nodes',
+                    //     render: (nodes: NodeList) => {
+                    //         return (
+                    //             <Text>{nodes.Action.length + nodes.Analysis.length + nodes.Measurement.length + nodes.Material.length}</Text>
+                    //         );
+                    //     },
+                    // },
+                    {
+                        accessor: 'created_at',
+                    },
+                ]}
+                onRowClick={({ name, description, nodes }) =>
+                    alert(`You clicked on ${name}, a ${description.toLowerCase()} president born in ${nodes}`)
+                }
+            />
         </ScrollArea>
     );
 }

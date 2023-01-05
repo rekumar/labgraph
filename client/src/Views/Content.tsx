@@ -1,25 +1,13 @@
-import About from "../Components/About";
-import SectionOne from '../Components/SectionOne';
-import SectionTwo from '../Components/SectionTwo';
-import SectionThree from '../Components/SectionThree';
-import SectionFour from '../Components/SectionFour';
-import SectionFive from '../Components/SectionFive';
+import Tables from '../components/Tables';
+import GraphView from '../components/GraphView';
 
 const Content = () => {
     return (
         <>
-            <About />
 
-            <SectionOne />
+            <Tables />
+            <GraphView />
 
-            <SectionTwo />
-
-            <SectionThree />
-
-            <SectionFour />
-
-            <SectionFive />
-            { /* Other sections .. */ }
         </>
     )
 };

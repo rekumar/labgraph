@@ -1,0 +1,5 @@
+__version__ = "0.2.0"
+__description__ = "A library for storing experimental materials science data."
+__author__ = "Rishi Kumar"
+__author_email__ = "rekumar@lbl.gov"
+__license__ = "MIT"

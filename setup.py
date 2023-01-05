@@ -2,6 +2,13 @@ from pathlib import Path
 from setuptools import setup
 from setuptools import find_packages
 import os
+from alab_data.metadata import (
+    __version__,
+    __description__,
+    __author__,
+    __author_email__,
+    __license__,
+)
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -24,14 +31,14 @@ with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="alab_data",
-    version="0.2.0",
-    description="A library for storing experimental materials science data.",
+    version=__version__,
+    description=__description__,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Rishi Kumar",
-    author_email="rekumar@lbl.gov",
+    author=__author__,
+    author_email=__author_email__,
     download_url="https://github.com/rekumar/alab_data",
-    license="MIT",
+    license=__license__,
     python_requires=">=3.8",
     install_requires=[
         package.strip("\n")
@@ -59,9 +66,9 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    # entry_points={
-    #     'console_scripts': [
-    #         'meg = megnet.cli.meg:main',
-    #     ]
-    # }
+    entry_points={
+        "console_scripts": [
+            "alab_data = alab_data.scripts.cli:cli",
+        ]
+    },
 )
