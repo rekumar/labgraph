@@ -1,6 +1,13 @@
 # ALab Data
 
+> **Warning**
+> This project is still under development!
+
 This library defines a graph-based schema for storing materials science data. 
+
+You can read the (evolving) documentation [here](https://alab-data.readthedocs.io/en/latest/index.html).
+
+
 
 
 ## Additional Dependencies
