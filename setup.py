@@ -1,26 +1,26 @@
 from pathlib import Path
+from typing import List
 from setuptools import setup
 from setuptools import find_packages
 import os
 
-this_dir = os.path.abspath(os.path.dirname(__file__))
+THIS_DIR = Path(__file__).parent
 
-with open(os.path.join(this_dir, "README.md"), encoding="utf-8") as f:
+with open(THIS_DIR / "README.md", encoding="utf-8") as f:
     long_description = f.read()
 
 
-# with open('megnet/__init__.py', encoding='utf-8') as fd:
-#     try:
-#         lines = ''
-#         for item in fd.readlines():
-#             item = item
-#             lines += item + '\n'
-#     except Exception as exc:
-#         raise Exception('Caught exception {}'.format(exc))
+def read_requirements(filepath: Path) -> List[str]:
+    with open(filepath, encoding="utf-8") as fd:
+        return [
+            package.strip("\n")
+            for package in fd.readlines()
+            if not package.startswith("#")
+        ]
 
 
-# version = re.search('__version__ = "(.*)"', lines).group(1)
-
+requirements = read_requirements(THIS_DIR / "requirements.txt")
+dev_requirements = read_requirements(THIS_DIR / "requirements-dev.txt")
 
 setup(
     name="alab_data",
@@ -33,12 +33,8 @@ setup(
     download_url="https://github.com/rekumar/alab_data",
     license="MIT",
     python_requires=">=3.8",
-    install_requires=[
-        package.strip("\n")
-        for package in (Path(__file__).parent / "requirements.txt")
-        .open("r", encoding="utf-8")
-        .readlines()
-    ],
+    install_requires=requirements,
+    extras_require={"dev": dev_requirements},
     packages=find_packages(),
     include_package_data=True,
     keywords=[
