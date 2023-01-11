@@ -13,7 +13,6 @@ import { actors } from '../__mock__/actors';
 import { ActorsTable } from './Tables/Actors';
 import { analysis_methods } from '../__mock__/analysis_methods';
 import { AnalysisMethodsTable } from './Tables/AnalysisMethods';
-import { Api } from '../api/api';
 
 
 function TabbedTables() {
@@ -59,17 +58,6 @@ function TabbedTables() {
 }
 const Tables = () => {
     const theme = useMantineTheme();
-
-    const carouselContent = {
-        height: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'column' as 'column',
-        backgroundColor: theme.colors.yellow[5],
-        borderRadius: 15,
-        gap: 15
-    };
 
     return (
         <section id="section-one">
