@@ -58,7 +58,10 @@ Quickstart
    :maxdepth: -1
    
    Schema<schema>
-   Node Types<node_types>
+   Entering Data<entering_data>
+   Retrieving Data<retrieving_data>
+   .. Node Types<node_types>
+
    
 
 .. Indices and tables

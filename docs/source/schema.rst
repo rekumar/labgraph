@@ -55,3 +55,20 @@ Analysis Nodes
     :alt: Allowed edges for Analysis nodes.
 
 :py:class:`Analysis <alab_data.Analysis>` nodes are used to represent the analysis of :py:class:`Measurement <alab_data.Measurement>` data to yield features. :py:class:`Analysis <alab_data.Analysis>` nodes can have any number of upstream :py:class:`Measurement <alab_data.Measurement>`s or Analyses -- whatever raw data or analyzed features are required to perform the :py:class:`Analysis <alab_data.Analysis>`. On the downstream side, an :py:class:`Analysis <alab_data.Analysis>` node can be followed by any number of other Analyses. :py:class:`Analysis <alab_data.Analysis>` is commonly the terminal node for a graph.
+
+Samples (Graphs)
+=================
+A :py:class:`Sample <alab_data.Sample>` is a DAG of :ref:`nodes <node-types>` that represent the materials, actions, measurements, and analyses that were performed on a single sample. Nodes are added to the database as part of a :py:class:`Sample <alab_data.Sample>`. Along with the nodes, the :py:class:`Sample <alab_data.Sample>` can be given tags or additional fields to make it easy to retrieve the :py:class:`Sample <alab_data.Sample>` at a later time. 
+
+Additionally, hits from a node search can be expanded to the complete :py:class:`Sample <alab_data.Sample>` that contains the nodes. For example, one could search for  :py:class:`Analysis <alab_data.Analysis>` nodes named "Phase Identification" that identified some amount of a target phase. Then, by retrieving the :py:class:`Sample <alab_data.Sample>` containing each of these nodes, we can compare the starting :py:class:`Material <alab_data.Material>` s and :py:class:`Action <alab_data.Action>` sequences that led to the target phase.
+
+Actors and AnalysisMethods
+==========================
+
+When we look at Actions, Measurements, and Analyses, we'd like to track tool/method was used to perform these steps. This is important when:
+
+- you have a few different tools that can perform the same task (e.g. multiple furnaces)
+- you have a few different tasks that use the same tool (e.g. a liquid handler can do dilutions, mixtures, and dispenses).
+- you modify an instrument or analysis script over time, and you'd like to track which version was used.
+
+This tracking is formalized and enforced through the :py:class:`Actor <alab_data.Actor>` and :py:class:`AnalysisMethod <alab_data.AnalysisMethod>` classes. Every :py:class:`Action <alab_data.Action>` and :py:class:`Measurement <alab_data.Measurement>` must be associated with an :py:class:`Actor <alab_data.Actor>`, and every :py:class:`Analysis <alab_data.Analysis>` must be associated with an :py:class:`AnalysisMethod <alab_data.AnalysisMethod>`. 
