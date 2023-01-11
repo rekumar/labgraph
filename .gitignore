@@ -1,5 +1,3 @@
-example_data/db_login.json
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -24,6 +22,7 @@ var/
 wheels/
 share/python-wheels/
 *.egg-info/
+alab_data.egg-info
 .installed.cfg
 *.egg
 MANIFEST
