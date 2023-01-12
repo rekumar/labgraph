@@ -3,7 +3,7 @@ Schema Overview
 
 All data is stored as a `directed acyclic graph (DAG) <https://en.wikipedia.org/wiki/Directed_acyclic_graph>`_. The "direction" of edges encodes the order that nodes (ie experimental steps) were performed in. Put another way, edges always point ahead in time. The "acyclic" constraint ensures that nodes cannot connect upstream to older nodes, which would be travelling back in time!
 
-The four :ref:`node types <node-types>` are designed to cover capture the generation of materials, the measurement of these materials, and analysis of these measurements. 
+The four node types -- :py:class:`Material <alab_data.Material>`, :py:class:`Action <alab_data.Action>`, :py:class:`Measurement <alab_data.Measurement>`, and :py:class:`Analysis <alab_data.Analysis>` -- are designed to cover the generation of materials, the measurement of these materials, and analysis of these measurements. 
 
 .. figure:: img/example_sample_graph.png
    :scale: 100 %
@@ -11,9 +11,9 @@ The four :ref:`node types <node-types>` are designed to cover capture the genera
    
    This is a graph for a single Sample. The four node types are shown in different colors. The edges point forward in time, and the nodes are arranged in a topological order. The graph is acyclic, so there are no loops. The graph can branch to show multiple downstream processes (in this case, an :py:class:`Action <alab_data.Action>` and :py:class:`Measurement <alab_data.Measurement>`) acting upon a single :py:class:`Material <alab_data.Material>`.
 
-Allowed Edges (Node Relationships)
-===================================
-Each :ref:`node type <node-types>` can only be connected to certain other node types. The allowed edges/relationships are described below.
+Nodes and Allowed Relationships (Edges)
+---------------------------------------
+Each node type can only be connected to certain other node types. The allowed edges/relationships are described below.
 
 ###############
 Material Nodes
@@ -57,13 +57,13 @@ Analysis Nodes
 :py:class:`Analysis <alab_data.Analysis>` nodes are used to represent the analysis of :py:class:`Measurement <alab_data.Measurement>` data to yield features. :py:class:`Analysis <alab_data.Analysis>` nodes can have any number of upstream :py:class:`Measurement <alab_data.Measurement>`s or Analyses -- whatever raw data or analyzed features are required to perform the :py:class:`Analysis <alab_data.Analysis>`. On the downstream side, an :py:class:`Analysis <alab_data.Analysis>` node can be followed by any number of other Analyses. :py:class:`Analysis <alab_data.Analysis>` is commonly the terminal node for a graph.
 
 Samples (Graphs)
-=================
+------------------
 A :py:class:`Sample <alab_data.Sample>` is a DAG of :ref:`nodes <node-types>` that represent the materials, actions, measurements, and analyses that were performed on a single sample. Nodes are added to the database as part of a :py:class:`Sample <alab_data.Sample>`. Along with the nodes, the :py:class:`Sample <alab_data.Sample>` can be given tags or additional fields to make it easy to retrieve the :py:class:`Sample <alab_data.Sample>` at a later time. 
 
 Additionally, hits from a node search can be expanded to the complete :py:class:`Sample <alab_data.Sample>` that contains the nodes. For example, one could search for  :py:class:`Analysis <alab_data.Analysis>` nodes named "Phase Identification" that identified some amount of a target phase. Then, by retrieving the :py:class:`Sample <alab_data.Sample>` containing each of these nodes, we can compare the starting :py:class:`Material <alab_data.Material>` s and :py:class:`Action <alab_data.Action>` sequences that led to the target phase.
 
 Actors and AnalysisMethods
-==========================
+------------------------------------
 
 When we look at Actions, Measurements, and Analyses, we'd like to track tool/method was used to perform these steps. This is important when:
 

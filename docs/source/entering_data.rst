@@ -13,7 +13,7 @@ Creating Nodes
 The construction of each node type follows mostly the same process. There are a few required properties for each node.
 
 ==================
-Common Properties
+Common Node Properties
 ==================
 The properties common to all nodes are:
 
@@ -27,7 +27,6 @@ Node-Specific Properties
 Material Nodes
 
 .. code-block:: python
-    :linenos:
 
     from alab_data import Material
 
@@ -39,7 +38,6 @@ Material Nodes
 Action Nodes
 
 .. code-block:: python
-    :linenos:
 
     from alab_data import Action, Ingredient, Actor
     from alab_data.views import ActorView
@@ -67,7 +65,6 @@ Action Nodes
 Measurement Nodes
 
 .. code-block:: python
-    :linenos:
 
     from alab_data import Measurement, Actor
     from alab_data.views import ActorView
@@ -89,7 +86,6 @@ Measurement Nodes
 Analysis Nodes
 
 .. code-block:: python
-    :linenos:
 
     from alab_data import Analysis, Actor
     from alab_data.views import AnalysisMethodView
@@ -119,7 +115,6 @@ Adding your data to nodes
 All the examples above show the minimum information required to create a node. However, you probably want to add your own metadata to these nodes too! This is really easy -- just pass them as keyword arguments to the node constructor. For example, if you wanted to add a description to your material node, you could do:
 
 .. code-block:: python
-    :linenos:
 
     material_node = Material(
         name="Titanium Dioxide" #required argument
@@ -130,7 +125,6 @@ All the examples above show the minimum information required to create a node. H
 Other common examples include adding process parameters to an Action node:
 
 .. code-block:: python
-    :linenos:
 
     action_node = Action(
         name="Annealing" #required argument
@@ -149,7 +143,6 @@ Other common examples include adding process parameters to an Action node:
 and, of course, adding raw data to a Measurement node:
 
 .. code-block:: python
-    :linenos:
 
     measurement_node = Measurement(
         name="XRD" #required argument
@@ -163,3 +156,54 @@ and, of course, adding raw data to a Measurement node:
 
 .. note::
     Whatever data you put in your nodes will eventually be encoded as BSON to be stored in MongoDB. This means that you can't use any data types that `BSON doesn't support <https://pymongo.readthedocs.io/en/stable/api/bson/index.html>`_. For example, you can't use a numpy array as a value in your data dictionary. You can, however, use a list. If you want to use a numpy array, you should convert it to a list first.
+
+
+###################
+Creating a Sample
+###################
+
+Now that we have created our nodes, we can create a :py:class:`Sample <alab_data.Sample>` and attribute them to it. 
+
+If all your nodes are ready, you can create the :py:class:`Sample <alab_data.Sample>` like this:
+
+.. code-block:: python
+
+    from alab_data import Sample
+    from alab_data.views import SampleView
+
+    sample = Sample(
+        name="Sample 1",
+        nodes=[material_node, action_node, measurement_node, analysis_node]
+    )
+    sample_view.add(sample)
+
+Alternatively, you can add nodes to the :py:class:`Sample <alab_data.Sample>` one at a time:
+
+.. code-block:: python
+    
+        sample = Sample(
+            name="Sample 1"
+        )
+        sample.add_node(material_node)
+        sample.add_node(action_node)
+        sample.add_node(measurement_node)
+        sample.add_node(analysis_node)
+
+        sample_view.add(sample)
+
+As with the nodes, you can add your own metadata to the :py:class:`Sample <alab_data.Sample>`:
+
+.. code-block:: python
+
+    sample = Sample(
+        name="Sample 1",
+        nodes=[material_node, action_node, measurement_node, analysis_node],
+        description="This is a sample of titanium dioxide that was synthesized by the sol-gel method and then annealed at 1500 degrees Celsius for 4 hours.",
+        operator="John Doe",
+        project="DOE Grant 12345",
+        experiment="TiO2 sol-gel"
+    )
+    sample_view.add(sample)
+
+
+:py:class:`Sample <alab_data.Sample>` objects have some other methods that you might find useful. Check them out on the :doc:`sample` page of these docs.

@@ -6,8 +6,7 @@
 .. note::
    This project is under active development.
 
-
-Welcome to ALab-Data's documentation!
+Welcome to the ALab-Data Docs!
 =====================================
 **ALab-Data** is a Python library for storing and retrieving materials science data stored in MongoDB. This library enforces a data model tailored for experimental materials data (computational or physical experiments). 
 
@@ -18,12 +17,12 @@ At a high-level, data is stored as a directed graph of four node types: :py:clas
    :scale: 100 %
    :alt: An example graph for a single Sample
    
-   This is a graph for a single Sample. Learn more in the :doc:`schema` section.
+   This is a graph for a single Sample. Learn more in the :doc:`schema_overview` section.
 
 
 Node Types
 """""""""""
-Here is a brief overview of the four node types and their roles in the data model. Further details on allowed node relationships can be found in the :doc:`schema` section.
+Here is a brief overview of the four node types and their roles in the data model. Further details on allowed node relationships can be found in the :doc:`schema_overview` section.
 
 - :py:class:`Material <alab_data.Material>` nodes are the fundamental building blocks of the data model. These represent a material in a given state. 
 
@@ -55,13 +54,12 @@ using the `pymongo <https://pymongo.readthedocs.io/en/stable/>`_ package.
 Quickstart
 """""""""""
 .. toctree::
-   :maxdepth: -1
+   :maxdepth: 2
    
-   Schema<schema>
+   Schema Overview<schema_overview>
    Entering Data<entering_data>
    Retrieving Data<retrieving_data>
-   .. Node Types<node_types>
-
+   Code<modules>
    
 
 .. Indices and tables

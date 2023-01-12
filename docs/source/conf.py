@@ -45,13 +45,14 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_book_theme"
+html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
-    "repository_url": "https://github.com/rekumar/alab_data",
-    "use_repository_button": True,
-    "home_page_in_toc": True,
-    "show_navbar_depth": 0,
+    "collapse_navigation": False,
+    # "repository_url": "https://github.com/rekumar/alab_data",
+    # "use_repository_button": True,
+    # "home_page_in_toc": True,
+    # "show_navbar_depth": 2,
 }
 
 # html_logo = (Path(__file__).parent / "_static" / "logo.png").as_posix()
