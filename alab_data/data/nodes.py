@@ -149,6 +149,17 @@ class Ingredient:
         name: str = None,
         **parameters,
     ):
+        """
+
+        Args:
+            material (Material): Material node that this ingredient is made of.
+            amount (float): amount of the material in this ingredient
+            unit (str): unit of the amount
+            name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action.. Defaults to None.
+
+        Raises:
+            TypeError: _description_
+        """
         if name is None:
             self.name = material.name
         else:
@@ -181,9 +192,13 @@ class Ingredient:
 
 
 class WholeIngredient(Ingredient):
-    """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials"""
-
     def __init__(self, material: Material, name: str = None, **parameters):
+        """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials.
+
+        Args:
+            material (Material): Material node described by this ingredient.
+            name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
+        """
         super(WholeIngredient, self).__init__(
             material=material, amount=100, unit="percent", name=name, **parameters
         )
@@ -199,6 +214,15 @@ class Action(BaseObject):
         tags: List[str] = None,
         **parameters,
     ):
+        """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
+
+        Args:
+            name (str): Name of the Action node.
+            actor (Actor): Actor which performs this Action.
+            ingredients (List[Ingredient], optional): List of Ingredient objects, which describes a Material node with the amount of Material used in this Action. Defaults to [].
+            generated_materials (List[Material], optional): Material Node(s) created by this Action. Defaults to None.
+            tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
+        """
         super(Action, self).__init__(name=name, tags=tags)
         self.parameters = parameters
         self.__actor = actor
@@ -314,6 +338,17 @@ class Measurement(BaseObject):
         tags: List[str] = None,
         **parameters,
     ):
+        """A Measurement Node. This is a node that represents a measurement of a material by an actor.
+
+        Args:
+            name (str): Name of the measurement.
+            material (Material): Material node upon which this Measurement is performed.
+            actor (Actor): Actor which performs the measurement.
+            tags (List[str], optional): List of string tags to identify this node. Defaults to None.
+
+        Raises:
+            TypeError: Invalid type for `material` argument.
+        """
         super(Measurement, self).__init__(name=name, tags=tags)
         if not isinstance(material, Material):
             raise TypeError(
@@ -349,15 +384,33 @@ class Analysis(BaseObject):
     def __init__(
         self,
         name: str,
-        measurements: List[Measurement],
         analysis_method: AnalysisMethod,
+        measurements: List[Measurement] = None,
+        upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
         **parameters,
     ):
+        """Creates an Analysis node. This node represents data processing from upstream Measurement(s) and/or Analysis/es node(s). For example, a "Density" Analysis may accept "Mass" and "Volume" measurements to compute density.
+
+        Args:
+            name (str): Name of the Analysis node.
+            measurements (List[Measurement]): Measurements, if any, on which this Analysis is based. Defaults to None. At least one upstream measurement or analysis must be provided.
+            upstream_analyses (List[Analysis]): Analysis node(s), if any, on which this Analysis is based. Defaults to None. At least one upstream measurement or analysis must be provided.
+            analysis_method (AnalysisMethod): AnalysisMethod describing how this analysis was performed.
+            tags (List[str], optional): List of string tags. Defaults to None.
+
+        Raises:
+            TypeError: Invalid node type passed to `measurements` or `analyses` arguments.
+        """
         super(Analysis, self).__init__(name=name, tags=tags)
         self.__measurements = measurements
+        self.__upstream_analyses = upstream_analyses
         self.parameters = parameters
 
+        if len(measurements) + len(upstream_analyses) == 0:
+            raise ValueError(
+                "At least one upstream measurement or analysis must be provided!"
+            )
         for meas in self.__measurements:
             if not isinstance(meas, Measurement):
                 raise TypeError(
@@ -366,12 +419,23 @@ class Analysis(BaseObject):
             meas.add_downstream(self)
             self.add_upstream(meas)
 
+        for analysis in upstream_analyses:
+            if not isinstance(analysis, Analysis):
+                raise TypeError(
+                    "All analyses must be of type `alab_data.nodes.Analysis`!"
+                )
+            analysis.add_downstream(self)
+            self.add_upstream(analysis)
         self.analysismethod_id = analysis_method.id
         self.__analysis_method = analysis_method
 
     @property
-    def measurement(self):
-        return self.__measurement
+    def measurements(self):
+        return self.__measurements
+
+    @property
+    def upstream_analyses(self):
+        return self.__upstream_analyses
 
     @property
     def analysis_method(self):
