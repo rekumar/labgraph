@@ -1,9 +1,9 @@
-# LabGraph
-
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./docs/source/img/logo/labgraph_dark mode.png">
-  <img alt="LabGraph: a graph-based schema for storing experimental data for chemistry and materials science." src="./docs/source/img/logo/labgraph_light mode.png">
+ <source media="(prefers-color-scheme: dark)" srcset="./docs/source/img/logo/labgraph_dark mode.png">
+ <source media="(prefers-color-scheme: light)" srcset="./docs/source/img/logo/labgraph_light mode.png">
+ <img alt="LabGraph: a graph-based schema for storing experimental data for chemistry and materials science." src="./docs/source/img/logo/labgraph_light mode.png">
 </picture>
+
 > **Warning**
 > This project is still under development!
 
