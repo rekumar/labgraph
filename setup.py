@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import List
 from setuptools import setup
 from setuptools import find_packages
-import os
 
 THIS_DIR = Path(__file__).parent
 
@@ -19,12 +18,22 @@ def read_requirements(filepath: Path) -> List[str]:
         ]
 
 
+def get_version(filepath: Path) -> str:
+    with open(filepath, encoding="utf-8") as fd:
+        for line in fd.readlines():
+            if line.startswith("__version__"):
+                delim = '"' if '"' in line else "'"
+                return line.split(delim)[1]
+        raise RuntimeError("Unable to find version string.")
+
+
+version = get_version(THIS_DIR / "labgraph" / "__init__.py")
 requirements = read_requirements(THIS_DIR / "requirements.txt")
 dev_requirements = read_requirements(THIS_DIR / "requirements-dev.txt")
 
 setup(
     name="labgraph",
-    version="0.2.1",
+    version=version,
     description="A library for storing experimental materials science data.",
     long_description=long_description,
     long_description_content_type="text/markdown",

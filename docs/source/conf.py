@@ -3,13 +3,27 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from pathlib import Path
+
+THIS_DIR = Path(__file__).parent
+
+def get_version(filepath: Path) -> str:
+    with open(filepath, encoding="utf-8") as fd:
+        for line in fd.readlines():
+            if line.startswith("__version__"):
+                delim = '"' if '"' in line else "'"
+                return line.split(delim)[1]
+        raise RuntimeError("Unable to find version string.")
+
+version = get_version(THIS_DIR.parent.parent / "labgraph" / "__init__.py")
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "LabGraph"
 copyright = "2022, Rishi E Kumar"
 author = "Rishi E Kumar"
-release = "0.1"
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
