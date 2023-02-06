@@ -1,7 +1,7 @@
 alab\_data.views.base module
 ============================
 
-.. automodule:: alab_data.views.base
+.. automodule:: labgraph.views.base
    :members:
    :undoc-members:
    :show-inheritance:

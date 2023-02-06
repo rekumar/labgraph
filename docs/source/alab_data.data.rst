@@ -7,14 +7,14 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   alab_data.data.actors
-   alab_data.data.groups
-   alab_data.data.nodes
+   labgraph.data.actors
+   labgraph.data.groups
+   labgraph.data.nodes
 
 Module contents
 ---------------
 
-.. automodule:: alab_data.data
+.. automodule:: labgraph.data
    :members:
    :undoc-members:
    :show-inheritance:

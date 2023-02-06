@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "ALab Data"
+project = "LabGraph"
 copyright = "2022, Rishi E Kumar"
 author = "Rishi E Kumar"
 release = "0.1"
@@ -48,7 +48,7 @@ exclude_patterns = []
 html_theme = "sphinx_book_theme"
 
 html_theme_options = {
-    "repository_url": "https://github.com/rekumar/alab_data",
+    "repository_url": "https://github.com/rekumar/labgraph",
     "use_repository_button": True,
     "home_page_in_toc": True,
     "show_navbar_depth": 0,
@@ -73,7 +73,7 @@ def run_apidoc(_):
         "-e",
         "-o",
         Path(__file__).parent.as_posix(),
-        (Path(__file__).parent.parent.parent / "alab_data").absolute().as_posix(),
+        (Path(__file__).parent.parent.parent / "labgraph").absolute().as_posix(),
     ] + ignore_paths
 
     try:

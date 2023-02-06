@@ -1,4 +1,4 @@
-from alab_data.data import Action, Analysis, Material, Measurement, AnalysisMethod, Actor, Ingredient
+from labgraph.data import Action, Analysis, Material, Measurement, AnalysisMethod, Actor, Ingredient
 from .base import BaseView
 
 class AnalysisMethodView(BaseView):

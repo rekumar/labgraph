@@ -23,8 +23,8 @@ requirements = read_requirements(THIS_DIR / "requirements.txt")
 dev_requirements = read_requirements(THIS_DIR / "requirements-dev.txt")
 
 setup(
-    name="alab_data",
-    version="0.2.0",
+    name="labgraph",
+    version="0.2.1",
     description="A library for storing experimental materials science data.",
     long_description=long_description,
     long_description_content_type="text/markdown",
