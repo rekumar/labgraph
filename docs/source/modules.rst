@@ -1,7 +1,7 @@
-alab_data
+labgraph
 =========
 
 .. toctree::
    :maxdepth: 4
 
-   alab_data
+   labgraph

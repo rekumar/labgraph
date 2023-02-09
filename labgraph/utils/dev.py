@@ -1,5 +1,5 @@
 def drop_collections():
-    from alab_data.views import (
+    from labgraph.views import (
         MaterialView,
         ActionView,
         MeasurementView,

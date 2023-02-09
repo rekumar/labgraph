@@ -166,7 +166,7 @@ class Ingredient:
             self.name = name
         if not isinstance(material, Material):
             raise TypeError(
-                'The "material" argument to an Ingredient must be of type `alab_data.nodes.Material`!'
+                'The "material" argument to an Ingredient must be of type `labgraph.nodes.Material`!'
             )
         self.material = material
         self.material_id = material.id
@@ -244,7 +244,7 @@ class Action(BaseObject):
     def add_ingredient(self, ingredient: Ingredient):
         if not isinstance(ingredient, Ingredient):
             raise TypeError(
-                "All ingredients must be of type `alab_data.nodes.Ingredient`!"
+                "All ingredients must be of type `labgraph.nodes.Ingredient`!"
             )
         self.add_upstream(ingredient.material)
         ingredient.material.add_downstream(self)
@@ -254,7 +254,7 @@ class Action(BaseObject):
     def add_generated_material(self, material: Material):
         if not isinstance(material, Material):
             raise TypeError(
-                "All generated materials must be of type `alab_data.nodes.Material`!"
+                "All generated materials must be of type `labgraph.nodes.Material`!"
             )
         self.add_downstream(material)
         material.add_upstream(self)
@@ -352,7 +352,7 @@ class Measurement(BaseObject):
         super(Measurement, self).__init__(name=name, tags=tags)
         if not isinstance(material, Material):
             raise TypeError(
-                "The `material` argument to a Measurement must be of type `alab_data.nodes.Material`!"
+                "The `material` argument to a Measurement must be of type `labgraph.nodes.Material`!"
             )
         self.parameters = parameters
         self.__material = material
@@ -414,7 +414,7 @@ class Analysis(BaseObject):
         for meas in self.__measurements:
             if not isinstance(meas, Measurement):
                 raise TypeError(
-                    "All measurements must be of type `alab_data.nodes.Measurement`!"
+                    "All measurements must be of type `labgraph.nodes.Measurement`!"
                 )
             meas.add_downstream(self)
             self.add_upstream(meas)
@@ -422,7 +422,7 @@ class Analysis(BaseObject):
         for analysis in upstream_analyses:
             if not isinstance(analysis, Analysis):
                 raise TypeError(
-                    "All analyses must be of type `alab_data.nodes.Analysis`!"
+                    "All analyses must be of type `labgraph.nodes.Analysis`!"
                 )
             analysis.add_downstream(self)
             self.add_upstream(analysis)

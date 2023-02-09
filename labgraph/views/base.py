@@ -1,8 +1,8 @@
 from bson import ObjectId
 from datetime import datetime
 from typing import Literal, cast, List, Dict
-from alab_data.utils.data_objects import get_collection
-from alab_data.data.nodes import BaseObject
+from labgraph.utils.data_objects import get_collection
+from labgraph.data.nodes import BaseObject
 
 
 class NotFoundInDatabaseError(ValueError):

@@ -1,7 +1,7 @@
 alab\_data.data.nodes module
 ============================
 
-.. automodule:: alab_data.data.nodes
+.. automodule:: labgraph.data.nodes
    :members:
    :undoc-members:
    :show-inheritance:

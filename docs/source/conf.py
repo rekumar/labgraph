@@ -3,13 +3,27 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+from pathlib import Path
+
+THIS_DIR = Path(__file__).parent
+
+def get_version(filepath: Path) -> str:
+    with open(filepath, encoding="utf-8") as fd:
+        for line in fd.readlines():
+            if line.startswith("__version__"):
+                delim = '"' if '"' in line else "'"
+                return line.split(delim)[1]
+        raise RuntimeError("Unable to find version string.")
+
+version = get_version(THIS_DIR.parent.parent / "labgraph" / "__init__.py")
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "ALab Data"
+project = "LabGraph"
 copyright = "2022, Rishi E Kumar"
 author = "Rishi E Kumar"
-release = "0.1"
+release = version
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -48,7 +62,7 @@ exclude_patterns = []
 html_theme = "sphinx_book_theme"
 
 html_theme_options = {
-    "repository_url": "https://github.com/rekumar/alab_data",
+    "repository_url": "https://github.com/rekumar/labgraph",
     "use_repository_button": True,
     "home_page_in_toc": True,
     "show_navbar_depth": 0,
@@ -73,7 +87,7 @@ def run_apidoc(_):
         "-e",
         "-o",
         Path(__file__).parent.as_posix(),
-        (Path(__file__).parent.parent.parent / "alab_data").absolute().as_posix(),
+        (Path(__file__).parent.parent.parent / "labgraph").absolute().as_posix(),
     ] + ignore_paths
 
     try:

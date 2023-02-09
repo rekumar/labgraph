@@ -29,7 +29,7 @@ Material Nodes
 .. code-block:: python
     :linenos:
 
-    from alab_data import Material
+    from labgraph import Material
 
     material_node = Material(
         name="Titanium Dioxide" #required argument
@@ -41,8 +41,8 @@ Action Nodes
 .. code-block:: python
     :linenos:
 
-    from alab_data import Action, Ingredient, Actor
-    from alab_data.views import ActorView
+    from labgraph import Action, Ingredient, Actor
+    from labgraph.views import ActorView
 
     actor_view = ActorView()
     mortar_and_pestle = Actor(
@@ -69,8 +69,8 @@ Measurement Nodes
 .. code-block:: python
     :linenos:
 
-    from alab_data import Measurement, Actor
-    from alab_data.views import ActorView
+    from labgraph import Measurement, Actor
+    from labgraph.views import ActorView
 
     actor_view = ActorView()
     xrd_instrument = Actor(
@@ -91,8 +91,8 @@ Analysis Nodes
 .. code-block:: python
     :linenos:
 
-    from alab_data import Analysis, Actor
-    from alab_data.views import AnalysisMethodView
+    from labgraph import Analysis, Actor
+    from labgraph.views import AnalysisMethodView
 
     analysismethod_view = AnalysisMethodView()
     phase_identification_method = AnalysisMethod(

@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Dict, List, Optional, cast
-from alab_data.data import Action, Analysis, Material, Measurement, Sample
-from alab_data.utils.data_objects import get_collection
-from alab_data.views.nodes import (
+from labgraph.data import Action, Analysis, Material, Measurement, Sample
+from labgraph.utils.data_objects import get_collection
+from labgraph.views.nodes import (
     ActionView,
     MaterialView,
     AnalysisView,
@@ -274,3 +274,21 @@ class SampleView(BaseView):
             new_entry["version_history"] = old_entry.get("version_history", [])
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
+
+        """Removes an entry from the database
+
+        Args:
+            entry (Sample): Sample object to be removed
+
+        Raises:
+            TypeError: Entry is of wrong type
+            NotFoundInDatabaseError: Entry does not exist in the database
+        """
+        if not isinstance(entry, Sample):
+            raise TypeError(f"Entry must be of type Sample!")
+
+        result = self._collection.delete_one({"_id": entry.id})
+        if result.deleted_count == 0:
+            raise NotFoundInDatabaseError(
+                f"Cannot remove Sample with id {entry.id} because it does not exist in the database."
+            )

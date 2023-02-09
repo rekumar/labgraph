@@ -7,14 +7,14 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   alab_data.data
-   alab_data.utils
-   alab_data.views
+   labgraph.data
+   labgraph.utils
+   labgraph.views
 
 Module contents
 ---------------
 
-.. automodule:: alab_data
+.. automodule:: labgraph
    :members:
    :undoc-members:
    :show-inheritance:

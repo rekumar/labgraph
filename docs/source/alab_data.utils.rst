@@ -7,14 +7,14 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   alab_data.utils.data_objects
-   alab_data.utils.db_lock
-   alab_data.utils.dev
+   labgraph.utils.data_objects
+   labgraph.utils.db_lock
+   labgraph.utils.dev
 
 Module contents
 ---------------
 
-.. automodule:: alab_data.utils
+.. automodule:: labgraph.utils
    :members:
    :undoc-members:
    :show-inheritance:

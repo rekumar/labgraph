@@ -1,4 +1,6 @@
-from alab_data.data import (
+__version__ = "0.2.1"
+
+from labgraph.data import (
     Material,
     Action,
     Measurement,
@@ -10,4 +12,4 @@ from alab_data.data import (
     Sample,
 )
 
-from alab_data.views import SampleView
+from labgraph.views import SampleView
