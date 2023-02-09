@@ -1,5 +1,5 @@
-alab\_data.views.nodes module
-=============================
+labgraph.views.nodes module
+===========================
 
 .. automodule:: labgraph.views.nodes
    :members:

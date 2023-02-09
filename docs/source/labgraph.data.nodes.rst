@@ -1,5 +1,5 @@
-alab\_data.data.nodes module
-============================
+labgraph.data.nodes module
+==========================
 
 .. automodule:: labgraph.data.nodes
    :members:

@@ -1,5 +1,5 @@
-alab\_data.utils.dev module
-===========================
+labgraph.utils.dev module
+=========================
 
 .. automodule:: labgraph.utils.dev
    :members:

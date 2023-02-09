@@ -12,4 +12,4 @@ from labgraph.data import (
     Sample,
 )
 
-from labgraph.views import SampleView
+from labgraph.views import SampleView, ActorView, AnalysisMethodView

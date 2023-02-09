@@ -1,5 +1,5 @@
-alab\_data.data.actors module
-=============================
+labgraph.data.actors module
+===========================
 
 .. automodule:: labgraph.data.actors
    :members:
