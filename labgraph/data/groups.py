@@ -116,6 +116,7 @@ class Sample:
         for final_material in actions[-1].generated_materials:
             self.add_node(final_material)
 
+    @property
     def has_valid_graph(self) -> bool:
         is_acyclic = nx.is_directed_acyclic_graph(self.graph)
         num_connected_components = len(

@@ -30,6 +30,8 @@ class BaseObject(ABC):
         else:
             self.tags = tags
 
+        self._version_history = []
+
     def add_upstream(self, upstream: "BaseObject"):
         if not isinstance(upstream, BaseObject):
             raise TypeError("Upstream nodes must be a BaseObject")
@@ -75,10 +77,6 @@ class BaseObject(ABC):
         except TypeError:
             return False
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.name}>"
-        # return str(self.to_dict())
-
     @abstractmethod
     def is_valid(self) -> bool:
         """method to validate the object. Necessary before adding to database"""
@@ -88,6 +86,10 @@ class BaseObject(ABC):
     def id(self):
         return self._id
 
+    @property
+    def version_history(self):
+        return self._version_history
+
     def __hash__(self):
         return hash(self.name + str(self.id))
 
@@ -95,6 +97,9 @@ class BaseObject(ABC):
         if not isinstance(other, self.__class__):
             return False
         return other.id == self.id
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.name}>"
 
 
 ## Materials
@@ -403,15 +408,14 @@ class Analysis(BaseObject):
             TypeError: Invalid node type passed to `measurements` or `analyses` arguments.
         """
         super(Analysis, self).__init__(name=name, tags=tags)
-        self.__measurements = measurements
-        self.__upstream_analyses = upstream_analyses
-        self.parameters = parameters
+        measurements = measurements or []
+        upstream_analyses = upstream_analyses or []
 
         if len(measurements) + len(upstream_analyses) == 0:
             raise ValueError(
                 "At least one upstream measurement or analysis must be provided!"
             )
-        for meas in self.__measurements:
+        for meas in measurements:
             if not isinstance(meas, Measurement):
                 raise TypeError(
                     "All measurements must be of type `labgraph.nodes.Measurement`!"
@@ -428,6 +432,10 @@ class Analysis(BaseObject):
             self.add_upstream(analysis)
         self.analysismethod_id = analysis_method.id
         self.__analysis_method = analysis_method
+
+        self.__measurements = measurements
+        self.__upstream_analyses = upstream_analyses
+        self.parameters = parameters
 
     @property
     def measurements(self):

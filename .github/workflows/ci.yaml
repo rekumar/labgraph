@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  py3test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10" ]
+    services:
+      mongodb:
+        image: "mongo:5.0"
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements-dev.txt
+            **/requirements.txt
+      - name: Set up environment
+        run: |
+          pip install --quiet -r ./requirements.txt -r ./requirements-dev.txt
+          pip install --quiet .
+      - name: Set up pyright
+        run: |
+          npm install -g pyright
+      - name: Pytest
+        run: pytest
+      - name: Flake8
+        run: flake8 alab_management
+      - name: Pylint
+        run: pylint alab_management
+      - name: Pyright
+        run: pyright

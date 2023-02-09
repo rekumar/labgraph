@@ -8,7 +8,7 @@ from labgraph.views.nodes import (
     AnalysisView,
     MeasurementView,
 )
-from .base import BaseView, NotFoundInDatabaseError
+from .base import BaseView, NotFoundInDatabaseError, AlreadyInDatabaseError
 from bson import ObjectId
 
 
@@ -29,19 +29,18 @@ class SampleView(BaseView):
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
 
-        if not entry.has_valid_graph():
+        if not entry.has_valid_graph:
             raise ValueError(
                 "Sample graph is not valid! Check for isolated nodes or graph cycles."
             )
 
-        found_in_db = False
         try:
             self.get(id=entry.id)
             found_in_db = True
-        except ValueError:
-            pass
+        except NotFoundInDatabaseError:
+            found_in_db = False
         if found_in_db:
-            raise ValueError(
+            raise AlreadyInDatabaseError(
                 f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
             )
         self._check_if_nodes_are_valid(
@@ -70,7 +69,9 @@ class SampleView(BaseView):
         result = self._collection.insert_one(
             {
                 **entry.to_dict(),
-                "created_at": datetime.now(),
+                "created_at": datetime.now().replace(
+                    microsecond=0
+                ),  # remove microseconds, they get lost in MongoDB anyways,
             }
         )
         return cast(ObjectId, result.inserted_id)
@@ -216,7 +217,7 @@ class SampleView(BaseView):
         if not isinstance(entry, Sample):
             raise TypeError(f"Entry must be of type Sample!")
 
-        if not entry.has_valid_graph():
+        if not entry.has_valid_graph:
             raise ValueError(
                 "Sample graph is not valid! Check for isolated nodes or graph cycles."
             )
@@ -270,7 +271,9 @@ class SampleView(BaseView):
         else:
             # if other things are changing, lets keep a version history
             new_entry["created_at"] = old_entry["created_at"]
-            new_entry["updated_at"] = datetime.now()
+            new_entry["updated_at"] = (
+                datetime.now().replace(microsecond=0),
+            )  # remove microseconds, they get lost in MongoDB anyways
             new_entry["version_history"] = old_entry.get("version_history", [])
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)

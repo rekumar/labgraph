@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
 from bson import ObjectId
 from datetime import datetime
 from typing import Literal, cast, List, Dict
 from labgraph.utils.data_objects import get_collection
 from labgraph.data.nodes import BaseObject
+from labgraph.data.actors import BaseActor
 
 
 class NotFoundInDatabaseError(ValueError):
@@ -11,8 +13,14 @@ class NotFoundInDatabaseError(ValueError):
     pass
 
 
+class AlreadyInDatabaseError(ValueError):
+    """Raised when a requested entry is already in the database"""
+
+    pass
+
+
 ## CRUD = Create Update Retrieve Delete
-class BaseView:
+class BaseView(ABC):
     """
     Basic view to add, get, and remove entries from the database collections.
     """
@@ -41,20 +49,24 @@ class BaseView:
                 pass  # entry is not in db, we can proceed to add it
         if found_in_db:
             if if_already_in_db == "skip":
-                return
+                return entry.id
             elif if_already_in_db == "update":
                 self.update(entry)
-                return
+                return entry.id
             else:
-                raise ValueError(
+                raise AlreadyInDatabaseError(
                     f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
                 )
 
         result = self._collection.insert_one(
             {
                 **entry.to_dict(),
-                "created_at": datetime.now(),
-                "updated_at": datetime.now(),
+                "created_at": datetime.now().replace(
+                    microsecond=0
+                ),  # remove microseconds, they get lost in MongoDB anyways,
+                "updated_at": datetime.now().replace(
+                    microsecond=0
+                ),  # remove microseconds, they get lost in MongoDB anyways,
             }
         )
         entry._id = result.inserted_id
@@ -133,25 +145,12 @@ class BaseView:
         """Return only the first entry from BaseView.filter. Useful if only one matching entry is expected."""
         return self.filter(filter_dict, datetime_min, datetime_max)[0]
 
+    @abstractmethod
     def _entry_to_object(self, entry: dict):
-        id = entry.pop("_id")
-        entry.pop("created_at")
-        entry.pop("updated_at")
-        entry.pop("version_history", None)
+        pass
 
-        is_dag_node = "upstream" in entry
-        if is_dag_node:
-            us = entry.pop("upstream")
-            ds = entry.pop("downstream")
 
-        obj = self._entry_class(**entry)
-        obj._id = id
-
-        if is_dag_node:
-            obj.upstream = us
-            obj.downstream = ds
-        return obj
-
+class BaseNodeView(BaseView):
     def update(self, entry: BaseObject):
         """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
 
@@ -218,16 +217,70 @@ class BaseView:
                     "$set": {
                         "upstream": new_entry["upstream"],
                         "downstream": new_entry["downstream"],
-                        "updated_at": datetime.now(),
+                        "updated_at": datetime.now().replace(
+                            microsecond=0
+                        ),  # remove microseconds, they get lost in MongoDB anyways,
                     }
                 },
             )
         else:
             # if other things are changing, lets keep a version history
             new_entry["created_at"] = old_entry["created_at"]
-            new_entry["updated_at"] = datetime.now()
+            new_entry["updated_at"] = (
+                datetime.now().replace(microsecond=0),
+            )  # remove microseconds, they get lost in MongoDB anyways
             new_entry["version_history"] = old_entry.get("version_history", [])
             old_entry.pop("_id", None)
             old_entry.pop("version_history", None)
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
+
+    def remove(self, id: ObjectId):
+        raise NotImplementedError(
+            "Node removal is not yet supported. Working on rules to ensure graph integrity upon node removal!"
+        )
+
+
+class BaseActorView(BaseView):
+    def update(self, entry: BaseActor):
+        if not isinstance(entry, BaseActor):
+            raise TypeError(f"Entry must be of type {BaseActor.__name__}")
+
+        old_entry = self._collection.find_one({"_id": entry.id})
+        if old_entry is None:
+            raise NotFoundInDatabaseError(
+                f"Cannot update {self._entry_class.__name__} with id {entry.id} because it does not exist in the database."
+            )
+
+        old_version = max([v["version"] for v in old_entry["version_history"]])
+
+        if old_version > entry.version:
+            raise ValueError(
+                "Cannot update! The current database entry is ahead (version {old.version} of the version you want to update to {entry.version}!"
+            )
+
+        # all remaining changes can be made without breaking the graph.
+        new_entry = entry.to_dict()
+        new_entry["created_at"] = old_entry["created_at"]
+        new_entry["updated_at"] = (
+            datetime.now().replace(microsecond=0),
+        )  # remove microseconds, they get lost in MongoDB anyways
+        self._collection.replace_one({"_id": entry.id}, new_entry)
+
+    def _entry_to_object(self, entry: dict):
+        id = entry.pop("_id")
+        entry.pop("created_at")
+        entry.pop("updated_at")
+        entry.pop("version")
+        version_history = entry.pop("version_history", None)
+
+        obj = self._entry_class(**entry)
+        obj._id = id
+        obj._version_history = version_history
+
+        return obj
+
+    def remove(self, id: ObjectId):
+        raise NotImplementedError(
+            "Actor removal is not yet supported. Working on rules to ensure graph integrity upon actor removal!"
+        )

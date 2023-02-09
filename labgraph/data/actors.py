@@ -1,19 +1,59 @@
-from typing import List
+from copy import deepcopy
+import datetime
+from typing import Any, Dict, List, Optional
 from bson import ObjectId
 
 
-class BaseObject:
-    def __init__(self, name: str, tags: List[str] = None, **parameters):
+class BaseActor:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        tags: List[str] = None,
+        **parameters,
+    ):
         self.name = name
-        self._id = ObjectId()
+        self.description = description
+
         if tags is None:
             self.tags = []
         else:
             self.tags = tags
         self.parameters = parameters
 
+        self._id = ObjectId()
+        self._version_history = [
+            {
+                "version": 1,
+                "description": "Initial version.",
+                "version_date": datetime.datetime.now().replace(
+                    microsecond=0
+                ),  # remove microseconds, they get lost in MongoDB anyways
+            }
+        ]
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def version_history(self):
+        return self._version_history.copy()
+
+    @property
+    def version(self):
+        return max([version["version"] for version in self.version_history])
+
     def to_dict(self):
-        d = self.__dict__
+        d = deepcopy(self.__dict__)
+        d.pop("_version_history")
+        d["version"] = self.version
+        d[
+            "version_history"
+        ] = (
+            self.version_history
+        )  # in case we reformat version_history within the property down the line
+
         parameters = d.pop("parameters")
         for param_name in parameters:
             if param_name in d:
@@ -27,29 +67,52 @@ class BaseObject:
         return self.to_dict()
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.name}>"
+        return f"<{self.__class__.__name__}: {self.name} v{self.version}>"
 
-    @property
-    def id(self):
-        return self._id
+    def new_version(self, description: str):
+        """Increment the version of the actor and record a description of what changed in this version. This is used to track changes (instrument service, modification, update to analysis code, etc) to an actor/analysismethod over time.
+
+        Note that this function only changes the actor locally. You need to call .update() in the database view to record this updated version to the database.
+
+        Args:
+            description (str): Description of the changes made to the actor in this version
+        """
+
+        self._version_history.append(
+            {
+                "version": self.version + 1,
+                "description": description,
+                "version_date": datetime.datetime.now().replace(
+                    microsecond=0
+                ),  # remove microseconds, they get lost in MongoDB anyways,
+            }
+        )
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if self.id != other.id:
+            return False
+        if self.to_dict() != other.to_dict():
+            raise ValueError(
+                f"Objects have the same id but different attributes: {self.to_dict()} != {other.to_dict()}. Be careful, you have two different version of the same object!"
+            )
+        return True
 
 
-class Actor(BaseObject):
+class Actor(BaseActor):
     """An experimental actor (hardware, system, or lab facility) that can perform synthesis Action's or Measurement's"""
 
     def __init__(
         self, name: str, description: str, tags: List[str] = None, **parameters
     ):
-        super(Actor, self).__init__(name=name, tags=tags, **parameters)
-        self.description = description
+        super().__init__(name=name, description=description, tags=tags, **parameters)
 
 
-class AnalysisMethod(BaseObject):
+class AnalysisMethod(BaseActor):
     """A method to analyze data contained in one or more Measurement's to yield features of the measurement"""
 
     def __init__(
         self, name: str, description: str, tags: List[str] = None, **parameters
     ):
-        super(AnalysisMethod, self).__init__(name=name, tags=tags, **parameters)
-        self.description = description
-        # TODO add required Measurement/data type to feed this analysis
+        super().__init__(name=name, description=description, tags=tags, **parameters)
