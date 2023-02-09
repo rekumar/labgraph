@@ -1,5 +1,5 @@
-alab\_data.data.groups module
-=============================
+labgraph.data.groups module
+===========================
 
 .. automodule:: labgraph.data.groups
    :members:

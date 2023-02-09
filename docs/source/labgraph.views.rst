@@ -1,5 +1,5 @@
-alab\_data.views package
-========================
+labgraph.views package
+======================
 
 Submodules
 ----------
@@ -7,6 +7,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   labgraph.views.actors
    labgraph.views.base
    labgraph.views.groups
    labgraph.views.nodes

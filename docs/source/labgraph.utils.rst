@@ -1,5 +1,5 @@
-alab\_data.utils package
-========================
+labgraph.utils package
+======================
 
 Submodules
 ----------

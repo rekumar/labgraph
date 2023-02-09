@@ -1,5 +1,5 @@
-alab\_data.data package
-=======================
+labgraph.data package
+=====================
 
 Submodules
 ----------

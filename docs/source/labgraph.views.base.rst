@@ -1,5 +1,5 @@
-alab\_data.views.base module
-============================
+labgraph.views.base module
+==========================
 
 .. automodule:: labgraph.views.base
    :members:

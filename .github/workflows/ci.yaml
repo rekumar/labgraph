@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  py3test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10" ]
+    services:
+      mongodb:
+        image: "mongo:5.0"
+        ports:
+          - 27017:27017
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements-dev.txt
+            **/requirements.txt
+      - name: Set up environment
+        run: |
+          pip install --quiet -r ./requirements.txt -r ./requirements-dev.txt
+          pip install --quiet .
+            - name: Generate coverage report
+        run: |
+          pip install pytest pytest-cov
+          pytest --cov=./ --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+        #   # token: ${{ secrets.CODECOV_TOKEN }}
+        #   directory: ./coverage/reports/
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+        #   files: ./coverage1.xml,./coverage2.xml
+        #   flags: unittests
+        #   name: codecov-umbrella
+        #   path_to_write_report: ./coverage/codecov_report.txt
+        #   verbose: true
