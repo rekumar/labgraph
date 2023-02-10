@@ -5,6 +5,83 @@ from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
 
 
+class NodeList(list):
+    """This is used to store lists of nodes. Nodes are stored as dicts with the node type and key. This prevents cascading database calls to retrieve nodes across a graph.
+
+    However the user can append node objects directly, and the NodeList will convert them to dicts. Furthermore, users can retrieve the node objects with the .get() method.
+    """
+
+    def append(self, value: Union["BaseNode", Dict[str, Any]]):
+        """Append a node to the NodeList
+
+        Args:
+            value (Union[BaseNode, Dict[str, Any]]): Either a Node instance (Material, Measurement, Analysis, Action) or a dict with keys 'node_type' and 'node_id'. If a dict is passed, it must have the correct keys. (This is to prevent accidental appending of dicts that are not nodes.
+
+        Raises:
+            ValueError: Invalid node entry/dict.
+        """
+        if isinstance(value, BaseNode):
+            super().append(
+                {
+                    "node_type": value.__class__.__name__,
+                    "node_id": value._id,
+                }
+            )
+        elif isinstance(value, dict):
+            if not all([k in value for k in ["node_type", "node_id"]]):
+                raise ValueError(
+                    "Invalid node entry. Dicts appended to NodeTrail must have keys 'node_type' and 'node_id'"
+                )
+            super().append(
+                {
+                    "node_type": value["node_type"],
+                    "node_id": value["node_id"],
+                }
+            )
+        else:
+            raise ValueError(
+                "Invalid node entry. NodeTrail can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
+            )
+
+    def get(self, index: Optional[int] = None) -> Union["BaseNode", List["BaseNode"]]:
+        """Get a node object from the NodeList. If an index is passed, the node at that index is returned. If no index is passed, a list of all nodes is returned.
+
+        Args:
+            index (Optional[int], optional): Index of node to retrieve. Defaults to None, in which case the entire list is returned as a list of node objects.
+
+        Returns:
+            Union[BaseNode, List[BaseNode]]: Either a single node object, or a list of node objects. Depends on whether an index is passed.
+        """
+        from labgraph.views import (
+            MaterialView,
+            MeasurementView,
+            AnalysisView,
+            ActionView,
+        )
+
+        VIEWS = {
+            "Material": MaterialView,
+            "Measurement": MeasurementView,
+            "Analysis": AnalysisView,
+            "Action": ActionView,
+        }
+
+        if index is not None:
+            entry = self[index]
+            node_type = entry["node_type"]
+            node_id = entry["node_id"]
+            view = VIEWS[node_type]()
+            return view.get(id=node_id)
+
+        node_objects = []
+        for entry in self:
+            node_type = entry["node_type"]
+            node_id = entry["node_id"]
+            view = VIEWS[node_type]()
+            node_objects.append(view.get(id=node_id))
+        return node_objects
+
+
 class BaseNode(ABC):
     def __init__(
         self,
@@ -15,16 +92,12 @@ class BaseNode(ABC):
     ):
         self.name = name
         self._id = ObjectId()
-        if upstream is None:
-            self.upstream = []
-        else:
-            for us in upstream:
-                self.add_upstream(us)
-        if downstream is None:
-            self.downstream = []
-        else:
-            for ds in downstream:
-                self.add_downstream(ds)
+        self.upstream = NodeList()
+        self.downstream = NodeList()
+        for us in upstream or []:
+            self.upstream.append(us)
+        for ds in downstream or []:
+            self.downstream.append(ds)
         if tags is None:
             self.tags = []
         else:
@@ -35,7 +108,6 @@ class BaseNode(ABC):
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
-
         self.upstream.append(
             {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
         )
@@ -101,6 +173,43 @@ class BaseNode(ABC):
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.name}>"
+
+    def save(self):
+        from labgraph.views import (
+            MaterialView,
+            MeasurementView,
+            AnalysisView,
+            ActionView,
+        )
+
+        VIEWS = {
+            "Material": MaterialView,
+            "Measurement": MeasurementView,
+            "Analysis": AnalysisView,
+            "Action": ActionView,
+        }
+
+        view = VIEWS[self.__class__.__name__]()
+        view.add(entry=self, if_already_in_db="update")
+
+    @classmethod
+    def get(self, id: ObjectId) -> "BaseNode":
+        from labgraph.views import (
+            MaterialView,
+            MeasurementView,
+            AnalysisView,
+            ActionView,
+        )
+
+        VIEWS = {
+            "Material": MaterialView,
+            "Measurement": MeasurementView,
+            "Analysis": AnalysisView,
+            "Action": ActionView,
+        }
+
+        view = VIEWS[self.__class__.__name__]()
+        return view.get(id=id)
 
 
 ## Materials

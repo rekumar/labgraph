@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Optional, cast
+from typing import Dict, List, Literal, Optional, Union, cast
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
 from labgraph.data.nodes import BaseNode
 from labgraph.utils.data_objects import get_collection
@@ -26,6 +26,7 @@ class SampleView(BaseView):
         self,
         entry: Sample,
         additional_incoming_node_ids: Optional[List[ObjectId]] = None,
+        if_already_in_db: Literal["raise", "skip", "update"] = "raise",
     ) -> ObjectId:
         if not isinstance(entry, self._entry_class):
             raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
@@ -41,9 +42,15 @@ class SampleView(BaseView):
         except NotFoundInDatabaseError:
             found_in_db = False
         if found_in_db:
-            raise AlreadyInDatabaseError(
-                f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
-            )
+            if if_already_in_db == "raise":
+                raise AlreadyInDatabaseError(
+                    f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
+                )
+            elif if_already_in_db == "skip":
+                return entry.id
+            elif if_already_in_db == "update":
+                self.update(entry)
+                return entry.id
         self._check_if_nodes_are_valid(
             entry
         )  # will throw error if any nodes cannot be encoded to BSON
@@ -264,18 +271,18 @@ class SampleView(BaseView):
         new_entry = entry.to_dict()
 
         # If we are only adding new nodes, we won't consider this a version update. Will instead update the current version in place.
-        only_adding_nodes = True
+        only_changing_nodes = True
         for key in new_entry:
             if key == "nodes":
                 continue
             if key not in old_entry:
-                only_adding_nodes = False
+                only_changing_nodes = False
                 break
             if new_entry[key] != old_entry[key]:
-                only_adding_nodes = False
+                only_changing_nodes = False
                 break
 
-        if only_adding_nodes:
+        if only_changing_nodes:
             # no need for version history if we are only adding nodes
             self._collection.update_one(
                 {"_id": entry.id},
@@ -296,7 +303,9 @@ class SampleView(BaseView):
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 
-    def remove(self, entry: Sample):
+    def remove(
+        self, id: ObjectId, remove_nodes: bool = False, _force_dangerous: bool = False
+    ):
         """Removes an entry from the database
 
         Args:
@@ -306,11 +315,30 @@ class SampleView(BaseView):
             TypeError: Entry is of wrong type
             NotFoundInDatabaseError: Entry does not exist in the database
         """
-        if not isinstance(entry, Sample):
-            raise TypeError(f"Entry must be of type Sample!")
+        if not self._exists(id):
+            if _force_dangerous:
+                return
+            else:
+                raise NotFoundInDatabaseError(
+                    f"Cannot remove Sample with id {id} because it does not exist in the database."
+                )
 
-        result = self._collection.delete_one({"_id": entry.id})
-        if result.deleted_count == 0:
+        sample = self.get(id)
+        if remove_nodes:
+            VIEWS = {
+                "Action": ActionView(),
+                "Material": MaterialView(),
+                "Measurement": MeasurementView(),
+                "Analysis": AnalysisView(),
+            }
+            for node in sample.nodes:
+                VIEWS[node.__class__.__name__].remove(
+                    node.id, _force_dangerous=_force_dangerous
+                )
+
+        result = self._collection.delete_one({"_id": id})
+        if result.deleted_count == 0 and not remove_nodes:
+            # if removing nodes, this sample may have been deleted in the node removal sequence, so no error raise is needed
             raise NotFoundInDatabaseError(
-                f"Cannot remove Sample with id {entry.id} because it does not exist in the database."
+                f"Cannot remove Sample with id {id} because it does not exist in the database."
             )

@@ -12,9 +12,9 @@ from labgraph import (
     views,
 )
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
+from labgraph.views import get_view, get_view_by_type
 from bson import ObjectId
-import random
-from labgraph.data.groups import action_sequence_distance
+from labgraph.data.sample import action_sequence_distance
 import datetime
 
 
@@ -200,3 +200,33 @@ def test_NodeFilterByTime():
         len(materialview.filter({}, datetime_max=older + datetime.timedelta(minutes=1)))
         == 1
     )
+
+
+def test_NodeDeletion(add_single_sample):
+
+    # deleting a node without any downstream nodes
+    s = views.SampleView().get_by_name("first sample")[0]
+    original_node_length = len(s.nodes)
+    node_to_delete = s.nodes[-1]
+    get_view(node_to_delete).remove(node_to_delete.id, _force_dangerous=True)
+
+    s = views.SampleView().get_by_name("first sample")[0]
+    assert len(s.nodes) == original_node_length - 1
+
+    # deleting a node with upstream and downstream nodes
+    s = views.SampleView().get_by_name("first sample")[0]
+    node_to_delete = s.nodes[-3]
+    original_node_length = len(s.nodes)
+    get_view(node_to_delete).remove(node_to_delete.id, _force_dangerous=True)
+
+    s = views.SampleView().get_by_name("first sample")[0]
+    assert len(s.nodes) == original_node_length - 3
+
+    # deleting a node with only downstream nodes
+    s = views.SampleView().get_by_name("first sample")[0]
+    node_to_delete = s.nodes[0]
+    get_view(node_to_delete).remove(node_to_delete.id, _force_dangerous=True)
+
+    with pytest.raises(NotFoundInDatabaseError):
+        # the sample should be deleted since all its nodes are also deleted
+        views.SampleView().get_by_name("first sample")

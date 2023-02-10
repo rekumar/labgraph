@@ -12,9 +12,10 @@ from labgraph import (
     views,
 )
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
+from labgraph.views import get_view, get_view_by_type
 from bson import ObjectId
 import random
-from labgraph.data.groups import action_sequence_distance
+from labgraph.data.sample import action_sequence_distance
 
 ### helper
 
@@ -41,12 +42,6 @@ def build_a_sample(name: str) -> ObjectId:
     # procure material
     m0 = views.MaterialView().get_by_name("Titanium Dioxide")[0]
 
-    p0 = Action(
-        name="procurement",
-        generated_materials=[m0],
-        actor=operator,
-    )
-
     p1 = Action(
         "grind",
         ingredients=[
@@ -70,7 +65,7 @@ def build_a_sample(name: str) -> ObjectId:
 
     # make a sample
     alab_sample = Sample(name=name)
-    alab_sample.add_linear_process([p0, p1, p2, p3])
+    alab_sample.add_linear_process([p1, p2, p3])
     m_final = alab_sample.nodes[-1]
 
     me0 = Measurement(
@@ -289,3 +284,72 @@ def test_SampleUpdate(add_single_sample):
     sample_ = sv.get_by_name("updated sample name")[0]
 
     assert sample == sample_
+
+
+def test_SampleDeletionKeepNodes(add_single_sample):
+    sv = views.SampleView()
+    sample = sv.get_by_name("first sample")[0]
+
+    sv.remove(sample.id, remove_nodes=False, _force_dangerous=True)
+
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get_by_name("first sample")
+
+    # make sure nodes are still in the database
+    for node in sample.nodes:
+        assert views.get_view(node).get(node.id) == node
+
+
+def test_SampleDeletionDeleteNodes(add_single_sample):
+    sv = views.SampleView()
+    sample = sv.get_by_name("first sample")[0]
+
+    sv.remove(sample.id, remove_nodes=True, _force_dangerous=True)
+
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get_by_name("first sample")
+
+    # make sure nodes are still in the database
+    for node in sample.nodes:
+        view = get_view(node)
+        assert view._exists(node.id) == False
+
+
+def test_SampleDeletionMultipleSamplesAffected(add_single_sample):
+    sample_id1 = build_a_sample("sample1")
+    sample_id2 = build_a_sample("sample2")
+
+    sv = views.SampleView()
+    sample1 = sv.get(sample_id1)
+    sample2 = sv.get(sample_id2)
+
+    # delete sample1
+    sv.remove(sample1.id, remove_nodes=True, _force_dangerous=True)
+
+    # make sure sample2 is still in the database
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get(sample1.id)
+
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get(sample2.id)
+
+
+def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
+    sample_id1 = build_a_sample("sample1")
+    sample_id2 = build_a_sample("sample2")
+
+    sv = views.SampleView()
+    sample1 = sv.get(sample_id1)
+    sample2 = sv.get(sample_id2)
+
+    node_to_delete = sample1.nodes[0]  # this material is shared across all samples
+
+    # delete sample1
+    views.get_view(node_to_delete).remove(node_to_delete.id, _force_dangerous=True)
+
+    # make sure sample2 is still in the database
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get(sample1.id)
+
+    with pytest.raises(NotFoundInDatabaseError):
+        sv.get(sample2.id)

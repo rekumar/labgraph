@@ -10,6 +10,7 @@ Submodules
    labgraph.utils.data_objects
    labgraph.utils.db_lock
    labgraph.utils.dev
+   labgraph.utils.graph
 
 Module contents
 ---------------

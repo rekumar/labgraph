@@ -4,6 +4,8 @@ from bson import ObjectId
 import matplotlib.pyplot as plt
 import itertools as itt
 from networkx.drawing.nx_agraph import graphviz_layout
+
+from labgraph.utils.graph import hierarchical_layout
 from .nodes import (
     Material,
     Action,
@@ -27,7 +29,6 @@ class Sample:
     ):
         self.name = name
         self.description = description
-        self.graph = nx.DiGraph()
         self._id = ObjectId()
         self.parameters = parameters
 
@@ -52,19 +53,19 @@ class Sample:
             raise ValueError(
                 "Node must be a Material, Action, Analysis, or Measurement object!"
             )
-        self.graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
-        for upstream in node.upstream:
-            if upstream["node_id"] not in self.graph.nodes:
-                self.graph.add_node(
-                    upstream["node_id"], type=upstream["node_type"], name=""
-                )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
-            self.graph.add_edge(upstream["node_id"], node.id)
-        for downstream in node.downstream:
-            if downstream["node_id"] not in self.graph.nodes:
-                self.graph.add_node(
-                    downstream["node_id"], type=downstream["node_type"], name=""
-                )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
-            self.graph.add_edge(node.id, downstream["node_id"])
+        # self.graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
+        # for upstream in node.upstream:
+        #     if upstream["node_id"] not in self.graph.nodes:
+        #         self.graph.add_node(
+        #             upstream["node_id"], type=upstream["node_type"], name=""
+        #         )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
+        #     self.graph.add_edge(upstream["node_id"], node.id)
+        # for downstream in node.downstream:
+        #     if downstream["node_id"] not in self.graph.nodes:
+        #         self.graph.add_node(
+        #             downstream["node_id"], type=downstream["node_type"], name=""
+        #         )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
+        #     self.graph.add_edge(node.id, downstream["node_id"])
         self.nodes.append(node)
 
     def add_linear_process(self, actions: List[Action]):
@@ -117,6 +118,25 @@ class Sample:
             self.add_node(final_material)
 
     @property
+    def graph(self):
+        graph = nx.DiGraph()
+        for node in self.nodes:
+            graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
+            for upstream in node.upstream:
+                if upstream["node_id"] not in graph.nodes:
+                    graph.add_node(
+                        upstream["node_id"], type=upstream["node_type"], name=""
+                    )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
+                graph.add_edge(upstream["node_id"], node.id)
+            for downstream in node.downstream:
+                if downstream["node_id"] not in graph.nodes:
+                    graph.add_node(
+                        downstream["node_id"], type=downstream["node_type"], name=""
+                    )
+                graph.add_edge(node.id, downstream["node_id"])
+        return graph
+
+    @property
     def has_valid_graph(self) -> bool:
         is_acyclic = nx.is_directed_acyclic_graph(self.graph)
         num_connected_components = len(
@@ -131,7 +151,7 @@ class Sample:
         Args:
             include_outside_nodes (bool, optional): If True, include nodes that are not part of the Sample (ie Actions that are immediately upstream of the first Action within this Sample) in the returned graph. Defaults to False.
         """
-        g = self.graph.copy()
+        g = self.graph
 
         nodes_to_delete = [
             nid for nid, ndata in g.nodes(data=True) if ndata["type"] != "Action"
@@ -204,6 +224,7 @@ class Sample:
                 "Could not use graphviz layout, falling back to default networkx layout. Ensure that graphviz and pygraphviz are installed to enable hierarchical graph layouts. This only affects graph visualization."
             )
             layout = nx.spring_layout(self.graph)
+            # layout = hierarchical_layout(self.graph) #TODO substitute graphviz to remove dependency.
         nx.draw(
             self.graph,
             with_labels=with_labels,
@@ -227,6 +248,26 @@ class Sample:
         if not isinstance(other, Sample):
             return False
         return other.id == self.id
+
+    def save(self):
+        """Save or update the sample in the database"""
+        from labgraph.views import SampleView
+
+        SampleView().add(entry=self, if_already_in_db="update")
+
+    @classmethod
+    def get(self, id: ObjectId) -> "Sample":
+        """Get a sample from the database by id
+
+        Args:
+            id (str): id of the sample
+
+        Returns:
+            Sample: Sample object
+        """
+        from labgraph.views import SampleView
+
+        return SampleView.get(id)
 
 
 def action_sequence_distance(

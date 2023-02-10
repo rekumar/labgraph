@@ -23,19 +23,17 @@ class MaterialView(BaseNodeView):
         entry.pop("updated_at")
         entry.pop("version_history", None)
 
-        is_dag_node = "upstream" in entry
-        if is_dag_node:
-            us = entry.pop("upstream")
-            ds = entry.pop("downstream")
+        us = entry.pop("upstream")
+        ds = entry.pop("downstream")
 
         obj = Material(**entry)
         obj._id = id
-
-        if is_dag_node:
-            obj.upstream = us
-            obj.downstream = ds
-
         obj._version_history = version_history
+
+        for us_ in us:
+            obj.upstream.append(us_)
+        for ds_ in ds:
+            obj.downstream.append(ds_)
 
         return obj
 
@@ -63,7 +61,8 @@ class MeasurementView(BaseNodeView):
         obj = Measurement(material=material, actor=actor, **entry)
         obj._id = _id
         obj._version_history = version_history
-        obj.downstream = downstream
+        for ds in downstream:
+            obj.downstream.append(ds)
         obj._version_history = version_history
 
         return obj
@@ -102,8 +101,10 @@ class ActionView(BaseNodeView):
             **entry
         )
         obj._id = _id
-        obj.upstream = upstream
-        obj.downstream = downstream
+        for us in upstream:
+            obj.upstream.append(us)
+        for ds in downstream:
+            obj.downstream.append(ds)
         obj._version_history = version_history
 
         return obj
@@ -139,8 +140,10 @@ class AnalysisView(BaseNodeView):
             **entry
         )
         obj._id = id
-        obj.upstream = upstream
-        obj.downstream = downstream
+        for us in upstream:
+            obj.upstream.append(us)
+        for ds in downstream:
+            obj.downstream.append(ds)
         obj._version_history = version_history
 
         return obj
