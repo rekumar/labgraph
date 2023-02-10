@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/rekumar/labgraph/branch/master/graph/badge.svg?token=TUCYBZI2P4)](https://codecov.io/gh/rekumar/labgraph)
+
 <picture>
  <source media="(prefers-color-scheme: dark)" srcset="./docs/source/img/logo/labgraph_dark mode.png">
  <source media="(prefers-color-scheme: light)" srcset="./docs/source/img/logo/labgraph_light mode.png">
