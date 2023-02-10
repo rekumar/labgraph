@@ -4,6 +4,8 @@ from bson import ObjectId
 import matplotlib.pyplot as plt
 import itertools as itt
 from networkx.drawing.nx_agraph import graphviz_layout
+
+from labgraph.utils.graph import hierarchical_layout
 from .nodes import (
     Material,
     Action,
@@ -222,6 +224,7 @@ class Sample:
                 "Could not use graphviz layout, falling back to default networkx layout. Ensure that graphviz and pygraphviz are installed to enable hierarchical graph layouts. This only affects graph visualization."
             )
             layout = nx.spring_layout(self.graph)
+            # layout = hierarchical_layout(self.graph) #TODO substitute graphviz to remove dependency.
         nx.draw(
             self.graph,
             with_labels=with_labels,

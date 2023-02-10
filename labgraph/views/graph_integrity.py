@@ -5,7 +5,7 @@ from labgraph.data.nodes import BaseNode, NodeList
 from labgraph import views
 
 if TYPE_CHECKING:
-    from labgraph.data.groups import Sample
+    from labgraph.data.sample import Sample
 
 
 def _get_affected_nodes(
@@ -80,6 +80,7 @@ def get_affected_samples(node: BaseNode) -> List["Sample"]:
 
 def _remove_references_to_node(node_type: str, node_id: ObjectId):
     """Removes all edges and sample references that point to the given node.
+        This is used internally by node/sample deletion routines. Not intended for users, be careful with this -- it can render graphs invalid!
 
     Args:
         node_type (str): Type of node to be removed (Action, Analysis, Measurement, Material)

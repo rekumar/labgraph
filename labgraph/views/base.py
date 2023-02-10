@@ -145,7 +145,15 @@ class BaseView(ABC):
     def _entry_to_object(self, entry: dict):
         pass
 
-    def _exists(self, id: ObjectId):
+    def _exists(self, id: ObjectId) -> bool:
+        """Checks if an entry exists by this id
+
+        Args:
+            id (ObjectId): id
+
+        Returns:
+            bool: True if exists, False if does not exist
+        """
         return self._collection.count_documents({"_id": id}) > 0
 
 
