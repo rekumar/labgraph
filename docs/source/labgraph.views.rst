@@ -9,8 +9,9 @@ Submodules
 
    labgraph.views.actors
    labgraph.views.base
-   labgraph.views.groups
+   labgraph.views.graph_integrity
    labgraph.views.nodes
+   labgraph.views.sample
 
 Module contents
 ---------------

@@ -8,8 +8,8 @@ Submodules
    :maxdepth: 4
 
    labgraph.data.actors
-   labgraph.data.groups
    labgraph.data.nodes
+   labgraph.data.sample
 
 Module contents
 ---------------
