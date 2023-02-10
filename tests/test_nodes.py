@@ -200,3 +200,4 @@ def test_NodeFilterByTime():
         len(materialview.filter({}, datetime_max=older + datetime.timedelta(minutes=1)))
         == 1
     )
+

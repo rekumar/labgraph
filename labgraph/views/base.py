@@ -98,12 +98,9 @@ class BaseView(ABC):
             )
         return self._entry_to_object(data)
 
+    @abstractmethod
     def remove(self, id: ObjectId):
-        result = self._collection.delete_one({"_id": id})
-        if result.deleted_count == 0:
-            raise NotFoundInDatabaseError(
-                f"Could not find a {self._entry_class.__name__} with id: {id}. Nothing was removed from the database."
-            )
+        raise NotImplementedError()
 
     def filter(
         self,
@@ -148,14 +145,17 @@ class BaseView(ABC):
     def _entry_to_object(self, entry: dict):
         pass
 
+    def _exists(self, id: ObjectId):
+        return self._collection.count_documents({"_id": id}) > 0
+
 
 class BaseNodeView(BaseView):
-    def update(self, entry: BaseNode):
+    def update(self, entry: BaseNode, _nodes_pending_deletion: List[dict] = None):
         """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
 
         Args:
             entry (BaseObject): Node object to be updated
-
+            _nodes_pending_deletion (List[dict], optional): Nodes that are pending deletion. This is used internally by sample/node deletion routines. Defaults to None.
         Raises:
             TypeError: Node is of wrong type
             NotFoundInDatabaseError: Node does not exist in the database
@@ -234,10 +234,116 @@ class BaseNodeView(BaseView):
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 
-    def remove(self, id: ObjectId):
-        raise NotImplementedError(
-            "Node removal is not yet supported. Working on rules to ensure graph integrity upon node removal!"
+    def __delete_node(self, id: ObjectId):
+        """Immediately deletes a single node from the database. This will NOT check for graph integrity -- use .remove() instead! This is used internally by .remove().
+
+        Args:
+            id (ObjectId): ID of the node to be deleted
+        """
+        self._collection.delete_one({"_id": id})
+
+    def remove(self, id: ObjectId, _force_dangerous: bool = False):
+        if isinstance(id, BaseNode):
+            # catch if user passes in a node object instead of an id. common mistake we can catch here :)
+            id = id.id
+        if not self._exists(id):
+            if _force_dangerous:
+                return
+            else:
+                raise NotFoundInDatabaseError(
+                    f"Cannot remove {self._entry_class.__name__} with id {id} because it does not exist in the database."
+                )
+        from labgraph.views.graph_integrity import (
+            get_affected_nodes,
+            get_affected_samples,
+            _remove_references_to_node,
         )
+
+        node_in_question = self.get(id)
+        affected_nodes = get_affected_nodes(node_in_question)
+        affected_samples = get_affected_samples(node_in_question)
+
+        if len(affected_nodes) == 0 and len(affected_samples) == 0:
+            self._collection.delete_one({"_id": id})
+            return
+
+        if len(affected_nodes) > 0 and not _force_dangerous:
+            response = input(
+                f"This will remove {len(affected_nodes)} additional nodes, as these nodes would be invalidated. Are you sure? (y/n)"
+            )
+            if response != "y":
+                print("Nothing was removed.")
+                return
+        if len(affected_samples) > 0 and not _force_dangerous:
+            response = input(
+                f"This will affect {len(affected_samples)} samples which contain some or all of the affected nodes. Samples with no remaining nodes will be deleted as well. Are you sure? (y/n)"
+            )
+            if response != "y":
+                print("Nothing was removed.")
+                return
+
+        affected_nodes.append(node_in_question)  # we should delete this node too!
+        from labgraph import views
+
+        VIEWS = {
+            "Sample": views.SampleView(),
+            "Material": views.MaterialView(),
+            "Measurement": views.MeasurementView(),
+            "Action": views.ActionView(),
+            "Analysis": views.AnalysisView(),
+        }
+        # ensure samples will maintain valid graphs after node removals
+        invalidated_samples = []
+        affected_node_ids = [
+            affected_node["node_id"] for affected_node in affected_nodes
+        ]  # node ids to remove from samples
+        for sample in affected_samples:
+            # remove all references to affected nodes from sample
+            sample.nodes = [
+                node for node in sample.nodes if node.id not in affected_node_ids
+            ]
+            for node in sample.nodes:
+                node.upstream = [
+                    upstream_node
+                    for upstream_node in node.upstream
+                    if upstream_node["node_id"] not in affected_node_ids
+                ]
+                node.downstream = [
+                    downstream_node
+                    for downstream_node in node.downstream
+                    if downstream_node["node_id"] not in affected_node_ids
+                ]
+            if not sample.has_valid_graph:
+                invalidated_samples.append(sample)
+
+        if len(invalidated_samples) > 0 and not _force_dangerous:
+            response = input(
+                f"Removing these nodes will render {len(invalidated_samples)} samples completely invalid (broken graphs). We can fully delete these samples now, or you can modify them and try again. Are you sure you want to FULLY DELETE these samples now? (y/n)"
+            )
+            if response != "y":
+                print("Nothing was removed.")
+                return
+
+        for sample in affected_samples:
+            if sample in invalidated_samples:
+                VIEWS["Sample"].remove(
+                    sample.id, remove_nodes=False, _force_dangerous=_force_dangerous
+                )
+
+        for node in affected_nodes:
+            # VIEWS[node["node_type"]].remove(node["node_id"], _force_dangerous=True)
+            VIEWS[node["node_type"]].__delete_node(node["node_id"])
+            _remove_references_to_node(
+                node_type=node["node_type"], node_id=node["node_id"]
+            )
+
+        if not _force_dangerous:
+            print(
+                f"{len(affected_nodes)} nodes and {len(invalidated_samples)} samples were removed. The remaining {len(affected_samples) - len(invalidated_samples)} samples were updated to remove references to the removed nodes."
+            )
+        # raise NotImplementedError(
+        #     "Node removal is not yet supported. Working on rules to ensure graph integrity upon node removal!"
+        # )
 
 
 class BaseActorView(BaseView):
