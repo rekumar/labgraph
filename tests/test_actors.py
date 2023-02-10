@@ -4,8 +4,7 @@ from labgraph.views import ActorView, AnalysisMethodView
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
 
 
-@pytest.mark.usefixtures("clean_db")
-def test_ActorView():
+def test_ActorView(clean_db):
     ## adding an actor
     a = Actor(
         name="test_actor", description="test actor", tags=["test_tag1", "test_tag2"]
@@ -25,8 +24,7 @@ def test_ActorView():
     assert av.add(a, if_already_in_db="update") == a.id
 
 
-@pytest.mark.usefixtures("clean_db")
-def test_AnalysisMethodView():
+def test_AnalysisMethodView(clean_db):
     ## adding an AnalysisMethod
     am = AnalysisMethod(
         name="test_analysis_method",
@@ -45,8 +43,7 @@ def test_AnalysisMethodView():
     assert amv.add(am, if_already_in_db="update") == am.id
 
 
-@pytest.mark.usefixtures("add_actors_to_db")
-def test_ActorVersioning():
+def test_ActorVersioning(add_actors_to_db):
     av = ActorView()
     labman: Actor = av.get_by_name(name="LabMan")[0]
     labman.tags.append("new_tag")
@@ -62,8 +59,7 @@ def test_ActorVersioning():
     assert labman_.version == 2
 
 
-@pytest.mark.usefixtures("add_analysis_methods_to_db")
-def test_AnalysisMethodVersioning():
+def test_AnalysisMethodVersioning(add_analysis_methods_to_db):
 
     amv = AnalysisMethodView()
     xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
@@ -81,8 +77,7 @@ def test_AnalysisMethodVersioning():
     assert xrd_.version == 2
 
 
-@pytest.mark.usefixtures("add_actors_to_db")
-def test_Actor_retrieval():
+def test_Actor_retrieval(add_actors_to_db):
     av = ActorView()
 
     labman = av.get_by_name(name="LabMan")[0]
@@ -101,8 +96,7 @@ def test_Actor_retrieval():
         av.get_by_name("Random name that doesnt exist")
 
 
-@pytest.mark.usefixtures("add_analysis_methods_to_db")
-def test_AnalysisMethod_retrieval():
+def test_AnalysisMethod_retrieval(add_analysis_methods_to_db):
     av = AnalysisMethodView()
 
     xrd = av.get_by_name(name="Phase Identification")[0]

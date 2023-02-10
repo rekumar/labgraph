@@ -3,7 +3,7 @@ from bson import ObjectId
 from datetime import datetime
 from typing import Literal, cast, List, Dict
 from labgraph.utils.data_objects import get_collection
-from labgraph.data.nodes import BaseObject
+from labgraph.data.nodes import BaseNode
 from labgraph.data.actors import BaseActor
 
 
@@ -72,7 +72,7 @@ class BaseView(ABC):
         entry._id = result.inserted_id
         return cast(ObjectId, result.inserted_id)
 
-    def get_by_tags(self, tags: list) -> List[BaseObject]:
+    def get_by_tags(self, tags: list) -> List[BaseNode]:
         results = self._collection.find({"tags": {"$all": tags}})
         entries = [self._entry_to_object(entry) for entry in results]
         if len(entries) is None:
@@ -81,7 +81,7 @@ class BaseView(ABC):
             )
         return entries
 
-    def get_by_name(self, name: str) -> List[BaseObject]:
+    def get_by_name(self, name: str) -> List[BaseNode]:
         results = self._collection.find({"name": name})
         entries = [self._entry_to_object(entry) for entry in results]
         if len(entries) == 0:
@@ -90,8 +90,7 @@ class BaseView(ABC):
             )
         return entries
 
-    def get(self, id: ObjectId) -> BaseObject:
-        ## TODO
+    def get(self, id: ObjectId) -> BaseNode:
         data = self._collection.find_one({"_id": id})
         if data is None:
             raise NotFoundInDatabaseError(
@@ -111,7 +110,7 @@ class BaseView(ABC):
         filter_dict: Dict,
         datetime_min: datetime = None,
         datetime_max: datetime = None,
-    ) -> List[BaseObject]:
+    ) -> List[BaseNode]:
         """Thin wrapper around pymongo find method, with an extra datetime filter
 
         Args:
@@ -151,7 +150,7 @@ class BaseView(ABC):
 
 
 class BaseNodeView(BaseView):
-    def update(self, entry: BaseObject):
+    def update(self, entry: BaseNode):
         """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
 
         Args:

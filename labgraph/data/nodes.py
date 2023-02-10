@@ -5,7 +5,7 @@ from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
 
 
-class BaseObject(ABC):
+class BaseNode(ABC):
     def __init__(
         self,
         name: str,
@@ -32,16 +32,16 @@ class BaseObject(ABC):
 
         self._version_history = []
 
-    def add_upstream(self, upstream: "BaseObject"):
-        if not isinstance(upstream, BaseObject):
+    def add_upstream(self, upstream: "BaseNode"):
+        if not isinstance(upstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
 
         self.upstream.append(
             {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
         )
 
-    def add_downstream(self, downstream: "BaseObject"):
-        if not isinstance(downstream, BaseObject):
+    def add_downstream(self, downstream: "BaseNode"):
+        if not isinstance(downstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
         self.downstream.append(
             {"node_type": downstream.__class__.__name__, "node_id": downstream._id}
@@ -52,8 +52,9 @@ class BaseObject(ABC):
         d = {
             k: v for k, v in self.__dict__.items() if not k.startswith(mangle_prefix)
         }  # dont include double underscored class attributes
+        d.pop("_version_history", None)
+        d["version_history"] = self.version_history
         params = d.pop("parameters", {})
-        params.pop("version_history", None)
 
         for key in params:
             if key in d:
@@ -103,7 +104,7 @@ class BaseObject(ABC):
 
 
 ## Materials
-class Material(BaseObject):
+class Material(BaseNode):
     """Class to define a Material node. These nodes capture information about a material in a given state. Each Material is created by an Action. Measurements can act upon a Material to yield raw characterization data."""
 
     def __init__(
@@ -209,7 +210,7 @@ class WholeIngredient(Ingredient):
         )
 
 
-class Action(BaseObject):
+class Action(BaseNode):
     def __init__(
         self,
         name: str,
@@ -334,7 +335,7 @@ class Action(BaseObject):
 
 
 ## Measurements
-class Measurement(BaseObject):
+class Measurement(BaseNode):
     def __init__(
         self,
         name: str,
@@ -385,7 +386,7 @@ class Measurement(BaseObject):
 
 
 ## Analyses
-class Analysis(BaseObject):
+class Analysis(BaseNode):
     def __init__(
         self,
         name: str,

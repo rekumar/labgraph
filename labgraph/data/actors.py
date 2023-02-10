@@ -48,11 +48,9 @@ class BaseActor:
         d = deepcopy(self.__dict__)
         d.pop("_version_history")
         d["version"] = self.version
-        d[
-            "version_history"
-        ] = (
-            self.version_history
-        )  # in case we reformat version_history within the property down the line
+
+        # in case we reformat version_history within the property down the line
+        d["version_history"] = self.version_history
 
         parameters = d.pop("parameters")
         for param_name in parameters:

@@ -120,11 +120,24 @@ class AnalysisView(BaseNodeView):
 
         entry.pop("created_at")
         entry.pop("updated_at")
-        entry.pop("version_history", None)
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
-        measurements = [measurementview.get(id=meas["node_id"]) for meas in upstream]
-        obj = Analysis(measurements=measurements, analysis_method=method, **entry)
+        measurements = [
+            measurementview.get(id=meas["node_id"])
+            for meas in upstream
+            if meas["node_type"] == "Measurement"
+        ]
+        upstream_analyses = [
+            self.get(id=ana["node_id"])
+            for ana in upstream
+            if ana["node_type"] == "Analysis"
+        ]
+        obj = Analysis(
+            measurements=measurements,
+            upstream_analyses=upstream_analyses,
+            analysis_method=method,
+            **entry
+        )
         obj._id = id
         obj.upstream = upstream
         obj.downstream = downstream

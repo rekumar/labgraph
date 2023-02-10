@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, cast
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
+from labgraph.data.nodes import BaseNode
 from labgraph.utils.data_objects import get_collection
 from labgraph.views.nodes import (
     ActionView,
@@ -162,8 +163,25 @@ class SampleView(BaseView):
             )
         return self._entry_to_object(entry)
 
-    def get_by_node(self, node_type: str, node_id: ObjectId) -> List[Sample]:
+    def get_by_node(self, node: BaseNode) -> List[Sample]:
         """Return any Sample(s) that contain the given node
+
+        Args:
+            node (BaseNode): A Node object (Action, Material, Measurement, or Analysis)
+
+        Raises:
+            ValueError: Invalid node type
+            NotFoundInDatabaseError: No Sample found containing specified node
+
+        Returns:
+            List[Sample]: List of Sample(s) containing the specified node. List is sorted from most recent to oldest.
+        """
+        node_type = node.__class__.__name__
+        node_id = node.id
+        return self.get_by_node_info(node_type, node_id)
+
+    def get_by_node_info(self, node_type: str, node_id: ObjectId) -> List[Sample]:
+        """Return any Sample(s) that contain a node of the given type and ID
 
         Args:
             node_type (str): Type (Action, Material, Measurement, or Analysis) of node
@@ -191,16 +209,16 @@ class SampleView(BaseView):
         return entries
 
     def get_by_action_node(self, action_id: ObjectId) -> List[Sample]:
-        return self.get_by_node("Action", action_id)
+        return self.get_by_node_info("Action", action_id)
 
     def get_by_material_node(self, material_id: ObjectId) -> List[Sample]:
-        return self.get_by_node("Material", material_id)
+        return self.get_by_node_info("Material", material_id)
 
     def get_by_measurement_node(self, measurement_id: ObjectId) -> List[Sample]:
-        return self.get_by_node("Measurement", measurement_id)
+        return self.get_by_node_info("Measurement", measurement_id)
 
     def get_by_analysis_node(self, analysis_id: ObjectId) -> List[Sample]:
-        return self.get_by_node("Analysis", analysis_id)
+        return self.get_by_node_info("Analysis", analysis_id)
 
     def update(self, entry: Sample):
         """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
@@ -278,6 +296,7 @@ class SampleView(BaseView):
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 
+    def remove(self, entry: Sample):
         """Removes an entry from the database
 
         Args:

@@ -17,12 +17,11 @@ from .example_system import add_actors_to_db, add_analysis_methods_to_db
 
 
 @pytest.fixture
-@pytest.mark.usefixtures("add_actors_to_db", "add_analysis_methods_to_db")
-def add_single_sample():
+def add_single_sample(add_actors_to_db, add_analysis_methods_to_db):
     # get your actors and analysis methods
     av = views.ActorView()
     labman: Actor = av.get_by_name(name="LabMan")[0]
-    tubefurnace: Actor = av.get_by_name(name="TubeFurnace1")[0]
+    tubefurnace1: Actor = av.get_by_name(name="TubeFurnace1")[0]
     aeris: Actor = av.get_by_name(name="Aeris")[0]
     operator = av.get_by_name(name="Operator")[0]
 
