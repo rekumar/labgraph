@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/labgraph/badge/?version=latest)](https://labgraph.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/rekumar/labgraph/branch/master/graph/badge.svg?token=TUCYBZI2P4)](https://codecov.io/gh/rekumar/labgraph)
 
 <picture>
