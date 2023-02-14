@@ -11,7 +11,7 @@
 
 This library defines a graph-based schema for storing materials science data. 
 
-You can read the (evolving) documentation [here](https://LabGraph.readthedocs.io/en/latest/index.html).
+You can read the (evolving) documentation [here](https://labgraph.readthedocs.io/en/latest/).
 
 
 ## Additional Dependencies
