@@ -38,7 +38,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Rishi Kumar",
     author_email="rekumar@lbl.gov",
-    download_url="https://github.com/rekumar/alab_data",
+    download_url="https://github.com/rekumar/labgraph",
     license="MIT",
     python_requires=">=3.8",
     install_requires=requirements,

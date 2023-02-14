@@ -1,4 +1,4 @@
-.. ALab Data documentation master file, created by
+.. LabGraph documentation master file, created by
    sphinx-quickstart on Tue Nov 22 09:49:05 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -7,9 +7,9 @@
    This project is under active development.
 
 
-Welcome to ALab-Data's documentation!
+Welcome to LabGraph's documentation!
 =====================================
-**ALab-Data** is a Python library for storing and retrieving materials science data stored in MongoDB. This library enforces a data model tailored for experimental materials data (computational or physical experiments). 
+**LabGraph** is a Python library for storing and retrieving materials science data stored in MongoDB. This library enforces a data model tailored for experimental materials data. 
 
 At a high-level, data is stored as a directed graph of four node types: :py:class:`Material <labgraph.Material>`, :py:class:`Action <labgraph.Action>`, :py:class:`Measurement <labgraph.Measurement>`, and :py:class:`Analysis <labgraph.Analysis>`. The content of these nodes is up to you -- we just make sure that any data you enter results in a valid graph.
 
@@ -36,7 +36,7 @@ Here is a brief overview of the four node types and their roles in the data mode
 
 Samples = Graphs
 """""""""""""""""
-As materials scientists, we execute sets of :py:class:`Action <labgraph.Action>`s, :py:class:`Measurement <labgraph.Measurement>`s, and :py:class:`Analysis <labgraph.Analysis>` to synthesize and study :py:class:`Material <labgraph.Material>`s. In **Alab-Data**, one such set of nodes is referred to as a :py:class:`Sample <labgraph.Sample>`. A :py:class:`Sample <labgraph.Sample>` is simply a graph of nodes that captures the steps performed in an experiment. In typical usage, we will enter nodes into the database as part of a :py:class:`Sample <labgraph.Sample>`. This achieves a few things:
+As materials scientists, we execute sets of :py:class:`Action <labgraph.Action>`s, :py:class:`Measurement <labgraph.Measurement>`s, and :py:class:`Analysis <labgraph.Analysis>` to synthesize and study :py:class:`Material <labgraph.Material>`s. In **LabGraph**, one such set of nodes is referred to as a :py:class:`Sample <labgraph.Sample>`. A :py:class:`Sample <labgraph.Sample>` is simply a graph of nodes that captures the steps performed in an experiment. In typical usage, we will enter nodes into the database as part of a :py:class:`Sample <labgraph.Sample>`. This achieves a few things:
 
 - We can ensure that the graph we are entering is valid (i.e. it is a directed acyclic graph (DAG) with no isolated nodes).
 
@@ -47,7 +47,7 @@ As materials scientists, we execute sets of :py:class:`Action <labgraph.Action>`
 
 Database Backend
 """"""""""""""""""""""
-**ALab-Data** uses `MongoDB <https://www.mongodb.com/>`_ as our backend database. We communicate with the database
+**LabGraph** uses `MongoDB <https://www.mongodb.com/>`_ as our backend database. We communicate with the database
 using the `pymongo <https://pymongo.readthedocs.io/en/stable/>`_ package.
 
 
