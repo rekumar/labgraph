@@ -8,9 +8,6 @@ from labgraph.data.nodes import (
 from .base import BaseNodeView
 from .actors import ActorView, AnalysisMethodView
 
-actorview = ActorView()
-analysismethodview = AnalysisMethodView()
-
 
 class MaterialView(BaseNodeView):
     def __init__(self):
@@ -38,15 +35,15 @@ class MaterialView(BaseNodeView):
         return obj
 
 
-materialview = MaterialView()
-
-
 class MeasurementView(BaseNodeView):
     def __init__(self):
         super().__init__("measurements", Measurement)
+        self._actorview = ActorView()
+        self._materialview = MaterialView()
 
     def _entry_to_object(self, entry: dict):
-        actor = actorview.get(id=entry.pop("actor_id"))
+
+        actor = self._actorview.get(id=entry.pop("actor_id"))
         _id = entry.pop("_id")
         version_history = entry.pop("version_history", [])
 
@@ -57,7 +54,7 @@ class MeasurementView(BaseNodeView):
             "node_id"
         ]  # we know each Measurement has exactly one upstream material
         downstream = entry.pop("downstream")
-        material = materialview.get(id=upstream_material_id)
+        material = self._materialview.get(id=upstream_material_id)
         obj = Measurement(material=material, actor=actor, **entry)
         obj._id = _id
         obj._version_history = version_history
@@ -68,18 +65,17 @@ class MeasurementView(BaseNodeView):
         return obj
 
 
-measurementview = MeasurementView()
-
-
 class ActionView(BaseNodeView):
     def __init__(self):
         super().__init__("actions", Action)
+        self._actorview = ActorView()
+        self._materialview = MaterialView()
 
     def _entry_to_object(self, entry: dict):
-        actor = actorview.get(id=entry.pop("actor_id"))
+        actor = self._actorview.get(id=entry.pop("actor_id"))
         ingredients = [
             Ingredient(
-                material=materialview.get(id=ing["material_id"]),
+                material=self._materialview.get(id=ing["material_id"]),
                 amount=ing["amount"],
                 unit=ing["unit"],
                 name=ing["name"],
@@ -93,7 +89,9 @@ class ActionView(BaseNodeView):
         entry.pop("version_history", None)
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
-        generated_materials = [materialview.get(id=ds["node_id"]) for ds in downstream]
+        generated_materials = [
+            self._materialview.get(id=ds["node_id"]) for ds in downstream
+        ]
         obj = Action(
             ingredients=ingredients,
             generated_materials=generated_materials,
@@ -113,9 +111,11 @@ class ActionView(BaseNodeView):
 class AnalysisView(BaseNodeView):
     def __init__(self):
         super().__init__("analyses", Analysis)
+        self._analysismethodview = AnalysisMethodView()
+        self._measurementview = MeasurementView()
 
     def _entry_to_object(self, entry: dict):
-        method = analysismethodview.get(id=entry.pop("analysismethod_id"))
+        method = self._analysismethodview.get(id=entry.pop("analysismethod_id"))
         id = entry.pop("_id")
         version_history = entry.pop("version_history", [])
 
@@ -124,7 +124,7 @@ class AnalysisView(BaseNodeView):
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
         measurements = [
-            measurementview.get(id=meas["node_id"])
+            self._measurementview.get(id=meas["node_id"])
             for meas in upstream
             if meas["node_type"] == "Measurement"
         ]

@@ -1,6 +1,14 @@
 labgraph.utils package
 ======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   labgraph.utils.config
+
 Submodules
 ----------
 

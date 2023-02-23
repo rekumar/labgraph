@@ -7,6 +7,7 @@ from pathlib import Path
 
 THIS_DIR = Path(__file__).parent
 
+
 def get_version(filepath: Path) -> str:
     with open(filepath, encoding="utf-8") as fd:
         for line in fd.readlines():
@@ -14,6 +15,7 @@ def get_version(filepath: Path) -> str:
                 delim = '"' if '"' in line else "'"
                 return line.split(delim)[1]
         raise RuntimeError("Unable to find version string.")
+
 
 version = get_version(THIS_DIR.parent.parent / "labgraph" / "__init__.py")
 
@@ -69,7 +71,7 @@ html_theme_options = {
 }
 
 # html_logo = (Path(__file__).parent / "_static" / "logo.png").as_posix()
-# html_title = "Alab Data"
+html_title = "LabGraph"
 
 
 def run_apidoc(_):

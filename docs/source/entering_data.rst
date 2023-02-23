@@ -23,8 +23,12 @@ The properties common to all nodes are:
 =========================
 Node-Specific Properties
 =========================
+Some nodes require additional default properties. Below, we show the minimum set of information required to add nodes into the database.
 
+----------------
 Material Nodes
+----------------
+Material nodes do not require additional properties -- a name will suffice, though in practice you will probably want to add more information/metadata to describe your material. This will be covered in the next section.
 
 .. code-block:: python
     :linenos:
@@ -35,8 +39,16 @@ Material Nodes
         name="Titanium Dioxide" #required argument
         tags=["reagent"], #optional argument
     )
-
+---------------
 Action Nodes
+---------------
+In addition to the common properties, Action nodes require the following:
+    - an associated Actor that is performing this Action
+    - when appropriate, a list of Ingredients that are acted upon by this Action
+
+An Actor is an entity that can perform one or more Actions. An Actor could be an instrument within your lab, a person, or a set of tools that are always used together. In the example below, the "grinding" Action is performed using the "mortar and pestle" Actor. Once added to the database, the Actor can and should be reused in other Actions. This is particularly useful when a single Action can be performed by multiple Actors. For example, the "grinding" Action could also be performed using a "ball mill" Actor, or a "heating" action could be performed by one of four "furnace_a", "furnace_b"..."furnace_d" Actors within the lab.
+
+Most Actions will take some Material(s) as an input, like a "dissolve" action will have incoming edges from solute and solvent Material nodes to generate a "solution" Material node. In this situation, one needs to track not only which Materials are inputs to the Action, but _how much_ of each Material is used and, optionally, the role of the Material in the Action. This is achieved by the Ingredient class, which is a wrapper around a Material node that provides additional information (quantity, the unit of said quantity, and an option "name" field that can be used to describe the role of the Material in the Action). In the example below, the "grinding" Action takes one Material as an input, and the Ingredient class is used to specify that the Material is used in a quantity of 1 gram.
 
 .. code-block:: python
     :linenos:
@@ -64,7 +76,9 @@ Action Nodes
         actor = mortar_and_pestle
     )
 
+-------------------
 Measurement Nodes
+-------------------
 
 .. code-block:: python
     :linenos:
@@ -86,7 +100,9 @@ Measurement Nodes
         actor=xrd_instrument #required argument
     )
 
+---------------
 Analysis Nodes
+---------------
 
 .. code-block:: python
     :linenos:

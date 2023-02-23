@@ -1,3 +1,5 @@
+*.toml
+
 .vscode
 .DS_Store
 playground.ipynb
