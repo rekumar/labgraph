@@ -106,6 +106,20 @@ class Actor(BaseActor):
     ):
         super().__init__(name=name, description=description, tags=tags, **parameters)
 
+    @classmethod
+    def get_by_name(cls, name: str) -> "Actor":
+        """Get an actor by name
+
+        Args:
+            name (str): Name of the actor
+
+        Returns:
+            Actor: Actor object
+        """
+        from labgraph.views import ActorView
+
+        return ActorView().get_by_name(name)[0]
+
 
 class AnalysisMethod(BaseActor):
     """A method to analyze data contained in one or more Measurement's to yield features of the measurement"""
@@ -114,3 +128,17 @@ class AnalysisMethod(BaseActor):
         self, name: str, description: str, tags: List[str] = None, **parameters
     ):
         super().__init__(name=name, description=description, tags=tags, **parameters)
+
+    @classmethod
+    def get_by_name(cls, name: str) -> "AnalysisMethod":
+        """Get an analysis method by name
+
+        Args:
+            name (str): Name of the analysis method
+
+        Returns:
+            AnalysisMethod: AnalysisMethod object
+        """
+        from labgraph.views import AnalysisMethodView
+
+        return AnalysisMethodView().get_by_name(name)[0]

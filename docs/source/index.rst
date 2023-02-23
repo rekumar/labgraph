@@ -57,7 +57,8 @@ Quickstart
 .. toctree::
    :maxdepth: -1
    
-   Getting Started<setup.rst>
+   Getting Started<setup>
+   Quickstart<tutorial>
    Schema<schema>
    Entering Data<entering_data>
    Retrieving Data<retrieving_data>
