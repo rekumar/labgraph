@@ -58,15 +58,14 @@ class BaseView(ABC):
                     f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
                 )
 
+        created_at = datetime.now().replace(
+            microsecond=0
+        )  # remove microseconds, they get lost in MongoDB anyways,
         result = self._collection.insert_one(
             {
                 **entry.to_dict(),
-                "created_at": datetime.now().replace(
-                    microsecond=0
-                ),  # remove microseconds, they get lost in MongoDB anyways,
-                "updated_at": datetime.now().replace(
-                    microsecond=0
-                ),  # remove microseconds, they get lost in MongoDB anyways,
+                "created_at": created_at,
+                "updated_at": created_at,
             }
         )
         entry._id = result.inserted_id
@@ -141,9 +140,8 @@ class BaseView(ABC):
         """Return only the first entry from BaseView.filter. Useful if only one matching entry is expected."""
         return self.filter(filter_dict, datetime_min, datetime_max)[0]
 
-    @abstractmethod
     def _entry_to_object(self, entry: dict):
-        pass
+        return self._entry_class.from_dict(entry)
 
     def _exists(self, id: ObjectId) -> bool:
         """Checks if an entry exists by this id
@@ -379,19 +377,6 @@ class BaseActorView(BaseView):
             datetime.now().replace(microsecond=0),
         )  # remove microseconds, they get lost in MongoDB anyways
         self._collection.replace_one({"_id": entry.id}, new_entry)
-
-    def _entry_to_object(self, entry: dict):
-        id = entry.pop("_id")
-        entry.pop("created_at")
-        entry.pop("updated_at")
-        entry.pop("version")
-        version_history = entry.pop("version_history", None)
-
-        obj = self._entry_class(**entry)
-        obj._id = id
-        obj._version_history = version_history
-
-        return obj
 
     def remove(self, id: ObjectId):
         raise NotImplementedError(

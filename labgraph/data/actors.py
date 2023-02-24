@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from copy import deepcopy
 import datetime
 from typing import Any, Dict, List, Optional
@@ -61,6 +62,11 @@ class BaseActor:
         d.update(parameters)
         return d
 
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, entry: Dict[str, Any]):
+        raise NotImplementedError()
+
     def to_json(self):
         return self.to_dict()
 
@@ -120,6 +126,21 @@ class Actor(BaseActor):
 
         return ActorView().get_by_name(name)[0]
 
+    @classmethod
+    def from_dict(cls, entry: Dict[str, Any]):
+        _id = entry.pop("_id", None)
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        entry.pop("version", None)
+        version_history = entry.pop("version_history", None)
+
+        obj = cls(**entry)
+        if _id is not None:
+            obj._id = _id
+        obj._version_history = version_history
+
+        return obj
+
 
 class AnalysisMethod(BaseActor):
     """A method to analyze data contained in one or more Measurement's to yield features of the measurement"""
@@ -142,3 +163,18 @@ class AnalysisMethod(BaseActor):
         from labgraph.views import AnalysisMethodView
 
         return AnalysisMethodView().get_by_name(name)[0]
+
+    @classmethod
+    def from_dict(cls, entry: Dict[str, Any]):
+        _id = entry.pop("_id", None)
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        entry.pop("version", None)
+        version_history = entry.pop("version_history", None)
+
+        obj = cls(**entry)
+        if _id is not None:
+            obj._id = _id
+        obj._version_history = version_history
+
+        return obj

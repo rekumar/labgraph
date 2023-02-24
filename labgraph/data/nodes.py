@@ -137,6 +137,11 @@ class BaseNode(ABC):
 
         return d
 
+    @classmethod
+    @abstractmethod
+    def from_dict(cls, d: Dict[str, Any]):
+        raise NotImplementedError
+
     def is_valid_for_mongodb(self) -> bool:
         """Checks if the object can be converted to BSON. This is a requirement for MongoDB
 
@@ -241,16 +246,27 @@ class Material(BaseNode):
                 return False
         return True
 
-    def _entry_to_object(self, entry: Dict) -> "Material":
-        upstream = entry.pop("upstream")
-        downstream = entry.pop("downstream")
-        _id = entry.pop("_id")
-        entry.pop("created_at")
+    @classmethod
+    def from_dict(cls, entry: dict) -> "Material":
+        _id = entry.pop("_id", None)
+        version_history = entry.pop("version_history", [])
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        entry.pop("version_history", None)
 
-        obj = Material(**entry)
-        obj._id = _id
-        obj.upstream = upstream
-        obj.downstream = downstream
+        us = entry.pop("upstream")
+        ds = entry.pop("downstream")
+
+        obj = cls(**entry)
+        if _id is not None:
+            obj._id = _id
+        obj._version_history = version_history
+
+        for us_ in us:
+            obj.upstream.append(us_)
+        for ds_ in ds:
+            obj.downstream.append(ds_)
+
         return obj
 
 
@@ -429,34 +445,52 @@ class Action(BaseNode):
         #     self.make_generic_generated_material()
         return True
 
-    def _entry_to_object(self, entry: Dict) -> "Action":
-        upstream = entry.pop("upstream")
-        downstream = entry.pop("downstream")
-        _id = entry.pop("_id")
-        entry.pop("created_at")
-
-        ingredients = [
-            Ingredient(
-                name=i["name"],
-                material_id=i["material_id"],
-                amount=i["amount"],
-                unit=i["unit"],
-            )
-            for i in entry.pop("ingredients")
-        ]
-
-        obj = Action(ingredients=ingredients, **entry)
-        obj._id = _id
-        obj.upstream = upstream
-        obj.downstream = downstream
-        return obj
-
     def to_dict(self):
         d = super(Action, self).to_dict()
         ingredients = d.pop("ingredients")
         d["ingredients"] = [i.to_dict() for i in ingredients]
 
         return d
+
+    @classmethod
+    def from_dict(cls, entry: dict) -> "Action":
+        from labgraph.views import ActorView
+        from labgraph.views import MaterialView
+
+        mv = MaterialView()
+        actor = ActorView().get(id=entry.pop("actor_id"))
+        ingredients = [
+            Ingredient(
+                material=mv.get(id=ing["material_id"]),
+                amount=ing["amount"],
+                unit=ing["unit"],
+                name=ing["name"],
+            )
+            for ing in entry.pop("ingredients")
+        ]
+        _id = entry.pop("_id", None)
+        version_history = entry.pop("version_history", [])
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        entry.pop("version_history", None)
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
+        generated_materials = [mv.get(id=ds["node_id"]) for ds in downstream]
+        obj = cls(
+            ingredients=ingredients,
+            generated_materials=generated_materials,
+            actor=actor,
+            **entry,
+        )
+        if _id:
+            obj._id = _id
+        for us in upstream:
+            obj.upstream.append(us)
+        for ds in downstream:
+            obj.downstream.append(ds)
+        obj._version_history = version_history
+
+        return obj
 
 
 ## Measurements
@@ -508,6 +542,33 @@ class Measurement(BaseNode):
             if node["node_type"] != "Analysis":
                 return False
         return True
+
+    @classmethod
+    def from_dict(cls, entry: dict) -> "Measurement":
+        from labgraph.views import ActorView
+        from labgraph.views import MaterialView
+
+        actor = ActorView().get(id=entry.pop("actor_id"))
+        _id = entry.pop("_id", None)
+        version_history = entry.pop("version_history", [])
+
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        version_history = entry.pop("version_history", [])
+        upstream_material_id = entry.pop("upstream")[0][
+            "node_id"
+        ]  # we know each Measurement has exactly one upstream material
+        downstream = entry.pop("downstream")
+        material = MaterialView().get(id=upstream_material_id)
+        obj = cls(material=material, actor=actor, **entry)
+        if _id is not None:
+            obj._id = _id
+        obj._version_history = version_history
+        for ds in downstream:
+            obj.downstream.append(ds)
+        obj._version_history = version_history
+
+        return obj
 
 
 ## Analyses
@@ -583,3 +644,44 @@ class Analysis(BaseNode):
             if node["node_type"] != "Analysis":
                 return False
         return True
+
+    @classmethod
+    def from_dict(cls, entry: dict) -> "Analysis":
+        from labgraph.views import AnalysisMethodView, MeasurementView, AnalysisView
+
+        method = AnalysisMethodView().get(id=entry.pop("analysismethod_id"))
+        _id = entry.pop("_id", None)
+        version_history = entry.pop("version_history", [])
+
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        upstream = entry.pop("upstream")
+        downstream = entry.pop("downstream")
+
+        mv = MeasurementView()
+        measurements = [
+            mv.get(id=meas["node_id"])
+            for meas in upstream
+            if meas["node_type"] == "Measurement"
+        ]
+        av = AnalysisView()
+        upstream_analyses = [
+            av.get(id=ana["node_id"])
+            for ana in upstream
+            if ana["node_type"] == "Analysis"
+        ]
+        obj = cls(
+            measurements=measurements,
+            upstream_analyses=upstream_analyses,
+            analysis_method=method,
+            **entry,
+        )
+        if _id is not None:
+            obj._id = _id
+        for us in upstream:
+            obj.upstream.append(us)
+        for ds in downstream:
+            obj.downstream.append(ds)
+        obj._version_history = version_history
+
+        return obj
