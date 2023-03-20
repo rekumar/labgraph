@@ -7,6 +7,7 @@ from networkx.drawing.nx_agraph import graphviz_layout
 
 from labgraph.utils.graph import hierarchical_layout
 from .nodes import (
+    BaseNode,
     Material,
     Action,
     Measurement,
@@ -14,6 +15,7 @@ from .nodes import (
     WholeIngredient,
 )
 import warnings
+from datetime import datetime
 
 ALLOWED_NODE_TYPE = Union[Material, Action, Measurement, Analysis]
 
@@ -267,7 +269,87 @@ class Sample:
         """
         from labgraph.views import SampleView
 
-        return SampleView.get(id)
+        return SampleView().get(id)
+
+    @classmethod
+    def get_by_name(self, name: str) -> List["Sample"]:
+        """Get a sample from the database by name
+
+        Args:
+            name (str): name of the sample. Note that sample names are not unique, so multiple samples may be returned.
+
+        Returns:
+            List[Sample]: List of Sample objects with the given name
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().get_by_name(name)
+
+    @classmethod
+    def get_by_tags(self, tags: List[str]) -> List["Sample"]:
+        """Get a sample from the database by tags
+
+        Args:
+            tags (List[str]): tags of the sample. Only samples with all of the given tags will be returned.
+
+        Returns:
+            List[Sample]: List of Sample objects with the given tags.
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().get_by_tags(tags)
+
+    @classmethod
+    def get_by_contents(self, contents: dict) -> List["Sample"]:
+        """Return all Sample(s) that contain the given key-value pairs in their document.
+
+        Args:
+            contents (dict): Dictionary of contents to match against. Samples which contain all of the provided key-value pairs will be returned.
+
+        Raises:
+            NotFoundInDatabaseError: No Sample found with specified contents
+
+        Returns:
+            List[Sample]: List of Sample(s) with the specified contents. List is sorted from most recent to oldest.
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().get_by_contents(contents)
+
+    @classmethod
+    def filter(
+        self,
+        filter_dict: dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> List["Sample"]:
+        """Thin wrapper around pymongo find method, with an extra datetime filter.
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary.
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            List[BaseObject]: List of Samples that match the filter
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().filter(filter_dict, datetime_min, datetime_max)
+
+    @classmethod
+    def get_by_node(self, node: BaseNode) -> List["Sample"]:
+        """Get Sample(s) from the database by node
+
+        Args:
+            node (BaseNode): A Node object (Action, Analysis, Measurement, or Material).
+
+        Returns:
+            List[Sample]: List of Sample objects which contain the given node.
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().get_by_node(node)
 
 
 def action_sequence_distance(

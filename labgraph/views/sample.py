@@ -1,5 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, Union, cast
+
+import pymongo
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
 from labgraph.data.nodes import BaseNode
 from labgraph.utils.data_objects import get_collection
@@ -73,13 +75,14 @@ class SampleView(BaseView):
                 self.measurementview.add(node, if_already_in_db="update")
             else:
                 raise ValueError(f"Node {node} is not a valid node type")
-
+        created_at = datetime.now().replace(
+            microsecond=0
+        )  # remove microseconds, they get lost in MongoDB anyways
         result = self._collection.insert_one(
             {
                 **entry.to_dict(),
-                "created_at": datetime.now().replace(
-                    microsecond=0
-                ),  # remove microseconds, they get lost in MongoDB anyways,
+                "created_at": created_at,
+                "updated_at": created_at,  # same as created_at on first version in db
             }
         )
         return cast(ObjectId, result.inserted_id)
@@ -170,6 +173,26 @@ class SampleView(BaseView):
             )
         return self._entry_to_object(entry)
 
+    def get_by_contents(self, contents: dict) -> List[Sample]:
+        """Return all Sample(s) that contain the given key-value pairs in their document.
+
+        Args:
+            contents (dict): Dictionary of contents to match against. Samples which contain all of the provided key-value pairs will be returned.
+
+        Raises:
+            NotFoundInDatabaseError: No Sample found with specified contents
+
+        Returns:
+            List[Sample]: List of Sample(s) with the specified contents. List is sorted from most recent to oldest.
+        """
+        result = self._collection.find(contents).sort("created_at", pymongo.DESCENDING)
+        entries = [self._entry_to_object(entry) for entry in entries]
+        if len(entries) == 0:
+            raise NotFoundInDatabaseError(
+                f"No Sample found that contains the following key-value pairs: {contents}!"
+            )
+        return entries
+
     def get_by_node(self, node: BaseNode) -> List[Sample]:
         """Return any Sample(s) that contain the given node
 
@@ -206,8 +229,9 @@ class SampleView(BaseView):
                 f"node_type must be one of 'Action', 'Material', 'Measurement', 'Analysis'"
             )
 
-        result = list(self._collection.find({f"nodes.{node_type}": node_id}))
-        result.sort(key=lambda x: x["created_at"], reverse=True)
+        result = self._collection.find({f"nodes.{node_type}": node_id}).sort(
+            "created_at", pymongo.DESCENDING
+        )
         entries = [self._entry_to_object(entry) for entry in result]
         if len(entries) == 0:
             raise NotFoundInDatabaseError(
@@ -289,7 +313,9 @@ class SampleView(BaseView):
                 {
                     "$set": {
                         "nodes": new_entry["nodes"],
-                        "updated_at": datetime.now(),
+                        "updated_at": datetime.now().replace(
+                            microsecond=0
+                        ),  # remove microseconds, they get lost in MongoDB anyways,
                     }
                 },
             )
@@ -300,6 +326,9 @@ class SampleView(BaseView):
                 datetime.now().replace(microsecond=0),
             )  # remove microseconds, they get lost in MongoDB anyways
             new_entry["version_history"] = old_entry.get("version_history", [])
+            old_entry.pop(
+                "version_history", None
+            )  # dont nest version histories, instead append to the new entry's version history
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 

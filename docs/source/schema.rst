@@ -11,7 +11,7 @@ The four :ref:`node types <node-types>` are designed to cover capture the genera
    
    This is a graph for a single Sample. The four node types are shown in different colors. The edges point forward in time, and the nodes are arranged in a topological order. The graph is acyclic, so there are no loops. The graph can branch to show multiple downstream processes (in this case, an :py:class:`Action <labgraph.Action>` and :py:class:`Measurement <labgraph.Measurement>`) acting upon a single :py:class:`Material <labgraph.Material>`.
 
-Allowed Edges (Node Relationships)
+Allowed Node Relationships (Edges)
 ===================================
 Each :ref:`node type <node-types>` can only be connected to certain other node types. The allowed edges/relationships are described below.
 

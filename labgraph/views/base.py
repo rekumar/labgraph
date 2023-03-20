@@ -5,6 +5,7 @@ from typing import Literal, cast, List, Dict
 from labgraph.utils.data_objects import get_collection
 from labgraph.data.nodes import BaseNode
 from labgraph.data.actors import BaseActor
+import pymongo
 
 
 class NotFoundInDatabaseError(ValueError):
@@ -20,7 +21,7 @@ class AlreadyInDatabaseError(ValueError):
 
 
 ## CRUD = Create Update Retrieve Delete
-class BaseView(ABC):
+class BaseView:
     """
     Basic view to add, get, and remove entries from the database collections.
     """
@@ -72,17 +73,23 @@ class BaseView(ABC):
         return cast(ObjectId, result.inserted_id)
 
     def get_by_tags(self, tags: list) -> List[BaseNode]:
-        results = self._collection.find({"tags": {"$all": tags}})
+        results = self._collection.find({"tags": {"$all": tags}}).sort(
+            "created_at", pymongo.DESCENDING
+        )
         entries = [self._entry_to_object(entry) for entry in results]
-        if len(entries) is None:
+        if len(entries) == 0:
             raise NotFoundInDatabaseError(
                 f"Cannot find a {self._entry_class.__name__} with tags: {tags}"
             )
+
         return entries
 
     def get_by_name(self, name: str) -> List[BaseNode]:
-        results = self._collection.find({"name": name})
+        results = self._collection.find({"name": name}).sort(
+            "created_at", pymongo.DESCENDING
+        )
         entries = [self._entry_to_object(entry) for entry in results]
+
         if len(entries) == 0:
             raise NotFoundInDatabaseError(
                 f"Cannot find an {self._entry_class.__name__} with name: {name}"
@@ -97,7 +104,6 @@ class BaseView(ABC):
             )
         return self._entry_to_object(data)
 
-    @abstractmethod
     def remove(self, id: ObjectId):
         raise NotImplementedError()
 
@@ -128,7 +134,9 @@ class BaseView(ABC):
             else:
                 filter_dict["created_at"] = {"$lte": datetime_max}
 
-        results = self._collection.find(filter_dict)
+        results = self._collection.find(filter_dict).sort(
+            "created_at", pymongo.DESCENDING
+        )
         return [self._entry_to_object(result) for result in results]
 
     def filter_one(
