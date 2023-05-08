@@ -222,6 +222,9 @@ class BaseNode(ABC):
     def __setitem__(self, key: str, value: Any):
         self._user_fields[key] = value
 
+    def keys(self):
+        return list(self._user_fields.keys())
+
     @classmethod
     def get(self, id: ObjectId) -> "BaseNode":
         """Get a node from the database by id

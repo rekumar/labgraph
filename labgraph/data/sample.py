@@ -251,6 +251,9 @@ class Sample:
     def __setitem__(self, key: str, value: Any):
         self._user_fields[key] = value
 
+    def keys(self):
+        return list(self._user_fields.keys())
+
     def save(self):
         """Save or update the sample in the database"""
         from labgraph.views import SampleView
