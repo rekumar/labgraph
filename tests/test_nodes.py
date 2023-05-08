@@ -21,35 +21,35 @@ import datetime
 def test_NodeUpdates(add_single_sample):
     materialview = views.MaterialView()
     m = materialview.get_by_name("Titanium Dioxide")[0]
-    m.parameters["formula"] = "TiO2"
+    m._user_fields["formula"] = "TiO2"
     materialview.update(m)
 
     m_ = materialview.get(m.id)
-    assert m_.parameters["formula"] == "TiO2"
+    assert m_._user_fields["formula"] == "TiO2"
 
     actionview = views.ActionView()
     p = actionview.get_by_name("grind")[0]
-    p.parameters["final_step"] = True
+    p._user_fields["final_step"] = True
     actionview.update(p)
 
     p_ = actionview.get(p.id)
-    assert p_.parameters["final_step"] == True
+    assert p_._user_fields["final_step"] == True
 
     measurementview = views.MeasurementView()
     me = measurementview.get_by_name("XRD")[0]
-    me.parameters["metadata"] = {"temperature": 300}
+    me._user_fields["metadata"] = {"temperature": 300}
     measurementview.update(me)
 
     me_ = measurementview.get(me.id)
-    assert me_.parameters["metadata"] == {"temperature": 300}
+    assert me_._user_fields["metadata"] == {"temperature": 300}
 
     analysisview = views.AnalysisView()
     a = analysisview.get_by_name("Phase Identification")[0]
-    a.parameters["metadata"] = {"temperature": 300}
+    a._user_fields["metadata"] = {"temperature": 300}
     analysisview.update(a)
 
     a_ = analysisview.get(a.id)
-    assert a_.parameters["metadata"] == {"temperature": 300}
+    assert a_._user_fields["metadata"] == {"temperature": 300}
 
 
 def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
@@ -203,7 +203,6 @@ def test_NodeFilterByTime():
 
 
 def test_NodeDeletion(add_single_sample):
-
     # deleting a node without any downstream nodes
     s = views.SampleView().get_by_name("first sample")[0]
     original_node_length = len(s.nodes)

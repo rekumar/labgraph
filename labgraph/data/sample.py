@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Any, List, Union
 import networkx as nx
 from bson import ObjectId
 import matplotlib.pyplot as plt
@@ -27,12 +27,12 @@ class Sample:
         description: str = "",
         nodes: List[ALLOWED_NODE_TYPE] = None,
         tags: List[str] = None,
-        **parameters,
+        **user_fields,
     ):
         self.name = name
         self.description = description
         self._id = ObjectId()
-        self.parameters = parameters
+        self._user_fields = user_fields
 
         if tags is None:
             self.tags = []
@@ -55,19 +55,8 @@ class Sample:
             raise ValueError(
                 "Node must be a Material, Action, Analysis, or Measurement object!"
             )
-        # self.graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
-        # for upstream in node.upstream:
-        #     if upstream["node_id"] not in self.graph.nodes:
-        #         self.graph.add_node(
-        #             upstream["node_id"], type=upstream["node_type"], name=""
-        #         )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
-        #     self.graph.add_edge(upstream["node_id"], node.id)
-        # for downstream in node.downstream:
-        #     if downstream["node_id"] not in self.graph.nodes:
-        #         self.graph.add_node(
-        #             downstream["node_id"], type=downstream["node_type"], name=""
-        #         )  # TODO how should we name nodes that are outside of the sample scope? Currently just empty name
-        #     self.graph.add_edge(node.id, downstream["node_id"])
+        if node in self.nodes:
+            return  # we already have this node. Do we need to update it? TODO
         self.nodes.append(node)
 
     def add_linear_process(self, actions: List[Action]):
@@ -188,12 +177,12 @@ class Sample:
             "tags": self.tags,
         }
 
-        for parameter_name in self.parameters:
+        for parameter_name in self._user_fields:
             if parameter_name in entry:
                 raise ValueError(
-                    f"Parameter name {parameter_name} is not allowed, as it collides with a default key in a Sample entry! Please change this name and try again."
+                    f"User field name {parameter_name} is not allowed, as it collides with a default key in a Sample entry! Please change this name and try again."
                 )
-        entry.update(self.parameters)
+        entry.update(self._user_fields)
         entry.pop("version_history", None)
 
         return entry
@@ -218,7 +207,12 @@ class Sample:
         node_labels = {}
         for node in self.graph.nodes:
             node_labels[node] = self.graph.nodes[node]["name"]
-            node_colors.append(color_key[self.graph.nodes[node]["type"]])
+            color = color_key[self.graph.nodes[node]["type"]]
+            if node_labels[node] == "":
+                color = tuple(
+                    [*color[:3], 0.4]
+                )  # low opacity for attached nodes that are not part of the sample
+            node_colors.append(color)
         try:
             layout = graphviz_layout(self.graph, prog="dot")
         except:
@@ -250,6 +244,12 @@ class Sample:
         if not isinstance(other, Sample):
             return False
         return other.id == self.id
+
+    def __getitem__(self, key: str):
+        return self._user_fields[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self._user_fields[key] = value
 
     def save(self):
         """Save or update the sample in the database"""

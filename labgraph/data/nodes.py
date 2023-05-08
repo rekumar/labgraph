@@ -104,6 +104,7 @@ class BaseNode(ABC):
             self.tags = tags
 
         self._version_history = []
+        self._user_fields = {}
 
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
@@ -126,12 +127,12 @@ class BaseNode(ABC):
         }  # dont include double underscored class attributes
         d.pop("_version_history", None)
         d["version_history"] = self.version_history
-        params = d.pop("parameters", {})
+        params = d.pop("_user_fields", {})
 
         for key in params:
             if key in d:
                 raise ValueError(
-                    f"Parameter name {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
+                    f"User field {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
                 )
         d.update(params)
 
@@ -214,6 +215,12 @@ class BaseNode(ABC):
 
         view = VIEWS[self.__class__.__name__]
         return view()
+
+    def __getitem__(self, key: str):
+        return self._user_fields[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self._user_fields[key] = value
 
     @classmethod
     def get(self, id: ObjectId) -> "BaseNode":
@@ -299,17 +306,17 @@ class Material(BaseNode):
         self,
         name: str,
         tags: Optional[Union[List[str], None]] = None,
-        **parameters,
+        **user_fields,
     ):
         """Initialize a Material node. This creates the node in memory -- it is not added to the database yet!
 
         Args:
             name (str): Name of this Material. This is purely for human readability, and does not need to be unique.
             tags (Optional[Union[List[str], None]], optional): A list of tags to catalog this Material. If None (default), no tags will be applied. Tags can be an easy way to query nodes.
-            **parameters: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these parameters must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
+            **user_fields: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
         """
         super(Material, self).__init__(name=name, tags=tags)
-        self.parameters = parameters
+        self._user_fields = user_fields
 
     def is_valid(self) -> bool:
         for node in self.upstream:
@@ -352,7 +359,7 @@ class Ingredient:
         amount: float,
         unit: str,
         name: str = None,
-        **parameters,
+        **user_fields,
     ):
         """
 
@@ -377,18 +384,18 @@ class Ingredient:
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
-        self.parameters = parameters
+        self._user_fields = user_fields
 
     def to_dict(self):
         d = self.__dict__.copy()
         d.pop("material")
-        parameters = d.pop("parameters", {})
-        for key in parameters:
+        user_fields = d.pop("_user_fields", {})
+        for key in user_fields:
             if key in d:
                 raise ValueError(
                     f"Parameter name {key} in Ingredient conflicts with default attribute {key} -- please rename the parameter!"
                 )
-        d.update(parameters)
+        d.update(user_fields)
         return d
 
     def __repr__(self):
@@ -397,7 +404,7 @@ class Ingredient:
 
 
 class WholeIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **parameters):
+    def __init__(self, material: Material, name: str = None, **user_fields):
         """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials.
 
         Args:
@@ -405,7 +412,7 @@ class WholeIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(WholeIngredient, self).__init__(
-            material=material, amount=100, unit="percent", name=name, **parameters
+            material=material, amount=100, unit="percent", name=name, **user_fields
         )
 
 
@@ -417,7 +424,7 @@ class Action(BaseNode):
         ingredients: List[Ingredient] = [],
         generated_materials: List[Material] = None,
         tags: List[str] = None,
-        **parameters,
+        **user_fields,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
 
@@ -429,7 +436,7 @@ class Action(BaseNode):
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
         super(Action, self).__init__(name=name, tags=tags)
-        self.parameters = parameters
+        self._user_fields = user_fields
         self.__actor = actor
         self.actor_id = actor.id
         # self.__materials = set()
@@ -575,7 +582,7 @@ class Measurement(BaseNode):
         material: Material,
         actor: Actor,
         tags: List[str] = None,
-        **parameters,
+        **user_fields,
     ):
         """A Measurement Node. This is a node that represents a measurement of a material by an actor.
 
@@ -593,7 +600,7 @@ class Measurement(BaseNode):
             raise TypeError(
                 "The `material` argument to a Measurement must be of type `labgraph.nodes.Material`!"
             )
-        self.parameters = parameters
+        self._user_fields = user_fields
         self.__material = material
         self.__actor = actor
         self.actor_id = actor.id
@@ -654,7 +661,7 @@ class Analysis(BaseNode):
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
-        **parameters,
+        **user_fields,
     ):
         """Creates an Analysis node. This node represents data processing from upstream Measurement(s) and/or Analysis/es node(s). For example, a "Density" Analysis may accept "Mass" and "Volume" measurements to compute density.
 
@@ -696,7 +703,7 @@ class Analysis(BaseNode):
 
         self.__measurements = measurements
         self.__upstream_analyses = upstream_analyses
-        self.parameters = parameters
+        self._user_fields = user_fields
 
     @property
     def measurements(self):
