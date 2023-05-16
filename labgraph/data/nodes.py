@@ -109,16 +109,20 @@ class BaseNode(ABC):
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
-        self.upstream.append(
-            {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
-        )
+
+        new_entry = {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
+        if new_entry not in self.upstream:
+            self.upstream.append(new_entry)
 
     def add_downstream(self, downstream: "BaseNode"):
         if not isinstance(downstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
-        self.downstream.append(
-            {"node_type": downstream.__class__.__name__, "node_id": downstream._id}
-        )
+        new_entry = {
+            "node_type": downstream.__class__.__name__,
+            "node_id": downstream._id,
+        }
+        if new_entry not in self.downstream:
+            self.downstream.append(new_entry)
 
     def to_dict(self):
         mangle_prefix = "_" + self.__class__.__name__

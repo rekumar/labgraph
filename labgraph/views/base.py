@@ -146,6 +146,11 @@ class BaseView:
         datetime_max: datetime = None,
     ):
         """Return only the first entry from BaseView.filter. Useful if only one matching entry is expected."""
+        results = self.filter(filter_dict, datetime_min, datetime_max)
+        if len(results) == 0:
+            raise NotFoundInDatabaseError(
+                f"Cannot find any {self._entry_class.__name__} with filter: {filter_dict}"
+            )
         return self.filter(filter_dict, datetime_min, datetime_max)[0]
 
     def _entry_to_object(self, entry: dict):
