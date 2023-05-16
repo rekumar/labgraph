@@ -198,7 +198,17 @@ class BaseNode(ABC):
         view = VIEWS[self.__class__.__name__]()
         view.add(entry=self, if_already_in_db="update")
 
-    def __get_view(self):
+    # @abstractmethod
+    # def __get_view(self):
+    #     """Returns the view class for the node type
+
+    #     Raises:
+    #         NotImplementedError
+    #     """
+    #     raise NotImplementedError
+
+    @classmethod
+    def __get_view(cls):
         from labgraph.views import (
             MaterialView,
             MeasurementView,
@@ -212,9 +222,8 @@ class BaseNode(ABC):
             "Analysis": AnalysisView,
             "Action": ActionView,
         }
-
-        view = VIEWS[self.__class__.__name__]
-        return view()
+        view = VIEWS[cls.__name__]()
+        return view
 
     def __getitem__(self, key: str):
         return self._user_fields[key]
@@ -226,7 +235,7 @@ class BaseNode(ABC):
         return list(self._user_fields.keys())
 
     @classmethod
-    def get(self, id: ObjectId) -> "BaseNode":
+    def get(cls, id: ObjectId) -> "BaseNode":
         """Get a node from the database by id
 
         Args:
@@ -235,11 +244,11 @@ class BaseNode(ABC):
         Returns:
             BaseNode: Node object with the given id
         """
-        view = self.__get_view()
+        view = cls.__get_view()
         return view.get(id)
 
     @classmethod
-    def get_by_name(self, name: str) -> List["BaseNode"]:
+    def get_by_name(cls, name: str) -> List["BaseNode"]:
         """Get a node from the database by name
 
         Args:
@@ -248,11 +257,11 @@ class BaseNode(ABC):
         Returns:
             List[BaseNode]: List of node objects with the given name
         """
-        view = self.__get_view()
+        view = cls.__get_view()
         return view.get_by_name(name)
 
     @classmethod
-    def get_by_tags(self, tags: List[str]) -> List["BaseNode"]:
+    def get_by_tags(cls, tags: List[str]) -> List["BaseNode"]:
         """Get a node from the database by tags
 
         Args:
@@ -261,11 +270,11 @@ class BaseNode(ABC):
         Returns:
             List[BaseNode]: List of node objects with the given tags.
         """
-        view = self.__get_view()
+        view = cls.__get_view()
         return view.get_by_tags(tags)
 
     @classmethod
-    def get_by_contents(self, contents: dict) -> List["BaseNode"]:
+    def get_by_contents(cls, contents: dict) -> List["BaseNode"]:
         """Return all node(s) that contain the given key-value pairs in their document.
 
         Args:
@@ -277,12 +286,12 @@ class BaseNode(ABC):
         Returns:
             List[BaseNode]: List of node(s) with the specified contents. List is sorted from most recent to oldest.
         """
-        view = self.__get_view()
+        view = cls.__get_view()
         return view.get_by_contents(contents)
 
     @classmethod
     def filter(
-        self,
+        cls,
         filter_dict: dict,
         datetime_min: datetime = None,
         datetime_max: datetime = None,
@@ -297,8 +306,28 @@ class BaseNode(ABC):
         Returns:
             List[BaseObject]: List of nodes that match the filter
         """
-        view = self.__get_view()
+        view = cls.__get_view()
         return view.filter(filter_dict, datetime_min, datetime_max)
+
+    @classmethod
+    def filter_one(
+        cls,
+        filter_dict: dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> "BaseNode":
+        """Thin wrapper around pymongo find_one method, with an extra datetime filter.
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary.
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            BaseObject: Node that matches the filter
+        """
+        view = cls.__get_view()
+        return view.filter_one(filter_dict, datetime_min, datetime_max)
 
 
 ## Materials
