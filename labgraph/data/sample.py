@@ -3,9 +3,9 @@ import networkx as nx
 from bson import ObjectId
 import matplotlib.pyplot as plt
 import itertools as itt
-from networkx.drawing.nx_agraph import graphviz_layout
 
 from labgraph.utils.graph import hierarchical_layout
+from labgraph.utils.plot import plot_graph
 from .nodes import (
     BaseNode,
     Material,
@@ -14,7 +14,6 @@ from .nodes import (
     Analysis,
     WholeIngredient,
 )
-import warnings
 from datetime import datetime
 
 ALLOWED_NODE_TYPE = Union[Material, Action, Measurement, Analysis]
@@ -161,7 +160,7 @@ class Sample:
                 g.remove_node(nid)
         return g
 
-    def to_dict(self) -> dict:
+    def to_dict(self, verbose: bool = False) -> dict:
         node_dict = {
             nodetype.__name__: []
             for nodetype in [Material, Action, Analysis, Measurement]
@@ -185,6 +184,9 @@ class Sample:
         entry.update(self._user_fields)
         entry.pop("version_history", None)
 
+        if verbose:
+            self._sort_nodes()
+            entry["node_contents"] = [node.to_dict() for node in self.nodes]
         return entry
 
     def plot(self, with_labels: bool = True, ax: plt.Axes = None):
@@ -194,41 +196,7 @@ class Sample:
             with_labels (bool, optional): Whether to show the node names. Defaults to True.
             ax (matplotlib.pyplot.Axes, optional): Existing plot Axes to draw the graph onto. If None, a new plot figure+axes will be created. Defaults to None.
         """
-        if ax is None:
-            fig, ax = plt.subplots()
-
-        color_key = {
-            nodetype: plt.cm.tab10(i)
-            for i, nodetype in enumerate(
-                ["Material", "Action", "Analysis", "Measurement"]
-            )
-        }
-        node_colors = []
-        node_labels = {}
-        for node in self.graph.nodes:
-            node_labels[node] = self.graph.nodes[node]["name"]
-            color = color_key[self.graph.nodes[node]["type"]]
-            if node_labels[node] == "":
-                color = tuple(
-                    [*color[:3], 0.4]
-                )  # low opacity for attached nodes that are not part of the sample
-            node_colors.append(color)
-        try:
-            layout = graphviz_layout(self.graph, prog="dot")
-        except:
-            warnings.warn(
-                "Could not use graphviz layout, falling back to default networkx layout. Ensure that graphviz and pygraphviz are installed to enable hierarchical graph layouts. This only affects graph visualization."
-            )
-            layout = nx.spring_layout(self.graph)
-            # layout = hierarchical_layout(self.graph) #TODO substitute graphviz to remove dependency.
-        nx.draw(
-            self.graph,
-            with_labels=with_labels,
-            node_color=node_colors,
-            labels=node_labels,
-            pos=layout,
-            ax=ax,
-        )
+        plot_graph(graph=self.graph, with_labels=with_labels, ax=ax)
 
     def _sort_nodes(self):
         """
@@ -341,7 +309,7 @@ class Sample:
         return SampleView().filter(filter_dict, datetime_min, datetime_max)
 
     @classmethod
-    def get_by_node(self, node: BaseNode) -> List["Sample"]:
+    def get_by_node(self, node: Union[BaseNode, List[BaseNode]]) -> List["Sample"]:
         """Get Sample(s) from the database by node
 
         Args:
@@ -352,7 +320,16 @@ class Sample:
         """
         from labgraph.views import SampleView
 
-        return SampleView().get_by_node(node)
+        if isinstance(node, BaseNode):
+            return SampleView().get_by_node(node)
+        elif isinstance(node, list):
+            results = []
+            for n in node:
+                results.extend(SampleView().get_by_node(n))
+            return list(set(results))
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 def action_sequence_distance(
