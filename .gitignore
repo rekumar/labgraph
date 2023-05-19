@@ -2,6 +2,8 @@
 
 .vscode
 .DS_Store
+*/.DS_Store
+
 playground.ipynb
 # Byte-compiled / optimized / DLL files
 __pycache__/
