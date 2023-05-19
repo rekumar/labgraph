@@ -48,6 +48,7 @@ setup(
         "matplotlib>=3.5.2",
         "toml",
         "pydantic",
+        "scipy",
     ],
     extras_require={
         "dev": [
