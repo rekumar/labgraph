@@ -21,7 +21,7 @@ You can read the (evolving) documentation [here](https://labgraph.readthedocs.io
 I gave a talk on Labgraph at the 2023 Spring meeting for the Materials Research Society. You can view the slides [here](https://www.slideshare.net/secret/pevc4VHK5ThSr6), though the animations don't work. They key point is that we use labgraph as a central database to coordinate our automated lab like so:
 
 <p style="text-align:center;">
-<img src="./docs/figures/closedloop_example.gif"  style="width:100%; max-width: 600px;">
+<img src="./docs/figures/closedloop_example.gif"  style="width:100%; max-width: 600px;" loop=infinite>
 </p>
 
 
