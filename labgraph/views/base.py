@@ -392,6 +392,4 @@ class BaseActorView(BaseView):
         self._collection.replace_one({"_id": entry.id}, new_entry)
 
     def remove(self, id: ObjectId):
-        raise NotImplementedError(
-            "Actor removal is not yet supported. Working on rules to ensure graph integrity upon actor removal!"
-        )
+        raise NotImplementedError("Actor removal is not yet supported.")

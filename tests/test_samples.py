@@ -353,3 +353,32 @@ def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
 
     with pytest.raises(NotFoundInDatabaseError):
         sv.get(sample2.id)
+
+
+def test_Sample_classmethods(add_single_sample):
+    cls = Sample
+    name = "first sample"
+
+    node = cls.get_by_name(name)[0]
+    assert node.name == name
+
+    node["new_field"] = "new_value"
+    node.tags.append("new_tag")
+    node.save()
+
+    node_ = cls.get_by_name(name)[0]
+    assert node == node_
+    assert "new_field" in node_.keys()
+    assert node["new_field"] == "new_value"
+
+    node_ = cls.get(node.id)
+    assert node == node_
+
+    nodes_ = cls.get_by_tags(["new_tag"])
+    assert node in nodes_
+
+    nodes_ = cls.filter({"new_field": "new_value"})
+    assert node in nodes_
+
+    node_ = cls.filter_one({"new_field": "new_value"})
+    assert node == node_

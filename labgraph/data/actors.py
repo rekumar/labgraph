@@ -11,7 +11,7 @@ class BaseActor:
         name: str,
         description: str,
         tags: List[str] = None,
-        **parameters,
+        **user_fields,
     ):
         self.name = name
         self.description = description
@@ -20,7 +20,7 @@ class BaseActor:
             self.tags = []
         else:
             self.tags = tags
-        self.parameters = parameters
+        self._user_fields = user_fields
 
         self._id = ObjectId()
         self._version_history = [
@@ -53,22 +53,34 @@ class BaseActor:
         # in case we reformat version_history within the property down the line
         d["version_history"] = self.version_history
 
-        parameters = d.pop("parameters")
-        for param_name in parameters:
-            if param_name in d:
+        user_fields = d.pop("_user_fields")
+        for field_name in user_fields:
+            if field_name in d:
                 raise ValueError(
-                    f"Parameter name {param_name} already exists as a default key of an {self.__class__.__name__}. Please rename this parameter and try again."
+                    f"Parameter name {field_name} already exists as a default key of an {self.__class__.__name__}. Please rename this parameter and try again."
                 )
-        d.update(parameters)
+        d.update(user_fields)
         return d
 
     @classmethod
-    @abstractmethod
     def from_dict(cls, entry: Dict[str, Any]):
-        raise NotImplementedError()
+        _id = entry.pop("_id", None)
+        entry.pop("created_at", None)
+        entry.pop("updated_at", None)
+        entry.pop("version", None)
+        version_history = entry.pop("version_history", None)
 
-    def to_json(self):
-        return self.to_dict()
+        obj = cls(**entry)
+        if _id is not None:
+            obj._id = _id
+        obj._version_history = version_history
+
+        return obj
+
+    # @classmethod
+    # @abstractmethod
+    # def from_dict(cls, entry: Dict[str, Any]):
+    #     raise NotImplementedError()
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.name} v{self.version}>"
@@ -103,78 +115,111 @@ class BaseActor:
             )
         return True
 
+    @classmethod
+    def __get_view(cls):
+        from labgraph.views import ActorView, AnalysisMethodView
+
+        VIEWS = {
+            "Actor": ActorView,
+            "AnalysisMethod": AnalysisMethodView,
+        }
+        return VIEWS[cls.__name__]()
+
+    @classmethod
+    def get_by_name(cls, name: str) -> "BaseActor":
+        """Get an Actor or AnalysisMethod by name
+
+        Args:
+            name (str): Name of the actor or analysis method
+
+        Returns:
+            BaseActor: Actor or AnalysisMethod object
+        """
+
+        view = cls.__get_view()
+        return view.get_by_name(name)[0]
+
+    @classmethod
+    def get_by_tags(cls, tags: List[str]) -> List["BaseActor"]:
+        """Get an Actor or AnalysisMethod by tags
+
+        Args:
+            tags (List[str]): Tags of the actor or analysis method
+
+        Returns:
+            List[BaseActor]: List of Actor or AnalysisMethod objects
+        """
+
+        view = cls.__get_view()
+        return view.get_by_tags(tags)
+
+    @classmethod
+    def filter(
+        cls,
+        filter_dict: dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> List["BaseActor"]:
+        """Thin wrapper around pymongo find method, with an extra datetime filter.
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary.
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            List[BaseActor]: List of Actors/AnalysisMethods that match the filter
+        """
+        view = cls.__get_view()
+        return view.filter(filter_dict, datetime_min, datetime_max)
+
+    @classmethod
+    def filter_one(
+        cls,
+        filter_dict: dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> "BaseActor":
+        """Thin wrapper around pymongo find_one method, with an extra datetime filter.
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary.
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            BaseActor: Actor/AnalysisMethod that matches the filter
+        """
+        view = cls.__get_view()
+        return view.filter_one(filter_dict, datetime_min, datetime_max)
+
+    def save(self):
+        view = self.__get_view()
+        view.add(entry=self, if_already_in_db="update")
+
+    def __getitem__(self, key: str):
+        return self._user_fields[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self._user_fields[key] = value
+
+    def keys(self):
+        return list(self._user_fields.keys())
+
 
 class Actor(BaseActor):
     """An experimental actor (hardware, system, or lab facility) that can perform synthesis Action's or Measurement's"""
 
     def __init__(
-        self, name: str, description: str, tags: List[str] = None, **parameters
+        self, name: str, description: str, tags: List[str] = None, **user_fields
     ):
-        super().__init__(name=name, description=description, tags=tags, **parameters)
-
-    @classmethod
-    def get_by_name(cls, name: str) -> "Actor":
-        """Get an actor by name
-
-        Args:
-            name (str): Name of the actor
-
-        Returns:
-            Actor: Actor object
-        """
-        from labgraph.views import ActorView
-
-        return ActorView().get_by_name(name)[0]
-
-    @classmethod
-    def from_dict(cls, entry: Dict[str, Any]):
-        _id = entry.pop("_id", None)
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
-        entry.pop("version", None)
-        version_history = entry.pop("version_history", None)
-
-        obj = cls(**entry)
-        if _id is not None:
-            obj._id = _id
-        obj._version_history = version_history
-
-        return obj
+        super().__init__(name=name, description=description, tags=tags, **user_fields)
 
 
 class AnalysisMethod(BaseActor):
     """A method to analyze data contained in one or more Measurement's to yield features of the measurement"""
 
     def __init__(
-        self, name: str, description: str, tags: List[str] = None, **parameters
+        self, name: str, description: str, tags: List[str] = None, **user_fields
     ):
-        super().__init__(name=name, description=description, tags=tags, **parameters)
-
-    @classmethod
-    def get_by_name(cls, name: str) -> "AnalysisMethod":
-        """Get an analysis method by name
-
-        Args:
-            name (str): Name of the analysis method
-
-        Returns:
-            AnalysisMethod: AnalysisMethod object
-        """
-        from labgraph.views import AnalysisMethodView
-
-        return AnalysisMethodView().get_by_name(name)[0]
-
-    @classmethod
-    def from_dict(cls, entry: Dict[str, Any]):
-        _id = entry.pop("_id", None)
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
-        entry.pop("version", None)
-        version_history = entry.pop("version_history", None)
-
-        obj = cls(**entry)
-        if _id is not None:
-            obj._id = _id
-        obj._version_history = version_history
-
-        return obj
+        super().__init__(name=name, description=description, tags=tags, **user_fields)

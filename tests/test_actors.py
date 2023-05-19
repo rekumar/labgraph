@@ -60,7 +60,6 @@ def test_ActorVersioning(add_actors_to_db):
 
 
 def test_AnalysisMethodVersioning(add_analysis_methods_to_db):
-
     amv = AnalysisMethodView()
     xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
     xrd.tags.append("new_tag")
@@ -112,3 +111,94 @@ def test_AnalysisMethod_retrieval(add_analysis_methods_to_db):
 
     with pytest.raises(NotFoundInDatabaseError):
         av.get_by_name("Random name that doesnt exist")
+
+
+def test_Actor_invalid_fields(add_actors_to_db):
+    view = ActorView()
+    test_actor = Actor(
+        name="test_actor_with_invalid_fields",
+        description="test actor",
+        version="test_version",
+    )
+    with pytest.raises(ValueError):
+        view.add(
+            test_actor
+        )  # the "version" field would collide with a LabGraph default field, and shouldn't be allowed!
+
+
+def test_AnalysisMethod_invalid_fields(add_analysis_methods_to_db):
+    view = AnalysisMethodView()
+    test_analysis_method = AnalysisMethod(
+        name="test_analysis_method_with_invalid_fields",
+        description="test analysis method",
+        version="test_version",
+    )
+    with pytest.raises(ValueError):
+        view.add(
+            test_analysis_method
+        )  # the "version" field would collide with a LabGraph default field, and shouldn't be allowed!
+
+
+def test_Actor_classmethods(clean_db):
+    a = Actor(
+        name="test_actor", description="test actor", tags=["test_tag1", "test_tag2"]
+    )
+    a.save()
+
+    a_ = Actor.get_by_name(name="test_actor")
+    assert a == a_
+
+    a__ = Actor.filter_one({"name": "test_actor"})
+    assert a == a__
+
+    a___ = Actor.filter({"name": "test_actor"})[0]
+
+    assert a == a___
+
+    a_ = Actor.get_by_tags(["test_tag1", "test_tag2"])[0]
+    assert a == a_
+
+    a_ = Actor.get_by_tags(["test_tag1"])[0]
+    assert a == a_
+
+    a["new_user_field"] = "new_user_field_value"
+    a.save()
+
+    a_ = Actor.get_by_name(name="test_actor")
+
+    assert a_["new_user_field"] == "new_user_field_value"
+    assert a_.keys() == ["new_user_field"]
+    assert a == a_
+
+
+def test_AnalysisMethod_classmethods(clean_db):
+    am = AnalysisMethod(
+        name="test_analysis_method",
+        description="test analysis method",
+        tags=["test_tag1", "test_tag2"],
+    )
+    am.save()
+
+    am_ = AnalysisMethod.get_by_name(name="test_analysis_method")
+    assert am == am_
+
+    am__ = AnalysisMethod.filter_one({"name": "test_analysis_method"})
+    assert am == am__
+
+    am___ = AnalysisMethod.filter({"name": "test_analysis_method"})[0]
+
+    assert am == am___
+
+    am_ = AnalysisMethod.get_by_tags(["test_tag1", "test_tag2"])[0]
+    assert am == am_
+
+    am_ = AnalysisMethod.get_by_tags(["test_tag1"])[0]
+    assert am == am_
+
+    am["new_user_field"] = "new_user_field_value"
+    am.save()
+
+    am_ = AnalysisMethod.get_by_name(name="test_analysis_method")
+    assert am_["new_user_field"] == "new_user_field_value"
+    assert am_.keys() == ["new_user_field"]
+    assert am == am_

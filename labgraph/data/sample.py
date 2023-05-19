@@ -309,6 +309,27 @@ class Sample:
         return SampleView().filter(filter_dict, datetime_min, datetime_max)
 
     @classmethod
+    def filter_one(
+        self,
+        filter_dict: dict,
+        datetime_min: datetime = None,
+        datetime_max: datetime = None,
+    ) -> "Sample":
+        """Thin wrapper around pymongo find_one method, with an extra datetime filter.
+
+        Args:
+            filter_dict (Dict): standard mongodb filter dictionary.
+            datetime_min (datetime, optional): entries from before this datetime will not be shown. Defaults to None.
+            datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
+
+        Returns:
+            BaseObject: Sample that matches the filter
+        """
+        from labgraph.views import SampleView
+
+        return SampleView().filter_one(filter_dict, datetime_min, datetime_max)
+
+    @classmethod
     def get_by_node(self, node: Union[BaseNode, List[BaseNode]]) -> List["Sample"]:
         """Get Sample(s) from the database by node
 

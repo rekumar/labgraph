@@ -30,7 +30,7 @@ class NodeList(list):
         elif isinstance(value, dict):
             if not all([k in value for k in ["node_type", "node_id"]]):
                 raise ValueError(
-                    "Invalid node entry. Dicts appended to NodeTrail must have keys 'node_type' and 'node_id'"
+                    "Invalid node entry. Dicts appended to NodeList must have keys 'node_type' and 'node_id'"
                 )
             super().append(
                 {
@@ -40,7 +40,7 @@ class NodeList(list):
             )
         else:
             raise ValueError(
-                "Invalid node entry. NodeTrail can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
+                "Invalid node entry. NodeList can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
             )
 
     def get(self, index: Optional[int] = None) -> Union["BaseNode", List["BaseNode"]]:
@@ -185,31 +185,8 @@ class BaseNode(ABC):
         return f"<{self.__class__.__name__}: {self.name}>"
 
     def save(self):
-        from labgraph.views import (
-            MaterialView,
-            MeasurementView,
-            AnalysisView,
-            ActionView,
-        )
-
-        VIEWS = {
-            "Material": MaterialView,
-            "Measurement": MeasurementView,
-            "Analysis": AnalysisView,
-            "Action": ActionView,
-        }
-
-        view = VIEWS[self.__class__.__name__]()
+        view = self.__get_view()
         view.add(entry=self, if_already_in_db="update")
-
-    # @abstractmethod
-    # def __get_view(self):
-    #     """Returns the view class for the node type
-
-    #     Raises:
-    #         NotImplementedError
-    #     """
-    #     raise NotImplementedError
 
     @classmethod
     def __get_view(cls):
@@ -276,22 +253,6 @@ class BaseNode(ABC):
         """
         view = cls.__get_view()
         return view.get_by_tags(tags)
-
-    @classmethod
-    def get_by_contents(cls, contents: dict) -> List["BaseNode"]:
-        """Return all node(s) that contain the given key-value pairs in their document.
-
-        Args:
-            contents (dict): Dictionary of contents to match against. Nodes which contain all of the provided key-value pairs will be returned.
-
-        Raises:
-            NotFoundInDatabaseError: No node found with specified contents
-
-        Returns:
-            List[BaseNode]: List of node(s) with the specified contents. List is sorted from most recent to oldest.
-        """
-        view = cls.__get_view()
-        return view.get_by_contents(contents)
 
     @classmethod
     def filter(

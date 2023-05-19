@@ -27,6 +27,12 @@ def test_NodeUpdates(add_single_sample):
     m_ = materialview.get(m.id)
     assert m_._user_fields["formula"] == "TiO2"
 
+    m._user_fields["upstream"] = "this shouldnt be allowed"
+    with pytest.raises(ValueError):
+        materialview.update(
+            m
+        )  # we cant put user fields that collide with labgraph default keys.
+
     actionview = views.ActionView()
     p = actionview.get_by_name("grind")[0]
     p._user_fields["final_step"] = True
@@ -229,3 +235,37 @@ def test_NodeDeletion(add_single_sample):
     with pytest.raises(NotFoundInDatabaseError):
         # the sample should be deleted since all its nodes are also deleted
         views.SampleView().get_by_name("first sample")
+
+
+def test_Node_classmethods(add_single_sample):
+    test_guide = {
+        Material: "Titanium Dioxide",
+        Action: "grind",
+        Measurement: "XRD",
+        Analysis: "Phase Identification",
+    }
+
+    for cls, name in test_guide.items():
+        node = cls.get_by_name(name)[0]
+        assert node.name == name
+
+        node["new_field"] = "new_value"
+        node.tags.append("new_tag")
+        node.save()
+
+        node_ = cls.get_by_name(name)[0]
+        assert node == node_
+        assert "new_field" in node_.keys()
+        assert node["new_field"] == "new_value"
+
+        node_ = cls.get(node.id)
+        assert node == node_
+
+        nodes_ = cls.get_by_tags(["new_tag"])
+        assert node in nodes_
+
+        nodes_ = cls.filter({"new_field": "new_value"})
+        assert node in nodes_
+
+        node_ = cls.filter_one({"new_field": "new_value"})
+        assert node == node_
