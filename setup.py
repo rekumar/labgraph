@@ -82,4 +82,9 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    entry_points={
+        "console_scripts": [
+            "labgraph = labgraph.scripts.cli:cli",
+        ]
+    },
 )
