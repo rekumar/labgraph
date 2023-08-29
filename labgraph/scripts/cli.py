@@ -41,3 +41,10 @@ def cli():
 def launch_client_cli(host, port, debug):
     click.echo(f"The client will be served on http://{host}:{port}")
     launch_dashboard(host, port, debug)
+
+
+@cli.command("mongodb_config", short_help="Configure your connection to MongoDB.")
+def launch_mongodb_config():
+    from labgraph.utils.config import make_config
+
+    make_config()
