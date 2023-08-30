@@ -23,7 +23,7 @@ class Sample:
     def __init__(
         self,
         name: str,
-        description: str = "",
+        description: str = None,
         nodes: List[ALLOWED_NODE_TYPE] = None,
         tags: List[str] = None,
         **user_fields,
@@ -33,10 +33,8 @@ class Sample:
         self._id = ObjectId()
         self._user_fields = user_fields
 
-        if tags is None:
-            self.tags = []
-        else:
-            self.tags = tags
+        self.description = description or ""
+        self.tags = tags or []
         self.nodes = []
         if nodes is not None:
             for node in nodes:
@@ -111,7 +109,8 @@ class Sample:
     def graph(self):
         graph = nx.DiGraph()
         for node in self.nodes:
-            graph.add_node(node.id, type=node.__class__.__name__, name=node.name)
+            node: BaseNode
+            graph.add_node(node.id, type=node.labgraph_node_type, name=node.name)
             for upstream in node.upstream:
                 if upstream["node_id"] not in graph.nodes:
                     graph.add_node(
@@ -162,11 +161,12 @@ class Sample:
 
     def to_dict(self, verbose: bool = False) -> dict:
         node_dict = {
-            nodetype.__name__: []
-            for nodetype in [Material, Action, Analysis, Measurement]
+            nodetype: []
+            for nodetype in ["Material", "Action", "Analysis", "Measurement"]
         }
         for node in self.nodes:
-            node_dict[type(node).__name__].append(node.id)
+            node: BaseNode
+            node_dict[node.labgraph_node_type].append(node.id)
 
         entry = {
             "_id": self.id,
