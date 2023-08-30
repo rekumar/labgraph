@@ -9,24 +9,21 @@ from labgraph import (
     WholeIngredient,
     Sample,
     Actor,
-    AnalysisMethod,
     views,
 )
 from labgraph.utils.dev import drop_collections
-from .example_system import add_actors_to_db, add_analysis_methods_to_db
+from .example_system import add_actors_to_db
 
 
 @pytest.fixture
-def add_single_sample(add_actors_to_db, add_analysis_methods_to_db):
+def add_single_sample(add_actors_to_db):
     # get your actors and analysis methods
     av = views.ActorView()
     labman: Actor = av.get_by_name(name="LabMan")[0]
     tubefurnace1: Actor = av.get_by_name(name="TubeFurnace1")[0]
     aeris: Actor = av.get_by_name(name="Aeris")[0]
     operator = av.get_by_name(name="Operator")[0]
-
-    amv = views.AnalysisMethodView()
-    xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
+    xrd: Actor = av.get_by_name(name="Phase Identification")[0]
 
     # procure material
     m0 = Material(
@@ -71,6 +68,6 @@ def add_single_sample(add_actors_to_db, add_analysis_methods_to_db):
         actor=aeris,
     )
 
-    a0 = Analysis(name="Phase Identification", measurements=[me0], analysis_method=xrd)
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
     alab_sample = Sample(name="first sample", nodes=[p1, p2, p3, m3, m1, m2, me0, a0])
     views.SampleView().add(alab_sample)

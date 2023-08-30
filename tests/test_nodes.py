@@ -8,7 +8,6 @@ from labgraph import (
     WholeIngredient,
     Sample,
     Actor,
-    AnalysisMethod,
     views,
 )
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
@@ -58,7 +57,7 @@ def test_NodeUpdates(add_single_sample):
     assert a_._user_fields["metadata"] == {"temperature": 300}
 
 
-def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
+def test_NodeAddition(add_actors_to_db):
     # material
     m = Material(
         name="Yttrium Oxide",
@@ -104,12 +103,12 @@ def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
 
     ##analysis
     # one measurement upstream
-    phase_id = views.AnalysisMethodView().get_by_name(name="Phase Identification")[0]
+    phase_id = views.ActorView().get_by_name(name="Phase Identification")[0]
 
     a = Analysis(
         name="Phase Identification",
         measurements=[me],
-        analysis_method=phase_id,
+        actor=phase_id,
     )
     analysisview = views.AnalysisView()
     analysisview.add(a)
@@ -121,7 +120,7 @@ def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
     a2 = Analysis(
         name="Figure of Merit",
         upstream_analyses=[a],
-        analysis_method=phase_id,
+        actor=phase_id,
     )
     analysisview.add(a2)
 
@@ -132,7 +131,7 @@ def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
     a3 = Analysis(
         name="Figure of Merit2",
         upstream_analyses=[a, a2],
-        analysis_method=phase_id,
+        actor=phase_id,
     )
     analysisview.add(a3)
 
@@ -154,7 +153,7 @@ def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
         name="Figure of Merit3",
         extra_field="extra",
         measurements=[me, me2],
-        analysis_method=phase_id,
+        actor=phase_id,
     )
     analysisview.add(a4)
 
@@ -166,7 +165,7 @@ def test_NodeAddition(add_actors_to_db, add_analysis_methods_to_db):
         name="Figure of Merit4",
         measurements=[me, me2],
         upstream_analyses=[a, a2],
-        analysis_method=phase_id,
+        actor=phase_id,
     )
     analysisview.add(a5)
 

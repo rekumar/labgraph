@@ -2,7 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 import datetime
 from typing import Any, Dict, List, Optional
-from bson import ObjectId
+from bson import BSON, ObjectId
 
 
 class BaseActor:
@@ -85,14 +85,22 @@ class BaseActor:
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.name} v{self.version}>"
 
-    def new_version(self, description: str):
-        """Increment the version of the actor and record a description of what changed in this version. This is used to track changes (instrument service, modification, update to analysis code, etc) to an actor/analysismethod over time.
+    def new_version(self, description: str, **user_fields):
+        """Increment the version of the actor and record a description of what changed in this version. This is used to track changes (instrument service, modification, update to analysis code, etc) to an actor over time.
 
         Note that this function only changes the actor locally. You need to call .update() in the database view to record this updated version to the database.
 
         Args:
             description (str): Description of the changes made to the actor in this version
+            **user_fields (dict): Any additional fields you want to add to the version update log (e.g. "instrument_service", "code diff", etc.)
         """
+
+        try:
+            BSON.encode(user_fields)
+        except:
+            raise ValueError(
+                f"User fields must be BSON-encodable. Something in {user_fields} is not BSON-encodable."
+            )
 
         self._version_history.append(
             {
@@ -101,6 +109,7 @@ class BaseActor:
                 "version_date": datetime.datetime.now().replace(
                     microsecond=0
                 ),  # remove microseconds, they get lost in MongoDB anyways,
+                **user_fields,
             }
         )
 
@@ -117,23 +126,22 @@ class BaseActor:
 
     @classmethod
     def __get_view(cls):
-        from labgraph.views import ActorView, AnalysisMethodView
+        from labgraph.views import ActorView
 
         VIEWS = {
             "Actor": ActorView,
-            "AnalysisMethod": AnalysisMethodView,
         }
         return VIEWS[cls.__name__]()
 
     @classmethod
     def get_by_name(cls, name: str) -> "BaseActor":
-        """Get an Actor or AnalysisMethod by name
+        """Get an Actor by name
 
         Args:
             name (str): Name of the actor or analysis method
 
         Returns:
-            BaseActor: Actor or AnalysisMethod object
+            BaseActor: Actor object
         """
 
         view = cls.__get_view()
@@ -141,13 +149,13 @@ class BaseActor:
 
     @classmethod
     def get_by_tags(cls, tags: List[str]) -> List["BaseActor"]:
-        """Get an Actor or AnalysisMethod by tags
+        """Get an Actor by tags
 
         Args:
             tags (List[str]): Tags of the actor or analysis method
 
         Returns:
-            List[BaseActor]: List of Actor or AnalysisMethod objects
+            List[BaseActor]: List of Actor objects
         """
 
         view = cls.__get_view()
@@ -168,7 +176,7 @@ class BaseActor:
             datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
 
         Returns:
-            List[BaseActor]: List of Actors/AnalysisMethods that match the filter
+            List[BaseActor]: List of Actors that match the filter
         """
         view = cls.__get_view()
         return view.filter(filter_dict, datetime_min, datetime_max)
@@ -188,7 +196,7 @@ class BaseActor:
             datetime_max (datetime, optional): entries from after this datetime will not be shown. Defaults to None.
 
         Returns:
-            BaseActor: Actor/AnalysisMethod that matches the filter
+            BaseActor: Actor that matches the filter
         """
         view = cls.__get_view()
         return view.filter_one(filter_dict, datetime_min, datetime_max)
@@ -209,15 +217,6 @@ class BaseActor:
 
 class Actor(BaseActor):
     """An experimental actor (hardware, system, or lab facility) that can perform synthesis Action's or Measurement's"""
-
-    def __init__(
-        self, name: str, description: str, tags: List[str] = None, **user_fields
-    ):
-        super().__init__(name=name, description=description, tags=tags, **user_fields)
-
-
-class AnalysisMethod(BaseActor):
-    """A method to analyze data contained in one or more Measurement's to yield features of the measurement"""
 
     def __init__(
         self, name: str, description: str, tags: List[str] = None, **user_fields

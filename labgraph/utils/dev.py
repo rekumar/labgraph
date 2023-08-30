@@ -4,7 +4,6 @@ def drop_collections():
         ActionView,
         MeasurementView,
         AnalysisView,
-        AnalysisMethodView,
         ActorView,
         SampleView,
     )
@@ -14,7 +13,6 @@ def drop_collections():
         ActionView(),
         MeasurementView(),
         AnalysisView(),
-        AnalysisMethodView(),
         ActorView(),
         SampleView(),
     ]:

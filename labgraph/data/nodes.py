@@ -2,7 +2,7 @@ import datetime
 from bson import ObjectId, BSON
 from typing import Any, Dict, List, Optional, Union, Literal
 
-from .actors import Actor, AnalysisMethod
+from .actors import Actor
 from abc import ABC, abstractmethod
 import re
 
@@ -112,6 +112,9 @@ class BaseNode(ABC):
 
         self._version_history = []
         self._user_fields = {}
+        self._created_at = None  # time of creation within the database
+        self._updated_at = None  # time of last update within the database
+
         if labgraph_node_type not in [
             "Material",
             "Measurement",
@@ -143,38 +146,40 @@ class BaseNode(ABC):
             self.downstream.append(new_entry)
 
     def to_dict(self):
-        hidden_property_mangle_prefix = r"_\w*__\w*"  # matches __property mangle prefix
+        # hidden_property_mangle_prefix = r"_\w*__\w*"  # matches __property mangle prefix
         full_dict = {
             k: v
             for k, v in self.__dict__.items()
-            if not re.match(hidden_property_mangle_prefix, k)
-        }  # dont include double underscored class attributes
+            # if not re.match(hidden_property_mangle_prefix, k)
+            if not k.startswith("_")
+        }  # dont include underscored class attributes
 
-        full_dict.pop("_version_history", None)
-        full_dict["version_history"] = self.version_history
-        user_fields = full_dict.pop("_user_fields", {})
+        # full_dict.pop("_version_history", None)
+        # user_fields = full_dict.pop("_user_fields", {})
 
-        return_dict = {}
+        return_dict = {
+            "_id": self._id,  # only underscored value we need
+        }
+
         for key in [
-            "_id",
             "name",
             "tags",
             "upstream",
             "downstream",
             "version_history",
             "actor_id",
-            "analysismethod_id",
             "ingredients",
         ]:
             if key in full_dict:
                 return_dict[key] = full_dict[key]
 
-        for key in user_fields:
+        for key in self._user_fields:
             if key in return_dict:
                 raise ValueError(
                     f"User field {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
                 )
-        return_dict.update(user_fields)
+
+        return_dict.update(self._user_fields)
 
         return return_dict
 
@@ -344,6 +349,18 @@ class BaseNode(ABC):
         view = self.__get_view()
         return view._exists(self.id)
 
+    @property
+    def created_at(self):
+        if self._created_at is None:
+            return "This node has not been saved to the database yet."
+        return self._created_at
+
+    @property
+    def updated_at(self):
+        if self._updated_at is None:
+            return "This node has not been saved to the database yet."
+        return self._updated_at
+
 
 ## Materials
 class Material(BaseNode):
@@ -383,9 +400,6 @@ class Material(BaseNode):
     def from_dict(cls, entry: dict) -> "Material":
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
-        entry.pop("version_history", None)
 
         us = entry.pop("upstream")
         ds = entry.pop("downstream")
@@ -394,6 +408,8 @@ class Material(BaseNode):
         if _id is not None:
             obj._id = _id
         obj._version_history = version_history
+        obj._created_at = entry.pop("created_at", None)
+        obj._updated_at = entry.pop("updated_at", None)
 
         for us_ in us:
             obj.upstream.append(us_)
@@ -761,7 +777,7 @@ class Analysis(BaseNode):
     def __init__(
         self,
         name: str,
-        analysis_method: AnalysisMethod = None,
+        actor: Actor = None,
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
@@ -773,7 +789,7 @@ class Analysis(BaseNode):
             name (str): Name of the Analysis node.
             measurements (List[Measurement]): Measurements, if any, on which this Analysis is based. Defaults to None. At least one upstream measurement or analysis must be provided.
             upstream_analyses (List[Analysis]): Analysis node(s), if any, on which this Analysis is based. Defaults to None. At least one upstream measurement or analysis must be provided.
-            analysis_method (AnalysisMethod): AnalysisMethod describing how this analysis was performed.
+            actor (Actor): Actor that performed this analysis.
             tags (List[str], optional): List of string tags. Defaults to None.
 
         Raises:
@@ -784,12 +800,12 @@ class Analysis(BaseNode):
         )
         self.__measurements = []
         self.__upstream_analyses = []
-        self.analysismethod_id = None
-        self.__analysis_method = None
+        self.actor_id = None
+        self.__actor = None
         self._user_fields = user_fields
 
-        if analysis_method:
-            self.analysis_method = analysis_method
+        if actor:
+            self.actor = actor
         for meas in measurements or []:
             self.add_measurement(meas)
 
@@ -823,17 +839,17 @@ class Analysis(BaseNode):
         return self.__upstream_analyses
 
     @property
-    def analysis_method(self):
-        return self.__analysis_method
+    def actor(self):
+        return self.__actor
 
-    @analysis_method.setter
-    def analysis_method(self, analysis_method: AnalysisMethod):
-        if not isinstance(analysis_method, AnalysisMethod):
+    @actor.setter
+    def actor(self, actor: Actor):
+        if not isinstance(actor, Actor):
             raise TypeError(
-                "The `analysis_method` argument to an Analysis must be of type `labgraph.data.nodes.AnalysisMethod`!"
+                "The `actor` argument to an Analysis must be of type `labgraph.data.nodes.Actor`!"
             )
-        self.__analysis_method = analysis_method
-        self.analysismethod_id = analysis_method.id
+        self.__actor = actor
+        self.actor_id = actor.id
 
     def raise_if_invalid(self):
         if len(self.__upstream_analyses) + len(self.__measurements) == 0:
@@ -841,9 +857,9 @@ class Analysis(BaseNode):
                 f"{self} is not linked to any Measurements or Analyses. An Analysis must have at least one upstream Measurement or Analysis!"
             )
 
-        if self.analysis_method is None:
+        if self.actor is None:
             raise InvalidNodeDefinition(
-                f"{self} must have an AnalysisMethod! Set this with the `analysis_method` argument to the constructor, or after the fact `using self.analysis_method = AnalysisMethod(...)`."
+                f"{self} must have an Actor! Set this with the `actor` argument to the constructor, or after the fact `using self.actor = Actor(...)`."
             )
 
         for node in self.upstream:
@@ -859,9 +875,9 @@ class Analysis(BaseNode):
 
     @classmethod
     def from_dict(cls, entry: dict) -> "Analysis":
-        from labgraph.views import AnalysisMethodView, MeasurementView, AnalysisView
+        from labgraph.views import ActorView, MeasurementView, AnalysisView
 
-        method = AnalysisMethodView().get(id=entry.pop("analysismethod_id"))
+        actor = ActorView().get(id=entry.pop("actor_id"))
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
 
@@ -885,7 +901,7 @@ class Analysis(BaseNode):
         obj = cls(
             measurements=measurements,
             upstream_analyses=upstream_analyses,
-            analysis_method=method,
+            actor=actor,
             **entry,
         )
         if _id is not None:

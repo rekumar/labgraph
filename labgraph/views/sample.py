@@ -85,6 +85,10 @@ class SampleView(BaseView):
                 "updated_at": created_at,  # same as created_at on first version in db
             }
         )
+
+        # update local copy of entry to reflect database changes
+        entry._created_at = created_at
+        entry._updated_at = created_at
         return cast(ObjectId, result.inserted_id)
 
     def _check_if_nodes_are_valid(self, sample: Sample) -> bool:
@@ -329,6 +333,12 @@ class SampleView(BaseView):
             )  # dont nest version histories, instead append to the new entry's version history
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
+
+        # update local copy of entry to reflect database changes
+        entry._created_at = new_entry["created_at"]
+        entry._updated_at = new_entry["updated_at"]
+        if "version_history" in new_entry:
+            entry._version_history = new_entry["version_history"]
 
     def remove(
         self, id: ObjectId, remove_nodes: bool = False, _force_dangerous: bool = False

@@ -8,8 +8,7 @@ from labgraph.data import (
     Ingredient,
     WholeIngredient,
     Actor,
-    AnalysisMethod,
     Sample,
 )
 
-from labgraph.views import SampleView, ActorView, AnalysisMethodView
+from labgraph.views import SampleView, ActorView

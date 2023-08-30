@@ -7,7 +7,7 @@ from labgraph.data.nodes import (
     Ingredient,
 )
 from .base import BaseNodeView
-from .actors import ActorView, AnalysisMethodView, Actor, AnalysisMethod
+from .actors import Actor, ActorView
 
 
 class MaterialView(BaseNodeView):
@@ -35,5 +35,5 @@ class AnalysisView(BaseNodeView):
     def __init__(self):
         super().__init__("analyses", Analysis)
 
-    def get_by_analysismethod(self, analysismethod: AnalysisMethod) -> List[Analysis]:
-        return self.filter({"analysismethod_id": analysismethod.id})
+    def get_by_actor(self, actor: Actor) -> List[Action]:
+        return self.filter({"actor_id": actor.id})

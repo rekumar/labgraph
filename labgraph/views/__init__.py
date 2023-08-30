@@ -5,7 +5,6 @@ from .nodes import (
     ActionView,
     MeasurementView,
     AnalysisView,
-    AnalysisMethodView,
     ActorView,
 )
 
@@ -34,7 +33,6 @@ def get_view_by_type(node_type: str) -> BaseView:
     VIEWS = {
         "Action": ActionView,
         "Analysis": AnalysisView,
-        "AnalysisMethod": AnalysisMethodView,
         "Actor": ActorView,
         "Measurement": MeasurementView,
         "Material": MaterialView,

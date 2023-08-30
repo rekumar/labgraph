@@ -32,6 +32,8 @@ class Sample:
         self.description = description
         self._id = ObjectId()
         self._user_fields = user_fields
+        self._created_at = None
+        self._updated_at = None
 
         self.description = description or ""
         self.tags = tags or []
@@ -187,6 +189,7 @@ class Sample:
         if verbose:
             self._sort_nodes()
             entry["node_contents"] = [node.to_dict() for node in self.nodes]
+
         return entry
 
     def plot(self, with_labels: bool = True, ax: plt.Axes = None):
@@ -351,6 +354,18 @@ class Sample:
 
     def __hash__(self):
         return hash(self.id)
+
+    @property
+    def created_at(self):
+        if self._created_at is None:
+            return f"{self} has not been saved to the database yet."
+        return self._created_at
+
+    @property
+    def updated_at(self):
+        if self._updated_at is None:
+            return f"{self} has not been saved to the database yet."
+        return self._updated_at
 
 
 def action_sequence_distance(
