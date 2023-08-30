@@ -525,7 +525,7 @@ class UnspecifiedAmountIngredient(Ingredient):
 
 
 class UnspecifiedAmountIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **user_fields):
+    def __init__(self, material: Material, name: str = None, **contents):
         """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
 
         Args:
@@ -533,7 +533,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(WholeIngredient, self).__init__(
-            material=material, amount=None, unit=None, name=name, **user_fields
+            material=material, amount=None, unit=None, name=name, **contents
         )
 
 
@@ -888,14 +888,6 @@ class Analysis(BaseNode):
         analysis.add_downstream(self)
         self.add_upstream(analysis)
         self.__upstream_analyses.append(analysis)
-
-        if actor:
-            self.actor = actor
-        for meas in measurements or []:
-            self.add_measurement(meas)
-
-        for analysis in upstream_analyses or []:
-            self.add_upstream_analysis(analysis)
 
     def add_measurement(self, measurement: Measurement):
         if not isinstance(measurement, Measurement):
