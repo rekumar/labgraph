@@ -146,8 +146,11 @@ class SampleView(BaseView):
 
     def _entry_to_object(self, entry: dict):
         id = entry.pop("_id")
-        entry.pop("created_at")
+        created_at = entry.pop("created_at")
+        updated_at = entry.pop("updated_at")
+        version_history = entry.pop("version_history", [])
         nodes = entry.pop("nodes")
+        contents = entry.pop("contents")
 
         s = Sample(**entry)
         s._id = id
@@ -164,6 +167,11 @@ class SampleView(BaseView):
                     node = self.analysisview.get(id=nodeid)
                 s.add_node(node)
         s._sort_nodes()
+
+        s._created_at = created_at
+        s._updated_at = updated_at
+        s._version_history = version_history
+        s._contents = contents
 
         return s
 
@@ -310,17 +318,18 @@ class SampleView(BaseView):
 
         if only_changing_nodes:
             # no need for version history if we are only adding nodes
+            updated_at = datetime.now().replace(microsecond=0)
             self._collection.update_one(
                 {"_id": entry.id},
                 {
                     "$set": {
                         "nodes": new_entry["nodes"],
-                        "updated_at": datetime.now().replace(
-                            microsecond=0
-                        ),  # remove microseconds, they get lost in MongoDB anyways,
+                        "updated_at": updated_at,  # remove microseconds, they get lost in MongoDB anyways,
                     }
                 },
             )
+            entry._updated_at = updated_at
+
         else:
             # if other things are changing, lets keep a version history
             new_entry["created_at"] = old_entry["created_at"]
@@ -334,11 +343,12 @@ class SampleView(BaseView):
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 
-        # update local copy of entry to reflect database changes
-        entry._created_at = new_entry["created_at"]
-        entry._updated_at = new_entry["updated_at"]
-        if "version_history" in new_entry:
-            entry._version_history = new_entry["version_history"]
+            # update local copy of entry to reflect database changes
+            entry._created_at = new_entry["created_at"]
+            entry._updated_at = new_entry["updated_at"]
+
+            if "version_history" in new_entry:
+                entry._version_history = new_entry["version_history"]
 
     def remove(
         self, id: ObjectId, remove_nodes: bool = False, _force_dangerous: bool = False

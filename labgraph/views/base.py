@@ -252,23 +252,23 @@ class BaseNodeView(BaseView):
 
         if only_adding_nodes:
             # no need for version history if we are only adding nodes
+            updated_at = datetime.now().replace(microsecond=0)
             self._collection.update_one(
                 {"_id": entry.id},
                 {
                     "$set": {
                         "upstream": new_entry["upstream"],
                         "downstream": new_entry["downstream"],
-                        "updated_at": datetime.now().replace(
-                            microsecond=0
-                        ),  # remove microseconds, they get lost in MongoDB anyways,
+                        "updated_at": updated_at,  # remove microseconds, they get lost in MongoDB anyways,
                     }
                 },
             )
+            entry._updated_at = updated_at
         else:
             # if other things are changing, lets keep a version history
             new_entry["created_at"] = old_entry["created_at"]
-            new_entry["updated_at"] = (
-                datetime.now().replace(microsecond=0),
+            new_entry["updated_at"] = datetime.now().replace(
+                microsecond=0
             )  # remove microseconds, they get lost in MongoDB anyways
             new_entry["version_history"] = old_entry.get("version_history", [])
             old_entry.pop("_id", None)
@@ -276,10 +276,9 @@ class BaseNodeView(BaseView):
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
 
-        # update our local copy of the node to reflect database changes
-        entry._created_at = new_entry["created_at"]
-        entry._updated_at = new_entry["updated_at"]
-        if "version_history" in new_entry:
+            # update our local copy of the node to reflect database changes
+            entry._created_at = new_entry["created_at"]
+            entry._updated_at = new_entry["updated_at"]
             entry._version_history = new_entry["version_history"]
 
     def __delete_node(self, id: ObjectId):

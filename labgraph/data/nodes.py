@@ -111,7 +111,7 @@ class BaseNode(ABC):
             self.tags = tags
 
         self._version_history = []
-        self._user_fields = {}
+        self._contents = {}
         self._created_at = None  # time of creation within the database
         self._updated_at = None  # time of last update within the database
 
@@ -155,7 +155,7 @@ class BaseNode(ABC):
         }  # dont include underscored class attributes
 
         # full_dict.pop("_version_history", None)
-        # user_fields = full_dict.pop("_user_fields", {})
+        # contents = full_dict.pop("_contents", {})
 
         return_dict = {
             "_id": self._id,  # only underscored value we need
@@ -173,13 +173,13 @@ class BaseNode(ABC):
             if key in full_dict:
                 return_dict[key] = full_dict[key]
 
-        for key in self._user_fields:
+        for key in self._contents:
             if key in return_dict:
                 raise ValueError(
                     f"User field {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
                 )
-
-        return_dict.update(self._user_fields)
+        return_dict["contents"] = self._contents
+        # return_dict.update(self._contents)
 
         return return_dict
 
@@ -253,13 +253,13 @@ class BaseNode(ABC):
         return view
 
     def __getitem__(self, key: str):
-        return self._user_fields[key]
+        return self._contents[key]
 
     def __setitem__(self, key: str, value: Any):
-        self._user_fields[key] = value
+        self._contents[key] = value
 
     def keys(self):
-        return list(self._user_fields.keys())
+        return list(self._contents.keys())
 
     @classmethod
     def get(cls, id: ObjectId) -> "BaseNode":
@@ -370,19 +370,19 @@ class Material(BaseNode):
         self,
         name: str,
         tags: Optional[Union[List[str], None]] = None,
-        **user_fields,
+        **contents,
     ):
         """Initialize a Material node. This creates the node in memory -- it is not added to the database yet!
 
         Args:
             name (str): Name of this Material. This is purely for human readability, and does not need to be unique.
             tags (Optional[Union[List[str], None]], optional): A list of tags to catalog this Material. If None (default), no tags will be applied. Tags can be an easy way to query nodes.
-            **user_fields: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
+            **contents: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
         """
         super(Material, self).__init__(
             name=name, tags=tags, labgraph_node_type="Material"
         )
-        self._user_fields = user_fields
+        self._contents = contents
 
     def raise_if_invalid(self):
         for node in self.upstream:
@@ -400,11 +400,14 @@ class Material(BaseNode):
     def from_dict(cls, entry: dict) -> "Material":
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
+        created_at = entry.pop("created_at", None)
+        updated_at = entry.pop("updated_at", None)
+        contents = entry.pop("contents", {})
 
         us = entry.pop("upstream")
         ds = entry.pop("downstream")
 
-        obj = cls(**entry)
+        obj = cls(**entry, **contents)
         if _id is not None:
             obj._id = _id
         obj._version_history = version_history
@@ -416,6 +419,9 @@ class Material(BaseNode):
         for ds_ in ds:
             obj.downstream.append(ds_)
 
+        obj._version_history = version_history
+        obj._updated_at = updated_at
+        obj._created_at = created_at
         return obj
 
 
@@ -427,7 +433,7 @@ class Ingredient:
         amount: float,
         unit: str,
         name: str = None,
-        **user_fields,
+        **contents,
     ):
         """
 
@@ -452,18 +458,18 @@ class Ingredient:
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
-        self._user_fields = user_fields
+        self._contents = contents
 
     def to_dict(self):
         d = self.__dict__.copy()
         d.pop("material")
-        user_fields = d.pop("_user_fields", {})
-        for key in user_fields:
+        contents = d.pop("_contents", {})
+        for key in contents:
             if key in d:
                 raise ValueError(
                     f"Parameter name {key} in Ingredient conflicts with default attribute {key} -- please rename the parameter!"
                 )
-        d.update(user_fields)
+        d.update(contents)
         return d
 
     def __repr__(self):
@@ -472,7 +478,7 @@ class Ingredient:
 
 
 class WholeIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **user_fields):
+    def __init__(self, material: Material, name: str = None, **contents):
         """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials.
 
         Args:
@@ -480,12 +486,12 @@ class WholeIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(WholeIngredient, self).__init__(
-            material=material, amount=100, unit="percent", name=name, **user_fields
+            material=material, amount=100, unit="percent", name=name, **contents
         )
 
 
 class UnspecifiedAmountIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **user_fields):
+    def __init__(self, material: Material, name: str = None, **contents):
         """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
 
         Args:
@@ -493,7 +499,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(WholeIngredient, self).__init__(
-            material=material, amount=None, unit=None, name=name, **user_fields
+            material=material, amount=None, unit=None, name=name, **contents
         )
 
 
@@ -505,7 +511,7 @@ class Action(BaseNode):
         ingredients: List[Ingredient] = [],
         generated_materials: List[Material] = None,
         tags: List[str] = None,
-        **user_fields,
+        **contents,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
 
@@ -517,7 +523,7 @@ class Action(BaseNode):
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
         super(Action, self).__init__(name=name, tags=tags, labgraph_node_type="Action")
-        self._user_fields = user_fields
+        self._contents = contents
         self.__actor = actor
         self.actor_id = actor.id
 
@@ -639,17 +645,18 @@ class Action(BaseNode):
         ]
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
-        entry.pop("version_history", None)
+        created_at = entry.pop("created_at", None)
+        updated_at = entry.pop("updated_at", None)
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
+        contents = entry.pop("contents", {})
         generated_materials = [mv.get(id=ds["node_id"]) for ds in downstream]
         obj = cls(
             ingredients=ingredients,
             generated_materials=generated_materials,
             actor=actor,
             **entry,
+            **contents,
         )
         if _id:
             obj._id = _id
@@ -658,7 +665,8 @@ class Action(BaseNode):
         for ds in downstream:
             obj.downstream.append(ds)
         obj._version_history = version_history
-
+        obj._updated_at = updated_at
+        obj._created_at = created_at
         return obj
 
 
@@ -670,7 +678,7 @@ class Measurement(BaseNode):
         material: Material = None,
         actor: Actor = None,
         tags: List[str] = None,
-        **user_fields,
+        **contents,
     ):
         """A Measurement Node. This is a node that represents a measurement of a material by an actor.
 
@@ -691,7 +699,7 @@ class Measurement(BaseNode):
             self.material = material
         if actor:
             self.actor = actor
-        self._user_fields = user_fields
+        self._contents = contents
 
     @property
     def material(self):
@@ -752,22 +760,22 @@ class Measurement(BaseNode):
         actor = ActorView().get(id=entry.pop("actor_id"))
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
-
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
-        version_history = entry.pop("version_history", [])
+        created_at = entry.pop("created_at", None)
+        updated_at = entry.pop("updated_at", None)
+        contents = entry.pop("contents", {})
         upstream_material_id = entry.pop("upstream")[0][
             "node_id"
         ]  # we know each Measurement has exactly one upstream material
         downstream = entry.pop("downstream")
         material = MaterialView().get(id=upstream_material_id)
-        obj = cls(material=material, actor=actor, **entry)
+        obj = cls(material=material, actor=actor, **entry, **contents)
         if _id is not None:
             obj._id = _id
-        obj._version_history = version_history
         for ds in downstream:
             obj.downstream.append(ds)
         obj._version_history = version_history
+        obj._updated_at = updated_at
+        obj._created_at = created_at
 
         return obj
 
@@ -781,7 +789,7 @@ class Analysis(BaseNode):
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
-        **user_fields,
+        **contents,
     ):
         """Creates an Analysis node. This node represents data processing from upstream Measurement(s) and/or Analysis/es node(s). For example, a "Density" Analysis may accept "Mass" and "Volume" measurements to compute density.
 
@@ -802,7 +810,7 @@ class Analysis(BaseNode):
         self.__upstream_analyses = []
         self.actor_id = None
         self.__actor = None
-        self._user_fields = user_fields
+        self._contents = contents
 
         if actor:
             self.actor = actor
@@ -881,10 +889,11 @@ class Analysis(BaseNode):
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
 
-        entry.pop("created_at", None)
-        entry.pop("updated_at", None)
+        created_at = entry.pop("created_at", None)
+        updated_at = entry.pop("updated_at", None)
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
+        contents = entry.pop("contents", {})
 
         mv = MeasurementView()
         measurements = [
@@ -903,6 +912,7 @@ class Analysis(BaseNode):
             upstream_analyses=upstream_analyses,
             actor=actor,
             **entry,
+            **contents,
         )
         if _id is not None:
             obj._id = _id
@@ -911,5 +921,7 @@ class Analysis(BaseNode):
         for ds in downstream:
             obj.downstream.append(ds)
         obj._version_history = version_history
+        obj._updated_at = updated_at
+        obj._created_at = created_at
 
         return obj

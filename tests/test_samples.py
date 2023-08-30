@@ -371,8 +371,8 @@ def test_Sample_classmethods(add_single_sample):
     nodes_ = cls.get_by_tags(["new_tag"])
     assert node in nodes_
 
-    nodes_ = cls.filter({"new_field": "new_value"})
+    nodes_ = cls.filter({"contents.new_field": "new_value"})
     assert node in nodes_
 
-    node_ = cls.filter_one({"new_field": "new_value"})
+    node_ = cls.filter_one({"contents.new_field": "new_value"})
     assert node == node_
