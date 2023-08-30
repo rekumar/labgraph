@@ -498,7 +498,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             material (Material): Material node described by this ingredient.
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
-        super(WholeIngredient, self).__init__(
+        super(UnspecifiedAmountIngredient, self).__init__(
             material=material, amount=None, unit=None, name=name, **contents
         )
 
@@ -628,15 +628,27 @@ class Action(BaseNode):
         return d
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Action":
+    def from_dict(
+        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
+    ) -> "Action":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
-        mv = MaterialView()
+        def get_node(node_type, node_id) -> BaseNode:
+            for node in local_nodes or []:
+                if isinstance(node, node_type) and node.id == node_id:
+                    return node
+            return None
+
+        def get_material(node_id) -> Measurement:
+            measurement = get_node(Measurement, node_id)
+            if not measurement:
+                return MaterialView().get(id=node_id)
+
         actor = ActorView().get(id=entry.pop("actor_id"))
         ingredients = [
             Ingredient(
-                material=mv.get(id=ing["material_id"]),
+                material=get_material(ing["material_id"]),
                 amount=ing["amount"],
                 unit=ing["unit"],
                 name=ing["name"],
@@ -650,7 +662,7 @@ class Action(BaseNode):
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
         contents = entry.pop("contents", {})
-        generated_materials = [mv.get(id=ds["node_id"]) for ds in downstream]
+        generated_materials = [get_material(ds["node_id"]) for ds in downstream]
         obj = cls(
             ingredients=ingredients,
             generated_materials=generated_materials,
@@ -753,7 +765,9 @@ class Measurement(BaseNode):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Measurement":
+    def from_dict(
+        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
+    ) -> "Measurement":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
@@ -767,8 +781,18 @@ class Measurement(BaseNode):
             "node_id"
         ]  # we know each Measurement has exactly one upstream material
         downstream = entry.pop("downstream")
-        material = MaterialView().get(id=upstream_material_id)
+
+        material = None
+        for node in local_nodes or []:
+            if isinstance(node, Material) and node.id == upstream_material_id:
+                material = node
+                break
+
+        if not material:
+            material = MaterialView().get(id=upstream_material_id)
+
         obj = cls(material=material, actor=actor, **entry, **contents)
+
         if _id is not None:
             obj._id = _id
         for ds in downstream:
@@ -882,8 +906,26 @@ class Analysis(BaseNode):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Analysis":
+    def from_dict(
+        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
+    ) -> "Analysis":
         from labgraph.views import ActorView, MeasurementView, AnalysisView
+
+        def get_node(node_type, node_id) -> BaseNode:
+            for node in local_nodes or []:
+                if isinstance(node, node_type) and node.id == node_id:
+                    return node
+            return None
+
+        def get_measurement(node_id) -> Measurement:
+            measurement = get_node(Measurement, node_id)
+            if not measurement:
+                return MeasurementView().get(id=node_id)
+
+        def get_analysis(node_id) -> Analysis:
+            analysis = get_node(Analysis, node_id)
+            if not analysis:
+                return AnalysisView().get(id=node_id)
 
         actor = ActorView().get(id=entry.pop("actor_id"))
         _id = entry.pop("_id", None)
@@ -895,15 +937,13 @@ class Analysis(BaseNode):
         downstream = entry.pop("downstream")
         contents = entry.pop("contents", {})
 
-        mv = MeasurementView()
         measurements = [
-            mv.get(id=meas["node_id"])
+            get_measurement(meas["node_id"])
             for meas in upstream
             if meas["node_type"] == "Measurement"
         ]
-        av = AnalysisView()
         upstream_analyses = [
-            av.get(id=ana["node_id"])
+            get_analysis(ana["node_id"])
             for ana in upstream
             if ana["node_type"] == "Analysis"
         ]

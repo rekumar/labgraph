@@ -16,10 +16,7 @@ class BaseActor:
         self.name = name
         self.description = description
 
-        if tags is None:
-            self.tags = []
-        else:
-            self.tags = tags
+        self.tags = tags or []
         self._user_fields = user_fields
 
         self._id = ObjectId()

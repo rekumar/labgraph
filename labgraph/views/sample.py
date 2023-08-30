@@ -91,6 +91,23 @@ class SampleView(BaseView):
         entry._updated_at = created_at
         return cast(ObjectId, result.inserted_id)
 
+    def add_many_samples(self, samples: List[Sample]):
+        """Adds a batch of samples together. Useful when defining samples that depend on each other.
+
+        Args:
+            samples (List[Sample]): List of samples whose tasks share edges, yet the samples do not each contain all connected nodes.
+        """
+        master_sample = Sample("temporary")
+        for sample in samples:
+            for node in sample.nodes:
+                master_sample.add_node(sample.nodes)
+
+        master_sample.save()
+        for sample in samples:
+            sample.save()
+
+        self.remove(id=master_sample.id, remove_nodes=False)
+
     def _check_if_nodes_are_valid(self, sample: Sample) -> bool:
         """ensure that all nodes contained within the sample can be encoded to BSON and added to the database. This will fail if user supplies data formats that cannot be encoded to BSON."""
         bad_nodes = []

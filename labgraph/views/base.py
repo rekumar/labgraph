@@ -36,7 +36,6 @@ class BaseView:
     def add(
         self, entry, if_already_in_db: Literal["raise", "skip", "update"] = "raise"
     ) -> ObjectId:
-        # TODO type check material. maybe this is done within Material class idk
         if not isinstance(entry, self._entry_class):
             raise ValueError(
                 f"Entry {entry} must be of type {self._entry_class.__name__}"

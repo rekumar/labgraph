@@ -9,9 +9,16 @@ if TYPE_CHECKING:
 
 
 def plot_multiple_samples(samples: List["Sample"], ax: plt.axes = None):
+    def labgraph_compose(g1, g2):
+        g = nx.compose(g1, g2)
+        for node in g1.nodes:
+            if g.nodes[node]["name"] == "":
+                g.nodes[node]["name"] = g1.nodes[node]["name"]
+        return g
+
     graph = nx.DiGraph()
     for sample in samples:
-        graph = nx.compose(graph, sample.graph)
+        graph = labgraph_compose(graph, sample.graph)
     plot_graph(graph, ax=ax)
 
 
