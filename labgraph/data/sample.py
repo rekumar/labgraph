@@ -26,12 +26,12 @@ class Sample:
         description: str = None,
         nodes: List[ALLOWED_NODE_TYPE] = None,
         tags: List[str] = None,
-        **user_fields,
+        **contents,
     ):
         self.name = name
         self.description = description
         self._id = ObjectId()
-        self._user_fields = user_fields
+        self._contents = contents
         self._created_at = None
         self._updated_at = None
 
@@ -178,14 +178,15 @@ class Sample:
             "tags": self.tags,
         }
 
-        for parameter_name in self._user_fields:
-            if parameter_name in entry:
-                raise ValueError(
-                    f"User field name {parameter_name} is not allowed, as it collides with a default key in a Sample entry! Please change this name and try again."
-                )
-        entry.update(self._user_fields)
-        entry.pop("version_history", None)
+        # for parameter_name in self._contents:
+        #     if parameter_name in entry:
+        #         raise ValueError(
+        #             f"User field name {parameter_name} is not allowed, as it collides with a default key in a Sample entry! Please change this name and try again."
+        #         )
+        # entry.update(self._contents)
+        # entry.pop("version_history", None)
 
+        entry["contents"] = self._contents
         if verbose:
             self._sort_nodes()
             entry["node_contents"] = [node.to_dict() for node in self.nodes]
@@ -217,13 +218,13 @@ class Sample:
         return other.id == self.id
 
     def __getitem__(self, key: str):
-        return self._user_fields[key]
+        return self._contents[key]
 
     def __setitem__(self, key: str, value: Any):
-        self._user_fields[key] = value
+        self._contents[key] = value
 
     def keys(self):
-        return list(self._user_fields.keys())
+        return list(self._contents.keys())
 
     def save(self):
         """Save or update the sample in the database"""

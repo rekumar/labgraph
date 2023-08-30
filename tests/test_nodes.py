@@ -1,3 +1,4 @@
+import time
 import pytest
 from labgraph import (
     Action,
@@ -20,13 +21,13 @@ import datetime
 def test_NodeUpdates(add_single_sample):
     materialview = views.MaterialView()
     m = materialview.get_by_name("Titanium Dioxide")[0]
-    m._user_fields["formula"] = "TiO2"
+    m._contents["formula"] = "TiO2"
     materialview.update(m)
 
     m_ = materialview.get(m.id)
-    assert m_._user_fields["formula"] == "TiO2"
+    assert m_._contents["formula"] == "TiO2"
 
-    m._user_fields["upstream"] = "this shouldnt be allowed"
+    m._contents["upstream"] = "this shouldnt be allowed"
     with pytest.raises(ValueError):
         materialview.update(
             m
@@ -34,27 +35,32 @@ def test_NodeUpdates(add_single_sample):
 
     actionview = views.ActionView()
     p = actionview.get_by_name("grind")[0]
-    p._user_fields["final_step"] = True
+    p._contents["final_step"] = True
     actionview.update(p)
 
     p_ = actionview.get(p.id)
-    assert p_._user_fields["final_step"] == True
+    assert p_._contents["final_step"] == True
 
     measurementview = views.MeasurementView()
     me = measurementview.get_by_name("XRD")[0]
-    me._user_fields["metadata"] = {"temperature": 300}
+    me._contents["metadata"] = {"temperature": 300}
     measurementview.update(me)
 
     me_ = measurementview.get(me.id)
-    assert me_._user_fields["metadata"] == {"temperature": 300}
+    assert me_._contents["metadata"] == {"temperature": 300}
 
     analysisview = views.AnalysisView()
     a = analysisview.get_by_name("Phase Identification")[0]
-    a._user_fields["metadata"] = {"temperature": 300}
+    a._contents["metadata"] = {"temperature": 300}
+    last_updated_at = a.updated_at
+    time.sleep(1)
     analysisview.update(a)
+    new_updated_at = a.updated_at
+    assert new_updated_at > last_updated_at
 
     a_ = analysisview.get(a.id)
-    assert a_._user_fields["metadata"] == {"temperature": 300}
+    assert a_._contents["metadata"] == {"temperature": 300}
+    assert a_.updated_at == new_updated_at
 
 
 def test_NodeAddition(add_actors_to_db):
@@ -263,8 +269,8 @@ def test_Node_classmethods(add_single_sample):
         nodes_ = cls.get_by_tags(["new_tag"])
         assert node in nodes_
 
-        nodes_ = cls.filter({"new_field": "new_value"})
+        nodes_ = cls.filter({"contents.new_field": "new_value"})
         assert node in nodes_
 
-        node_ = cls.filter_one({"new_field": "new_value"})
+        node_ = cls.filter_one({"contents.new_field": "new_value"})
         assert node == node_
