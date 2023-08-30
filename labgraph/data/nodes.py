@@ -503,6 +503,19 @@ class UnspecifiedAmountIngredient(Ingredient):
         )
 
 
+class UnspecifiedAmountIngredient(Ingredient):
+    def __init__(self, material: Material, name: str = None, **user_fields):
+        """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
+
+        Args:
+            material (Material): Material node described by this ingredient.
+            name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
+        """
+        super(WholeIngredient, self).__init__(
+            material=material, amount=None, unit=None, name=name, **user_fields
+        )
+
+
 class Action(BaseNode):
     def __init__(
         self,
@@ -814,6 +827,32 @@ class Analysis(BaseNode):
 
         if actor:
             self.actor = actor
+        for meas in measurements or []:
+            self.add_measurement(meas)
+
+        for analysis in upstream_analyses or []:
+            self.add_upstream_analysis(analysis)
+
+    def add_measurement(self, measurement: Measurement):
+        if not isinstance(measurement, Measurement):
+            raise TypeError(
+                "All measurements must be of type `labgraph.data.nodes.Measurement`!"
+            )
+        measurement.add_downstream(self)
+        self.add_upstream(measurement)
+        self.__measurements.append(measurement)
+
+    def add_upstream_analysis(self, analysis: "Analysis"):
+        if not isinstance(analysis, Analysis):
+            raise TypeError(
+                "All analyses must be of type `labgraph.data.nodes.Analysis`!"
+            )
+        analysis.add_downstream(self)
+        self.add_upstream(analysis)
+        self.__upstream_analyses.append(analysis)
+
+        if analysis_method:
+            self.analysis_method = analysis_method
         for meas in measurements or []:
             self.add_measurement(meas)
 
