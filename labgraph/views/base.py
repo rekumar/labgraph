@@ -38,7 +38,9 @@ class BaseView:
     ) -> ObjectId:
         # TODO type check material. maybe this is done within Material class idk
         if not isinstance(entry, self._entry_class):
-            raise ValueError(f"Entry must be of type {self._entry_class.__name__}")
+            raise ValueError(
+                f"Entry {entry} must be of type {self._entry_class.__name__}"
+            )
 
         found_in_db = False
         result = self._collection.count_documents({"_id": entry.id})
@@ -58,6 +60,21 @@ class BaseView:
                 raise AlreadyInDatabaseError(
                     f"{self._entry_class.__name__} (name={entry.name}, id={entry.id}) already exists in the database!"
                 )
+
+        # TODO check if all node dependencies exist in the database? Tricky because requires adding one node at a time, building edges and updating nodes as you go. But maybe this is necessary...
+
+        # if isinstance(entry, BaseNode):
+        #     # make sure all upstream and downstream nodes are in the database
+
+        #     for direction, node_list in {
+        #         "upstream": entry.upstream.get(),
+        #         "downstream": entry.downstream.get(),
+        #     }.items():
+        #         for node in node_list:
+        #             if not node.exists_in_db:
+        #                 raise NotFoundInDatabaseError(
+        #                     f"Cannot add {entry} because the {direction} node {node} does not exist in the database! Please add that node and try again."
+        #                 )
 
         created_at = datetime.now().replace(
             microsecond=0

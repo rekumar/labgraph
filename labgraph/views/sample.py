@@ -91,15 +91,13 @@ class SampleView(BaseView):
         """ensure that all nodes contained within the sample can be encoded to BSON and added to the database. This will fail if user supplies data formats that cannot be encoded to BSON."""
         bad_nodes = []
         for node in sample.nodes:
-            if not node.is_valid():
-                raise ValueError(
-                    f"Node {node} is not valid! Possible invalid graph edges."
-                )
+            node: BaseNode
+            node.raise_if_invalid()
             if not node.is_valid_for_mongodb():
                 bad_nodes.append(node)
         if len(bad_nodes) > 0:
             raise ValueError(
-                f"Some nodes cannot be added to the mongodb. This is because some values contained in the nodes are in a format that cannot be encoded to BSON. Affected nodes: {bad_nodes}."
+                f"Some nodes cannot be added to the mongodb. This is because some values contained in the nodes are in a format that cannot be encoded to BSON. Affected nodes: {str(bad_nodes)}."
             )
 
     def _has_valid_graph_in_db(

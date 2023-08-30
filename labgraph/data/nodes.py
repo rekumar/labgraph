@@ -1,8 +1,14 @@
 import datetime
 from bson import ObjectId, BSON
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Literal
+
 from .actors import Actor, AnalysisMethod
 from abc import ABC, abstractmethod
+import re
+
+
+class InvalidNodeDefinition(Exception):
+    """Something is wrong with the node definition."""
 
 
 class NodeList(list):
@@ -21,23 +27,21 @@ class NodeList(list):
             ValueError: Invalid node entry/dict.
         """
         if isinstance(value, BaseNode):
-            super().append(
-                {
-                    "node_type": value.__class__.__name__,
-                    "node_id": value._id,
-                }
-            )
-        elif isinstance(value, dict):
+            value = {
+                "node_type": value.__class__.__name__,
+                "node_id": value._id,
+            }
+        if isinstance(value, dict):
             if not all([k in value for k in ["node_type", "node_id"]]):
                 raise ValueError(
                     "Invalid node entry. Dicts appended to NodeList must have keys 'node_type' and 'node_id'"
                 )
-            super().append(
-                {
-                    "node_type": value["node_type"],
-                    "node_id": value["node_id"],
-                }
-            )
+            entry = {
+                "node_type": value["node_type"],
+                "node_id": value["node_id"],
+            }
+            if entry not in self:
+                super().append(entry)
         else:
             raise ValueError(
                 "Invalid node entry. NodeList can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
@@ -89,6 +93,9 @@ class BaseNode(ABC):
         upstream: List[Dict[str, ObjectId]] = None,
         downstream: List[Dict[str, ObjectId]] = None,
         tags: List[str] = None,
+        labgraph_node_type: Literal[
+            "Material", "Measurement", "Analysis", "Action"
+        ] = None,
     ):
         self.name = name
         self._id = ObjectId()
@@ -105,12 +112,23 @@ class BaseNode(ABC):
 
         self._version_history = []
         self._user_fields = {}
+        if labgraph_node_type not in [
+            "Material",
+            "Measurement",
+            "Analysis",
+            "Action",
+        ]:
+            raise ValueError(
+                "labgraph_node_type must be one of 'Material', 'Measurement', 'Analysis', or 'Action'"
+            )
+
+        self.__labgraph_node_type = labgraph_node_type
 
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
 
-        new_entry = {"node_type": upstream.__class__.__name__, "node_id": upstream._id}
+        new_entry = {"node_type": upstream.labgraph_node_type, "node_id": upstream._id}
         if new_entry not in self.upstream:
             self.upstream.append(new_entry)
 
@@ -118,29 +136,47 @@ class BaseNode(ABC):
         if not isinstance(downstream, BaseNode):
             raise TypeError("Upstream nodes must be a BaseObject")
         new_entry = {
-            "node_type": downstream.__class__.__name__,
+            "node_type": downstream.labgraph_node_type,
             "node_id": downstream._id,
         }
         if new_entry not in self.downstream:
             self.downstream.append(new_entry)
 
     def to_dict(self):
-        mangle_prefix = "_" + self.__class__.__name__
-        d = {
-            k: v for k, v in self.__dict__.items() if not k.startswith(mangle_prefix)
+        hidden_property_mangle_prefix = r"_\w*__\w*"  # matches __property mangle prefix
+        full_dict = {
+            k: v
+            for k, v in self.__dict__.items()
+            if not re.match(hidden_property_mangle_prefix, k)
         }  # dont include double underscored class attributes
-        d.pop("_version_history", None)
-        d["version_history"] = self.version_history
-        params = d.pop("_user_fields", {})
 
-        for key in params:
-            if key in d:
+        full_dict.pop("_version_history", None)
+        full_dict["version_history"] = self.version_history
+        user_fields = full_dict.pop("_user_fields", {})
+
+        return_dict = {}
+        for key in [
+            "_id",
+            "name",
+            "tags",
+            "upstream",
+            "downstream",
+            "version_history",
+            "actor_id",
+            "analysismethod_id",
+            "ingredients",
+        ]:
+            if key in full_dict:
+                return_dict[key] = full_dict[key]
+
+        for key in user_fields:
+            if key in return_dict:
                 raise ValueError(
                     f"User field {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
                 )
-        d.update(params)
+        return_dict.update(user_fields)
 
-        return d
+        return return_dict
 
     @classmethod
     @abstractmethod
@@ -157,12 +193,12 @@ class BaseNode(ABC):
         try:
             BSON.encode(d)
             return True
-        except TypeError:
+        except Exception:
             return False
 
     @abstractmethod
-    def is_valid(self) -> bool:
-        """method to validate the object. Necessary before adding to database"""
+    def raise_if_invalid(self):
+        """method to validate the object. Necessary before adding to database. If node is invalid, this method should raise an InvalidNodeDefinition exception."""
         raise NotImplementedError
 
     @property
@@ -173,6 +209,10 @@ class BaseNode(ABC):
     def version_history(self):
         return self._version_history
 
+    @property
+    def labgraph_node_type(self):
+        return self.__labgraph_node_type
+
     def __hash__(self):
         return hash(self.name + str(self.id))
 
@@ -182,9 +222,10 @@ class BaseNode(ABC):
         return other.id == self.id
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}: {self.name}>"
+        return f"<{self.labgraph_node_type}: {self.name}>"
 
     def save(self):
+        """Saves the node to the database."""
         view = self.__get_view()
         view.add(entry=self, if_already_in_db="update")
 
@@ -294,6 +335,15 @@ class BaseNode(ABC):
         view = cls.__get_view()
         return view.filter_one(filter_dict, datetime_min, datetime_max)
 
+    def exists_in_database(self) -> bool:
+        """Checks if the node exists in the database.
+
+        Returns:
+            bool: True if the node exists in the database.
+        """
+        view = self.__get_view()
+        return view._exists(self.id)
+
 
 ## Materials
 class Material(BaseNode):
@@ -312,17 +362,22 @@ class Material(BaseNode):
             tags (Optional[Union[List[str], None]], optional): A list of tags to catalog this Material. If None (default), no tags will be applied. Tags can be an easy way to query nodes.
             **user_fields: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
         """
-        super(Material, self).__init__(name=name, tags=tags)
+        super(Material, self).__init__(
+            name=name, tags=tags, labgraph_node_type="Material"
+        )
         self._user_fields = user_fields
 
-    def is_valid(self) -> bool:
+    def raise_if_invalid(self):
         for node in self.upstream:
             if node["node_type"] != "Action":
-                return False
+                raise InvalidNodeDefinition(
+                    f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Action."
+                )
         for node in self.downstream:
             if node["node_type"] not in ["Action", "Measurement"]:
-                return False
-        return True
+                raise InvalidNodeDefinition(
+                    f"{self} has downstream node {node} of type {node['node_type']}. All downstream nodes must be of type Action or Measurement."
+                )
 
     @classmethod
     def from_dict(cls, entry: dict) -> "Material":
@@ -413,6 +468,19 @@ class WholeIngredient(Ingredient):
         )
 
 
+class UnspecifiedAmountIngredient(Ingredient):
+    def __init__(self, material: Material, name: str = None, **user_fields):
+        """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
+
+        Args:
+            material (Material): Material node described by this ingredient.
+            name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
+        """
+        super(WholeIngredient, self).__init__(
+            material=material, amount=None, unit=None, name=name, **user_fields
+        )
+
+
 class Action(BaseNode):
     def __init__(
         self,
@@ -432,25 +500,22 @@ class Action(BaseNode):
             generated_materials (List[Material], optional): Material Node(s) created by this Action. Defaults to None.
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
-        super(Action, self).__init__(name=name, tags=tags)
+        super(Action, self).__init__(name=name, tags=tags, labgraph_node_type="Action")
         self._user_fields = user_fields
         self.__actor = actor
         self.actor_id = actor.id
-        # self.__materials = set()
+
         self.ingredients = []
-        if len(ingredients) > 0:
-            for ingredient in ingredients:
-                self.add_ingredient(ingredient)
+        self.__generated_materials = []
+        for ingredient in ingredients or []:
+            self.add_ingredient(ingredient)
 
-        if generated_materials is None:
-            self.__generated_materials = []
-        else:
-            self.__generated_materials = generated_materials
-        for material in self.__generated_materials:
-            material.add_upstream(self)
-            self.add_downstream(material)
+        for material in generated_materials or []:
+            self.add_generated_material(material)
 
-    def add_ingredient(self, ingredient: Ingredient):
+    def add_ingredient(self, ingredient: Union[Ingredient, Material]):
+        if isinstance(ingredient, Material):
+            ingredient = UnspecifiedAmountIngredient(material=ingredient)
         if not isinstance(ingredient, Ingredient):
             raise TypeError(
                 "All ingredients must be of type `labgraph.nodes.Ingredient`!"
@@ -465,6 +530,8 @@ class Action(BaseNode):
             raise TypeError(
                 "All generated materials must be of type `labgraph.nodes.Material`!"
             )
+        if material in self.generated_materials:
+            pass  # already added
         self.add_downstream(material)
         material.add_upstream(self)
         self.__generated_materials.append(material)
@@ -514,14 +581,22 @@ class Action(BaseNode):
 
         return generic_material
 
-    def is_valid(self) -> bool:
-        # TODO do we want to enforce a created material? Or can we "destroy" materials via actions, ie a waste stream?
-        for node in self.upstream + self.downstream:
+    def raise_if_invalid(self):
+        for node in self.upstream:
             if node["node_type"] != "Material":
-                return False
-        # if len(self.generated_materials) == 0:
-        #     self.make_generic_generated_material()
-        return True
+                raise InvalidNodeDefinition(
+                    f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Material."
+                )
+
+        for node in self.downstream:
+            if node["node_type"] not in ["Material", "Measurement"]:
+                raise InvalidNodeDefinition(
+                    f"{self} has downstream node {node} of type {node['node_type']}. All downstream nodes must be of type Material or Measurement."
+                )
+        if len(self.generated_materials) + len(self.ingredients) == 0:
+            raise InvalidNodeDefinition(
+                f"{self} is not linked to any Materials. An Action must have at least one ingredient (incoming edge from material node) or generated material (outgoing edge to material node)!"
+            )
 
     def to_dict(self):
         d = super(Action, self).to_dict()
@@ -576,8 +651,8 @@ class Measurement(BaseNode):
     def __init__(
         self,
         name: str,
-        material: Material,
-        actor: Actor,
+        material: Material = None,
+        actor: Actor = None,
         tags: List[str] = None,
         **user_fields,
     ):
@@ -592,34 +667,66 @@ class Measurement(BaseNode):
         Raises:
             TypeError: Invalid type for `material` argument.
         """
-        super(Measurement, self).__init__(name=name, tags=tags)
-        if not isinstance(material, Material):
-            raise TypeError(
-                "The `material` argument to a Measurement must be of type `labgraph.nodes.Material`!"
-            )
+        super(Measurement, self).__init__(
+            name=name, tags=tags, labgraph_node_type="Measurement"
+        )
+        self.__material = None
+        if material:
+            self.material = material
+        if actor:
+            self.actor = actor
         self._user_fields = user_fields
-        self.__material = material
-        self.__actor = actor
-        self.actor_id = actor.id
-        self.material.add_downstream(self)
-        self.add_upstream(material)
 
     @property
     def material(self):
         return self.__material
 
+    @material.setter
+    def material(self, material: Material):
+        if not isinstance(material, Material):
+            raise TypeError(
+                "The `material` argument to a Measurement must be of type `labgraph.nodes.Material`!"
+            )
+        if self.__material is not None:
+            raise ValueError(
+                f"This Measurement is already linked to {self.__material}! A Measurement can only be performed on one Material. If you want to perform a measurement on multiple Materials, you must create multiple Measurements."
+            )
+        self.__material = material
+        self.material.add_downstream(self)
+        self.add_upstream(material)
+
     @property
     def actor(self):
         return self.__actor
 
-    def is_valid(self) -> bool:
+    @actor.setter
+    def actor(self, actor: Actor):
+        if not isinstance(actor, Actor):
+            raise TypeError(
+                "The `actor` argument to a Measurement must be of type `labgraph.nodes.Actor`!"
+            )
+        self.__actor = actor
+        self.actor_id = actor.id
+
+    def raise_if_invalid(self):
+        if self.material is None:
+            raise InvalidNodeDefinition(
+                f"{self} must have an input Material! Set this with the `material` argument to the constructor, or after the fact `using self.material = Material(...)`."
+            )
+        if self.actor is None:
+            raise InvalidNodeDefinition(
+                f"{self} must have an Actor! Set this with the `actor` argument to the constructor, or after the fact `using self.actor = Actor(...)`."
+            )
         for node in self.upstream:
             if node["node_type"] != "Material":
-                return False
+                raise InvalidNodeDefinition(
+                    f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Material."
+                )
         for node in self.downstream:
             if node["node_type"] != "Analysis":
-                return False
-        return True
+                raise InvalidNodeDefinition(
+                    f"{self} has downstream node {node} of type {node['node_type']}. All downstream nodes must be of type Analysis."
+                )
 
     @classmethod
     def from_dict(cls, entry: dict) -> "Measurement":
@@ -654,7 +761,7 @@ class Analysis(BaseNode):
     def __init__(
         self,
         name: str,
-        analysis_method: AnalysisMethod,
+        analysis_method: AnalysisMethod = None,
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
@@ -672,35 +779,40 @@ class Analysis(BaseNode):
         Raises:
             TypeError: Invalid node type passed to `measurements` or `analyses` arguments.
         """
-        super(Analysis, self).__init__(name=name, tags=tags)
-        measurements = measurements or []
-        upstream_analyses = upstream_analyses or []
-
-        if len(measurements) + len(upstream_analyses) == 0:
-            raise ValueError(
-                "At least one upstream measurement or analysis must be provided!"
-            )
-        for meas in measurements:
-            if not isinstance(meas, Measurement):
-                raise TypeError(
-                    "All measurements must be of type `labgraph.nodes.Measurement`!"
-                )
-            meas.add_downstream(self)
-            self.add_upstream(meas)
-
-        for analysis in upstream_analyses:
-            if not isinstance(analysis, Analysis):
-                raise TypeError(
-                    "All analyses must be of type `labgraph.nodes.Analysis`!"
-                )
-            analysis.add_downstream(self)
-            self.add_upstream(analysis)
-        self.analysismethod_id = analysis_method.id
-        self.__analysis_method = analysis_method
-
-        self.__measurements = measurements
-        self.__upstream_analyses = upstream_analyses
+        super(Analysis, self).__init__(
+            name=name, tags=tags, labgraph_node_type="Analysis"
+        )
+        self.__measurements = []
+        self.__upstream_analyses = []
+        self.analysismethod_id = None
+        self.__analysis_method = None
         self._user_fields = user_fields
+
+        if analysis_method:
+            self.analysis_method = analysis_method
+        for meas in measurements or []:
+            self.add_measurement(meas)
+
+        for analysis in upstream_analyses or []:
+            self.add_upstream_analysis(analysis)
+
+    def add_measurement(self, measurement: Measurement):
+        if not isinstance(measurement, Measurement):
+            raise TypeError(
+                "All measurements must be of type `labgraph.data.nodes.Measurement`!"
+            )
+        measurement.add_downstream(self)
+        self.add_upstream(measurement)
+        self.__measurements.append(measurement)
+
+    def add_upstream_analysis(self, analysis: "Analysis"):
+        if not isinstance(analysis, Analysis):
+            raise TypeError(
+                "All analyses must be of type `labgraph.data.nodes.Analysis`!"
+            )
+        analysis.add_downstream(self)
+        self.add_upstream(analysis)
+        self.__upstream_analyses.append(analysis)
 
     @property
     def measurements(self):
@@ -714,14 +826,36 @@ class Analysis(BaseNode):
     def analysis_method(self):
         return self.__analysis_method
 
-    def is_valid(self) -> bool:
+    @analysis_method.setter
+    def analysis_method(self, analysis_method: AnalysisMethod):
+        if not isinstance(analysis_method, AnalysisMethod):
+            raise TypeError(
+                "The `analysis_method` argument to an Analysis must be of type `labgraph.data.nodes.AnalysisMethod`!"
+            )
+        self.__analysis_method = analysis_method
+        self.analysismethod_id = analysis_method.id
+
+    def raise_if_invalid(self):
+        if len(self.__upstream_analyses) + len(self.__measurements) == 0:
+            raise InvalidNodeDefinition(
+                f"{self} is not linked to any Measurements or Analyses. An Analysis must have at least one upstream Measurement or Analysis!"
+            )
+
+        if self.analysis_method is None:
+            raise InvalidNodeDefinition(
+                f"{self} must have an AnalysisMethod! Set this with the `analysis_method` argument to the constructor, or after the fact `using self.analysis_method = AnalysisMethod(...)`."
+            )
+
         for node in self.upstream:
             if node["node_type"] != "Measurement":
-                return False
+                raise InvalidNodeDefinition(
+                    f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Measurement."
+                )
         for node in self.downstream:
             if node["node_type"] != "Analysis":
-                return False
-        return True
+                raise InvalidNodeDefinition(
+                    f"{self} has downstream node {node} of type {node['node_type']}. All downstream nodes must be of type Analysis."
+                )
 
     @classmethod
     def from_dict(cls, entry: dict) -> "Analysis":
