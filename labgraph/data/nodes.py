@@ -851,8 +851,8 @@ class Analysis(BaseNode):
         self.add_upstream(analysis)
         self.__upstream_analyses.append(analysis)
 
-        if analysis_method:
-            self.analysis_method = analysis_method
+        if actor:
+            self.actor = actor
         for meas in measurements or []:
             self.add_measurement(meas)
 
