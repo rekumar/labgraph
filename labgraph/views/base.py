@@ -42,14 +42,20 @@ class BaseView:
                 f"Entry {entry} must be of type {self._entry_class.__name__}"
             )
 
-        found_in_db = False
-        result = self._collection.count_documents({"_id": entry.id})
-        found_in_db = result > 0
-        if not self.allow_duplicate_names and not found_in_db:
+        if not self.allow_duplicate_names:
             try:
-                self.get_by_name(name=entry.name)
+                entry_in_db = self.get_by_name(name=entry.name)[
+                    0
+                ]  # will throw NotFoundInDatabaseError if no matches
+                if entry_in_db.id != entry.id:
+                    # if id is different, implies there is a different entry with the same name already!
+                    raise AlreadyInDatabaseError(
+                        f"Cannot add {entry} because an entry with the same name already exists in the database! Duplicate names are not allowed for entries of type {self._entry_class.__name__}."
+                    )
             except NotFoundInDatabaseError:
                 pass  # entry is not in db, we can proceed to add it
+
+        found_in_db = self._collection.count_documents({"_id": entry.id}) > 0
         if found_in_db:
             if if_already_in_db == "skip":
                 return entry.id
@@ -269,6 +275,12 @@ class BaseNodeView(BaseView):
             old_entry.pop("version_history", None)
             new_entry["version_history"].append(old_entry)
             self._collection.replace_one({"_id": entry.id}, new_entry)
+
+        # update our local copy of the node to reflect database changes
+        entry._created_at = new_entry["created_at"]
+        entry._updated_at = new_entry["updated_at"]
+        if "version_history" in new_entry:
+            entry._version_history = new_entry["version_history"]
 
     def __delete_node(self, id: ObjectId):
         """Immediately deletes a single node from the database. This will NOT check for graph integrity -- use .remove() instead! This is used internally by .remove().

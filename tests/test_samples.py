@@ -8,7 +8,6 @@ from labgraph import (
     WholeIngredient,
     Sample,
     Actor,
-    AnalysisMethod,
     views,
 )
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
@@ -35,9 +34,7 @@ def build_a_sample(name: str) -> ObjectId:
     tubefurnace1: Actor = av.get_by_name(name="TubeFurnace1")[0]
     aeris: Actor = av.get_by_name(name="Aeris")[0]
     operator = av.get_by_name(name="Operator")[0]
-
-    amv = views.AnalysisMethodView()
-    xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
+    xrd: Actor = av.get_by_name(name="Phase Identification")[0]
 
     # procure material
     m0 = views.MaterialView().get_by_name("Titanium Dioxide")[0]
@@ -74,7 +71,7 @@ def build_a_sample(name: str) -> ObjectId:
         actor=aeris,
     )
 
-    a0 = Analysis(name="Phase Identification", measurements=[me0], analysis_method=xrd)
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
 
     alab_sample.add_node(me0)
     alab_sample.add_node(a0)
@@ -85,15 +82,14 @@ def build_a_sample(name: str) -> ObjectId:
 ### tests
 
 
-def test_AddSample(add_actors_to_db, add_analysis_methods_to_db):
+def test_AddSample(add_actors_to_db):
     ## get actors and analysis methods
     av = views.ActorView()
     operator = av.get_by_name(name="Operator")[0]
     aeris = av.get_by_name(name="Aeris")[0]
     tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
 
-    amv = views.AnalysisMethodView()
-    xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
+    xrd = av.get_by_name(name="Phase Identification")[0]
 
     # define sample nodes
     m0 = Material(
@@ -134,7 +130,7 @@ def test_AddSample(add_actors_to_db, add_analysis_methods_to_db):
         actor=aeris,
     )
 
-    a0 = Analysis(name="Phase Identification", measurements=[me0], analysis_method=xrd)
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
 
     # make a sample
     alab_sample = Sample(
@@ -163,15 +159,13 @@ def test_AddSample(add_actors_to_db, add_analysis_methods_to_db):
         views.SampleView().add(alab_sample)
 
 
-def test_AddLinearSample(add_actors_to_db, add_analysis_methods_to_db):
+def test_AddLinearSample(add_actors_to_db):
     ## get actors and analysis methods
     av = views.ActorView()
     operator = av.get_by_name(name="Operator")[0]
     aeris = av.get_by_name(name="Aeris")[0]
     tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
-
-    amv = views.AnalysisMethodView()
-    xrd: AnalysisMethod = amv.get_by_name(name="Phase Identification")[0]
+    xrd: Actor = av.get_by_name(name="Phase Identification")[0]
 
     # define sample nodes
     m0 = Material(
@@ -212,7 +206,7 @@ def test_AddLinearSample(add_actors_to_db, add_analysis_methods_to_db):
         actor=aeris,
     )
 
-    a0 = Analysis(name="Phase Identification", measurements=[me0], analysis_method=xrd)
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
 
     alab_sample.add_node(me0)
     alab_sample.add_node(a0)
