@@ -193,6 +193,13 @@ class Sample:
 
         return entry
 
+    @classmethod
+    def from_dict(cls, verbose_sample_dict: dict) -> "Sample":
+        if "node_contents" not in verbose_sample_dict:
+            raise ValueError(
+                "Input dictionary does not contain node contents. Use the to_dict(verbose=True) method to get a dictionary with node contents."
+            )
+
     def plot(self, with_labels: bool = True, ax: plt.Axes = None):
         """Plots the sample graph. This is pretty chaotic with branched graphs, but can give a qualitative sense of the experimental procedure
 
@@ -230,7 +237,11 @@ class Sample:
         """Save or update the sample in the database"""
         from labgraph.views import SampleView
 
-        SampleView().add(entry=self, if_already_in_db="update")
+        SampleView().add(
+            entry=self,
+            additional_incoming_node_ids=[node.id for node in self.nodes],
+            if_already_in_db="update",
+        )
 
     @classmethod
     def get(self, id: ObjectId) -> "Sample":
