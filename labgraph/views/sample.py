@@ -97,12 +97,19 @@ class SampleView(BaseView):
         Args:
             samples (List[Sample]): List of samples whose tasks share edges, yet the samples do not each contain all connected nodes.
         """
-        master_sample = Sample("temporary")
+        master_sample = Sample(
+            name="temporary_batch_sample",
+            description="This is a wrapper Sample to batch add nodes from multiple new, correlated samples. This should be deleted almost instantly after the contained samples are defined in the database.",
+        )
         for sample in samples:
             for node in sample.nodes:
-                master_sample.add_node(sample.nodes)
+                master_sample.add_node(node)
 
-        master_sample.save()
+        self.add(
+            entry=master_sample,
+            if_already_in_db="raise",
+            additional_incoming_node_ids=[node.id for node in master_sample.nodes],
+        )
         for sample in samples:
             sample.save()
 

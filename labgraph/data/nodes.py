@@ -433,7 +433,6 @@ class Ingredient:
         amount: float,
         unit: str,
         name: str = None,
-        **contents,
     ):
         """
 
@@ -442,6 +441,7 @@ class Ingredient:
             amount (float): amount of the material in this ingredient
             unit (str): unit of the amount
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action.. Defaults to None.
+
 
         Raises:
             TypeError: _description_
@@ -454,23 +454,42 @@ class Ingredient:
             raise TypeError(
                 'The "material" argument to an Ingredient must be of type `labgraph.nodes.Material`!'
             )
-        self.material = material
+        self.__material = material
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
-        self._contents = contents
+
+    @property
+    def material(self) -> Material:
+        if not self.__material:
+            try:
+                self.__material = Material.get(self.material_id)
+            except:
+                raise Exception(
+                    f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Ingredient using Ingredient.from_dict() for an Ingredient that was not yet saved to the database."
+                )
+        return self.__material
 
     def to_dict(self):
         d = self.__dict__.copy()
-        d.pop("material")
-        contents = d.pop("_contents", {})
-        for key in contents:
-            if key in d:
-                raise ValueError(
-                    f"Parameter name {key} in Ingredient conflicts with default attribute {key} -- please rename the parameter!"
-                )
-        d.update(contents)
+        d = {k: v for k, v in d.items() if not k.startswith("_")}
+
         return d
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        dummy_material = Material(name="this is ugly and tricky but whatever")
+
+        ingredient = cls(
+            material=dummy_material,
+            amount=d["amount"],
+            unit=d["unit"],
+            name=d["name"],
+        )
+
+        ingredient.__material = None
+        ingredient.material_id = d["material_id"]
+        return ingredient
 
     def __repr__(self):
         s = f"<Ingredient: {self.name} ({self.amount} {self.unit} of {self.material})>"
@@ -478,7 +497,7 @@ class Ingredient:
 
 
 class WholeIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **contents):
+    def __init__(self, material: Material, name: str = None):
         """Shortcut for when 100% of a material is consumed by an action. This is common for actions performed on intermediate materials.
 
         Args:
@@ -486,12 +505,12 @@ class WholeIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(WholeIngredient, self).__init__(
-            material=material, amount=100, unit="percent", name=name, **contents
+            material=material, amount=100, unit="percent", name=name
         )
 
 
 class UnspecifiedAmountIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **contents):
+    def __init__(self, material: Material, name: str = None):
         """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
 
         Args:
@@ -499,7 +518,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(UnspecifiedAmountIngredient, self).__init__(
-            material=material, amount=None, unit=None, name=name, **contents
+            material=material, amount=None, unit=None, name=name
         )
 
 
@@ -560,6 +579,16 @@ class Action(BaseNode):
 
     @property
     def generated_materials(self):
+        if len(self.__generated_materials) == 0 and len(self.downstream) > 0:
+            """we must have built this Action from a database entry, so we need to populate the generated_materials list from the downstream nodes."""
+            try:
+                self.__generated_materials = [
+                    Material.get(ds["node_id"]) for ds in self.downstream
+                ]
+            except:
+                raise Exception(
+                    f"Could not retrieve generated materials for {str(self)} from database! Some or all downstream Material nodes were not found in the database. Most likely you rebuilt this Action using Action.from_dict() for an Action that was not yet saved to the database."
+                )
         return self.__generated_materials
 
     @property
@@ -615,45 +644,26 @@ class Action(BaseNode):
                 raise InvalidNodeDefinition(
                     f"{self} has downstream node {node} of type {node['node_type']}. All downstream nodes must be of type Material or Measurement."
                 )
-        if len(self.generated_materials) + len(self.ingredients) == 0:
+        if len(self.downstream) + len(self.upstream) == 0:
             raise InvalidNodeDefinition(
                 f"{self} is not linked to any Materials. An Action must have at least one ingredient (incoming edge from material node) or generated material (outgoing edge to material node)!"
             )
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         d = super(Action, self).to_dict()
-        ingredients = d.pop("ingredients")
-        d["ingredients"] = [i.to_dict() for i in ingredients]
+        d["ingredients"] = [i.to_dict() for i in self.ingredients]
 
         return d
 
     @classmethod
-    def from_dict(
-        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
-    ) -> "Action":
+    def from_dict(cls, entry: dict) -> "Action":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
-        def get_node(node_type, node_id) -> BaseNode:
-            for node in local_nodes or []:
-                if isinstance(node, node_type) and node.id == node_id:
-                    return node
-            return None
-
-        def get_material(node_id) -> Measurement:
-            measurement = get_node(Measurement, node_id)
-            if not measurement:
-                return MaterialView().get(id=node_id)
-
         actor = ActorView().get(id=entry.pop("actor_id"))
         ingredients = [
-            Ingredient(
-                material=get_material(ing["material_id"]),
-                amount=ing["amount"],
-                unit=ing["unit"],
-                name=ing["name"],
-            )
-            for ing in entry.pop("ingredients")
+            Ingredient.from_dict(this_ingredient)
+            for this_ingredient in entry.pop("ingredients", [])
         ]
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
@@ -662,16 +672,16 @@ class Action(BaseNode):
         upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
         contents = entry.pop("contents", {})
-        generated_materials = [get_material(ds["node_id"]) for ds in downstream]
         obj = cls(
-            ingredients=ingredients,
-            generated_materials=generated_materials,
             actor=actor,
             **entry,
             **contents,
         )
+
         if _id:
             obj._id = _id
+
+        # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
         for us in upstream:
             obj.upstream.append(us)
         for ds in downstream:
@@ -679,6 +689,7 @@ class Action(BaseNode):
         obj._version_history = version_history
         obj._updated_at = updated_at
         obj._created_at = created_at
+        obj.ingredients = ingredients
         return obj
 
 
@@ -715,6 +726,14 @@ class Measurement(BaseNode):
 
     @property
     def material(self):
+        if not self.__material and len(self.upstream) > 0:
+            """we must have built this Measurement from a database entry, so we need to populate the material from the upstream nodes."""
+            try:
+                self.__material = Material.get(self.upstream[0]["node_id"])
+            except:
+                raise Exception(
+                    f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Measurement using Measurement.from_dict() for a Measurement that was not yet saved to the database."
+                )
         return self.__material
 
     @material.setter
@@ -725,7 +744,7 @@ class Measurement(BaseNode):
             )
         if self.__material is not None:
             raise ValueError(
-                f"This Measurement is already linked to {self.__material}! A Measurement can only be performed on one Material. If you want to perform a measurement on multiple Materials, you must create multiple Measurements."
+                f"This Measurement is already linked to {str(self.__material)}! A Measurement can only be performed on one Material. If you want to perform a measurement on multiple Materials, you must create multiple Measurements."
             )
         self.__material = material
         self.material.add_downstream(self)
@@ -745,10 +764,6 @@ class Measurement(BaseNode):
         self.actor_id = actor.id
 
     def raise_if_invalid(self):
-        if self.material is None:
-            raise InvalidNodeDefinition(
-                f"{self} must have an input Material! Set this with the `material` argument to the constructor, or after the fact `using self.material = Material(...)`."
-            )
         if self.actor is None:
             raise InvalidNodeDefinition(
                 f"{self} must have an Actor! Set this with the `actor` argument to the constructor, or after the fact `using self.actor = Actor(...)`."
@@ -758,6 +773,12 @@ class Measurement(BaseNode):
                 raise InvalidNodeDefinition(
                     f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Material."
                 )
+
+        if len(self.upstream) != 1:
+            raise InvalidNodeDefinition(
+                f"{self} must have an input Material! Set this with the `material` argument to the constructor, or after the fact `using self.material = Material(...)`."
+            )
+
         for node in self.downstream:
             if node["node_type"] != "Analysis":
                 raise InvalidNodeDefinition(
@@ -765,9 +786,7 @@ class Measurement(BaseNode):
                 )
 
     @classmethod
-    def from_dict(
-        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
-    ) -> "Measurement":
+    def from_dict(cls, entry: dict) -> "Measurement":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
@@ -777,24 +796,17 @@ class Measurement(BaseNode):
         created_at = entry.pop("created_at", None)
         updated_at = entry.pop("updated_at", None)
         contents = entry.pop("contents", {})
-        upstream_material_id = entry.pop("upstream")[0][
-            "node_id"
-        ]  # we know each Measurement has exactly one upstream material
+        upstream = entry.pop("upstream")
         downstream = entry.pop("downstream")
 
-        material = None
-        for node in local_nodes or []:
-            if isinstance(node, Material) and node.id == upstream_material_id:
-                material = node
-                break
-
-        if not material:
-            material = MaterialView().get(id=upstream_material_id)
-
-        obj = cls(material=material, actor=actor, **entry, **contents)
+        obj = cls(actor=actor, **entry, **contents)
 
         if _id is not None:
             obj._id = _id
+
+        # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
+        for us in upstream:
+            obj.upstream.append(us)
         for ds in downstream:
             obj.downstream.append(ds)
         obj._version_history = version_history
@@ -864,10 +876,34 @@ class Analysis(BaseNode):
 
     @property
     def measurements(self):
+        if len(self.__measurements) == 0 and len(self.upstream) > 0:
+            """we must have built this Analysis from a database entry, so we need to populate the measurements from the upstream nodes."""
+            try:
+                self.__measurements = [
+                    Measurement.get(ms["node_id"])
+                    for ms in self.upstream
+                    if ms["node_type"] == "Measurement"
+                ]
+            except:
+                raise Exception(
+                    f"Could not retrieve measurements for {str(self)} from database! Some or all upstream Measurement nodes were not found in the database. Most likely you rebuilt this Analysis using Analysis.from_dict() for an Analysis that was not yet saved to the database."
+                )
         return self.__measurements
 
     @property
     def upstream_analyses(self):
+        if len(self.__upstream_analyses) == 0 and len(self.upstream) > 0:
+            """we must have built this Analysis from a database entry, so we need to populate the upstream_analyses from the upstream nodes."""
+            try:
+                self.__upstream_analyses = [
+                    Analysis.get(ana["node_id"])
+                    for ana in self.upstream
+                    if ana["node_type"] == "Analysis"
+                ]
+            except:
+                raise Exception(
+                    f"Could not retrieve upstream analyses for {str(self)} from database! Some or all upstream Analysis nodes were not found in the database. Most likely you rebuilt this Analysis using Analysis.from_dict() for an Analysis that was not yet saved to the database."
+                )
         return self.__upstream_analyses
 
     @property
@@ -884,21 +920,22 @@ class Analysis(BaseNode):
         self.actor_id = actor.id
 
     def raise_if_invalid(self):
-        if len(self.__upstream_analyses) + len(self.__measurements) == 0:
-            raise InvalidNodeDefinition(
-                f"{self} is not linked to any Measurements or Analyses. An Analysis must have at least one upstream Measurement or Analysis!"
-            )
-
         if self.actor is None:
             raise InvalidNodeDefinition(
                 f"{self} must have an Actor! Set this with the `actor` argument to the constructor, or after the fact `using self.actor = Actor(...)`."
             )
 
         for node in self.upstream:
-            if node["node_type"] != "Measurement":
+            if node["node_type"] not in ["Measurement", "Analysis"]:
                 raise InvalidNodeDefinition(
                     f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Measurement."
                 )
+
+        if len(self.upstream) == 0:
+            raise InvalidNodeDefinition(
+                f"{self} is not linked to any Measurements or Analyses. An Analysis must have at least one upstream Measurement or Analysis!"
+            )
+
         for node in self.downstream:
             if node["node_type"] != "Analysis":
                 raise InvalidNodeDefinition(
@@ -906,26 +943,8 @@ class Analysis(BaseNode):
                 )
 
     @classmethod
-    def from_dict(
-        cls, entry: dict, local_nodes: Optional[List[BaseNode]] = None
-    ) -> "Analysis":
-        from labgraph.views import ActorView, MeasurementView, AnalysisView
-
-        def get_node(node_type, node_id) -> BaseNode:
-            for node in local_nodes or []:
-                if isinstance(node, node_type) and node.id == node_id:
-                    return node
-            return None
-
-        def get_measurement(node_id) -> Measurement:
-            measurement = get_node(Measurement, node_id)
-            if not measurement:
-                return MeasurementView().get(id=node_id)
-
-        def get_analysis(node_id) -> Analysis:
-            analysis = get_node(Analysis, node_id)
-            if not analysis:
-                return AnalysisView().get(id=node_id)
+    def from_dict(cls, entry: dict) -> "Analysis":
+        from labgraph.views import ActorView
 
         actor = ActorView().get(id=entry.pop("actor_id"))
         _id = entry.pop("_id", None)
@@ -937,25 +956,15 @@ class Analysis(BaseNode):
         downstream = entry.pop("downstream")
         contents = entry.pop("contents", {})
 
-        measurements = [
-            get_measurement(meas["node_id"])
-            for meas in upstream
-            if meas["node_type"] == "Measurement"
-        ]
-        upstream_analyses = [
-            get_analysis(ana["node_id"])
-            for ana in upstream
-            if ana["node_type"] == "Analysis"
-        ]
         obj = cls(
-            measurements=measurements,
-            upstream_analyses=upstream_analyses,
             actor=actor,
             **entry,
             **contents,
         )
         if _id is not None:
             obj._id = _id
+
+        # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
         for us in upstream:
             obj.upstream.append(us)
         for ds in downstream:

@@ -52,10 +52,20 @@ class Sample:
             [isinstance(node, x) for x in [Material, Action, Analysis, Measurement]]
         ):
             raise ValueError(
-                "Node must be a Material, Action, Analysis, or Measurement object!"
+                f"Node must be a Material, Action, Analysis, or Measurement object! You provided {node}"
             )
         if node in self.nodes:
-            return  # we already have this node. Do we need to update it? TODO
+            if not node.updated_at:
+                return  # this hasn't been saved to the database yet, so we don't need to overwrite
+            node_in_sample = self.nodes[self.nodes.index(node)]
+            if not node_in_sample.updated_at:
+                self.nodes[
+                    self.nodes.index(node)
+                ] = node  # overwrite the node in the sample with the newer one
+            if node.updated_at > node_in_sample.updated_at:
+                self.nodes[self.nodes.index(node)] = node
+            return
+
         self.nodes.append(node)
 
     def add_linear_process(self, actions: List[Action]):
@@ -189,16 +199,39 @@ class Sample:
         entry["contents"] = self._contents
         if verbose:
             self._sort_nodes()
+            entry["node_contents"] = []
             entry["node_contents"] = [node.to_dict() for node in self.nodes]
 
         return entry
 
     @classmethod
-    def from_dict(cls, verbose_sample_dict: dict) -> "Sample":
-        if "node_contents" not in verbose_sample_dict:
+    def from_dict(cls, sample_dict: dict) -> "Sample":
+        if "node_contents" not in sample_dict:
             raise ValueError(
                 "Input dictionary does not contain node contents. Use the to_dict(verbose=True) method to get a dictionary with node contents."
             )
+
+        def get_node_class(node_id) -> BaseNode:
+            for nodetype in [Material, Action, Analysis, Measurement]:
+                if node_id in sample_dict["nodes"][nodetype.__name__]:
+                    return nodetype
+
+        nodes = [
+            get_node_class(entry["_id"]).from_dict(entry)
+            for entry in sample_dict["node_contents"]
+        ]
+
+        this_sample = cls(
+            name=sample_dict["name"],
+            description=sample_dict["description"],
+            nodes=nodes,
+            tags=sample_dict["tags"],
+            **sample_dict["contents"],
+        )
+        if "_id" in sample_dict:
+            this_sample._id = sample_dict["_id"]
+
+        return this_sample
 
     def plot(self, with_labels: bool = True, ax: plt.Axes = None):
         """Plots the sample graph. This is pretty chaotic with branched graphs, but can give a qualitative sense of the experimental procedure
