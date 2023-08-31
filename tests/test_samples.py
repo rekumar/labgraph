@@ -376,3 +376,73 @@ def test_Sample_classmethods(add_single_sample):
 
     node_ = cls.filter_one({"contents.new_field": "new_value"})
     assert node == node_
+
+
+def test_Sample_tofromdict(add_single_sample):
+    # existing sample
+    sv = views.SampleView()
+    sample = sv.get_by_name("first sample")[0]
+    not_verbose_sample_dict = sample.to_dict(verbose=False)
+    with pytest.raises(ValueError):
+        Sample.from_dict(not_verbose_sample_dict)
+
+    sample_dict = sample.to_dict(verbose=True)
+    sample_ = Sample.from_dict(sample_dict)
+    assert sample == sample_
+
+    # new sample
+    av = views.ActorView()
+    operator = av.get_by_name(name="Operator")[0]
+    aeris = av.get_by_name(name="Aeris")[0]
+    tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
+
+    xrd = av.get_by_name(name="Phase Identification")[0]
+
+    # define sample nodes
+    m0 = Material(
+        name="Titanium Dioxide",
+        formula="TiO2",
+    )
+
+    p0 = Action(
+        name="procurement",
+        generated_materials=[m0],
+        actor=operator,
+    )
+
+    p1 = Action(
+        "grind",
+        ingredients=[
+            Ingredient(
+                material=m0,
+                amount=1,
+                unit="g",
+            )
+        ],
+        actor=operator,
+    )
+    m1 = p1.make_generic_generated_material()
+
+    p2 = Action("sinter", ingredients=[WholeIngredient(m1)], actor=tubefurnace1)
+    m2 = p2.make_generic_generated_material()
+
+    p3 = Action(
+        "grind", ingredients=[WholeIngredient(m2)], actor=operator, final_step=True
+    )
+    m3 = p3.make_generic_generated_material()
+
+    me0 = Measurement(
+        name="XRD",
+        material=m3,
+        actor=aeris,
+    )
+
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
+
+    # make a sample
+    sample = Sample(
+        name="first sample", nodes=[m0, p0, p1, p2, p3, m3, m1, m2, me0, a0]
+    )
+    sample_dict = sample.to_dict(verbose=True)
+    sample_ = Sample.from_dict(sample_dict)
+    assert sample == sample_
