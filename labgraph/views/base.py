@@ -6,18 +6,7 @@ from labgraph.utils.data_objects import get_collection
 from labgraph.data.nodes import BaseNode
 from labgraph.data.actors import BaseActor
 import pymongo
-
-
-class NotFoundInDatabaseError(ValueError):
-    """Raised when a requested entry is not found in the database"""
-
-    pass
-
-
-class AlreadyInDatabaseError(ValueError):
-    """Raised when a requested entry is already in the database"""
-
-    pass
+from labgraph.errors import AlreadyInDatabaseError, NotFoundInDatabaseError
 
 
 ## CRUD = Create Update Retrieve Delete
@@ -92,6 +81,9 @@ class BaseView:
             }
         )
         entry._id = result.inserted_id
+        if isinstance(entry, BaseNode):
+            entry._created_at = created_at
+            entry._updated_at = created_at
         return cast(ObjectId, result.inserted_id)
 
     def get_by_tags(self, tags: list) -> List[BaseNode]:

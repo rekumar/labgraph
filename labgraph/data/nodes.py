@@ -2,6 +2,8 @@ import datetime
 from bson import ObjectId, BSON
 from typing import Any, Dict, List, Optional, Union, Literal
 
+from labgraph.errors import AlreadyInDatabaseError, NotFoundInDatabaseError
+
 from .actors import Actor
 from abc import ABC, abstractmethod
 import re
@@ -465,7 +467,7 @@ class Ingredient:
             try:
                 self.__material = Material.get(self.material_id)
             except:
-                raise Exception(
+                raise NotFoundInDatabaseError(
                     f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Ingredient using Ingredient.from_dict() for an Ingredient that was not yet saved to the database."
                 )
         return self.__material
@@ -586,7 +588,7 @@ class Action(BaseNode):
                     Material.get(ds["node_id"]) for ds in self.downstream
                 ]
             except:
-                raise Exception(
+                raise NotFoundInDatabaseError(
                     f"Could not retrieve generated materials for {str(self)} from database! Some or all downstream Material nodes were not found in the database. Most likely you rebuilt this Action using Action.from_dict() for an Action that was not yet saved to the database."
                 )
         return self.__generated_materials
@@ -731,7 +733,7 @@ class Measurement(BaseNode):
             try:
                 self.__material = Material.get(self.upstream[0]["node_id"])
             except:
-                raise Exception(
+                raise NotFoundInDatabaseError(
                     f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Measurement using Measurement.from_dict() for a Measurement that was not yet saved to the database."
                 )
         return self.__material
@@ -885,7 +887,7 @@ class Analysis(BaseNode):
                     if ms["node_type"] == "Measurement"
                 ]
             except:
-                raise Exception(
+                raise NotFoundInDatabaseError(
                     f"Could not retrieve measurements for {str(self)} from database! Some or all upstream Measurement nodes were not found in the database. Most likely you rebuilt this Analysis using Analysis.from_dict() for an Analysis that was not yet saved to the database."
                 )
         return self.__measurements
@@ -901,7 +903,7 @@ class Analysis(BaseNode):
                     if ana["node_type"] == "Analysis"
                 ]
             except:
-                raise Exception(
+                raise NotFoundInDatabaseError(
                     f"Could not retrieve upstream analyses for {str(self)} from database! Some or all upstream Analysis nodes were not found in the database. Most likely you rebuilt this Analysis using Analysis.from_dict() for an Analysis that was not yet saved to the database."
                 )
         return self.__upstream_analyses

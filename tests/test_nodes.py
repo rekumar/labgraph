@@ -71,7 +71,14 @@ def test_NodeAddition(add_actors_to_db):
         tags=["oxide", "Y"],
     )
     materialview = views.MaterialView()
+    assert m._created_at is None  # not yet added to the db
+    assert m._updated_at is None
+    assert isinstance(m.created_at, str)  # gives a message explaining not yet added
+    assert isinstance(m.updated_at, str)  # gives a message explaining not yet added
+
     materialview.add(m)
+    assert isinstance(m._created_at, datetime.datetime)  # now added to the db
+    assert isinstance(m._updated_at, datetime.datetime)
 
     m_ = materialview.get_by_name("Yttrium Oxide")[0]
     assert m == m_
@@ -274,3 +281,90 @@ def test_Node_classmethods(add_single_sample):
 
         node_ = cls.filter_one({"contents.new_field": "new_value"})
         assert node == node_
+
+
+def test_Node_laziness(add_single_sample):
+    test_guide = {
+        Material: "Titanium Dioxide",
+        Action: "grind",
+        Measurement: "XRD",
+        Analysis: "Phase Identification",
+    }
+
+    # Material
+    node = Material.get_by_name("Titanium Dioxide")[0]
+    node1 = Material.from_dict(node.to_dict())
+    assert node == node1
+
+    # Action
+    node = Action.get_by_name("grind")[0]
+    assert node.generated_materials[0].name == "Titanium Dioxide - grind"
+    node1 = Action.from_dict(node.to_dict())
+    assert node == node1
+    assert node1.generated_materials[0].name == "Titanium Dioxide - grind"
+
+    newmaterial = Material(name="new material")
+    newaction = Action(
+        name="new action",
+        actor=Actor.get_by_name("LabMan"),
+        generated_materials=[newmaterial],
+    )
+    assert newaction.generated_materials[0].name == "new material"
+    newaction1 = Action.from_dict(newaction.to_dict())
+    with pytest.raises(NotFoundInDatabaseError):
+        # the generated material wasnt added to the database, so we cant pull the material nodes from the db
+        newaction1.generated_materials
+
+    # Measurement
+    node = Measurement.get_by_name("XRD")[0]
+    assert node.material.name == "Titanium Dioxide - grind - sinter - grind"
+    node1 = Measurement.from_dict(node.to_dict())
+    assert node == node1
+    assert node1.material.name == "Titanium Dioxide - grind - sinter - grind"
+
+    newmeasurement = Measurement(
+        name="new measurement",
+        actor=Actor.get_by_name("Aeris"),
+        material=newmaterial,
+    )
+    assert newmeasurement.material.name == "new material"
+    newmeasurement1 = Measurement.from_dict(newmeasurement.to_dict())
+    with pytest.raises(NotFoundInDatabaseError):
+        # the material wasnt added to the database, so we cant pull the material nodes from the db
+        newmeasurement1.material
+
+    # Analysis
+    node = Analysis.get_by_name("Phase Identification")[0]
+    assert node.measurements[0].name == "XRD"
+    node1 = Analysis.from_dict(node.to_dict())
+    assert node == node1
+
+    newanalysis = Analysis(
+        name="new analysis",
+        actor=Actor.get_by_name("Phase Identification"),
+        measurements=[newmeasurement],
+        upstream_analyses=[node],
+    )
+    assert newanalysis.measurements[0].name == "new measurement"
+    assert newanalysis.upstream_analyses[0].name == "Phase Identification"
+    newanalysis1 = Analysis.from_dict(newanalysis.to_dict())
+    with pytest.raises(NotFoundInDatabaseError):
+        # the measurement wasnt added to the database, so we cant pull the measurement nodes from the db
+        newanalysis1.measurements
+    assert newanalysis1.upstream_analyses[0].name == "Phase Identification"
+
+    newanalysis2 = Analysis(
+        name="new analysis2",
+        actor=Actor.get_by_name("Phase Identification"),
+        measurements=[newmeasurement],
+        upstream_analyses=[newanalysis],
+    )
+    assert newanalysis2.measurements[0].name == "new measurement"
+    assert newanalysis2.upstream_analyses[0].name == "new analysis"
+    newanalysis2_ = Analysis.from_dict(newanalysis2.to_dict())
+    with pytest.raises(NotFoundInDatabaseError):
+        # the measurement wasnt added to the database, so we cant pull the measurement nodes from the db
+        newanalysis2_.measurements
+    with pytest.raises(NotFoundInDatabaseError):
+        # the upstream analysis wasnt added to the database, so we cant pull the upstream analysis nodes from the db
+        newanalysis2_.upstream_analyses

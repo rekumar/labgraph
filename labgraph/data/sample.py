@@ -55,10 +55,10 @@ class Sample:
                 f"Node must be a Material, Action, Analysis, or Measurement object! You provided {node}"
             )
         if node in self.nodes:
-            if not node.updated_at:
+            if not node._updated_at:
                 return  # this hasn't been saved to the database yet, so we don't need to overwrite
             node_in_sample = self.nodes[self.nodes.index(node)]
-            if not node_in_sample.updated_at:
+            if not node_in_sample._updated_at:
                 self.nodes[
                     self.nodes.index(node)
                 ] = node  # overwrite the node in the sample with the newer one
