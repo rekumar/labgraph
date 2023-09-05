@@ -520,7 +520,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
         super(UnspecifiedAmountIngredient, self).__init__(
-            material=material, amount=None, unit=None, name=name, **contents
+            material=material, amount=None, unit=None, name=name
         )
 
 
