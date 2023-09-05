@@ -561,6 +561,17 @@ class BaseNodeWithActor(BaseNode):
             )
         self.__actor.add(actor)
         
+    def remove_actor(self, actor: Actor):
+        if not isinstance(actor, Actor):
+            raise TypeError(
+                "The `actor` argument must be of type `labgraph.nodes.Actor`!"
+            )
+        if actor not in self.__actor:
+            raise ValueError(
+                f"Cannot remove {actor} from {self}, as it is not in this node to begin with!"
+            )
+        self.__actor.remove(actor)
+        
     @property
     def actor_id(self):
         return [a.id for a in self.__actor]

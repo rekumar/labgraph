@@ -48,6 +48,14 @@ def test_NodeUpdates(add_single_sample):
     p__ = actionview.get(p.id)
     assert all(a in p__.actor for a in current_actors + [new_actor])
 
+    p_.remove_actor(new_actor)
+    p_.save()
+    p__ = actionview.get(p.id)
+    assert new_actor not in p__.actor
+
+    with pytest.raises(ValueError):
+        p_.remove_actor(new_actor)  # cant remove an actor that isnt in the node already
+    
 
     measurementview = views.MeasurementView()
     me = measurementview.get_by_name("XRD")[0]
