@@ -498,20 +498,7 @@ class UnspecifiedAmountIngredient(Ingredient):
             material (Material): Material node described by this ingredient.
             name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
         """
-        super(WholeIngredient, self).__init__(
-            material=material, amount=None, unit=None, name=name, **contents
-        )
-
-
-class UnspecifiedAmountIngredient(Ingredient):
-    def __init__(self, material: Material, name: str = None, **contents):
-        """Shortcut for when an unknown amount of material is consumed by an action. This is common for actions performed on intermediate materials, or when samples are defined before the amount of material is known.
-
-        Args:
-            material (Material): Material node described by this ingredient.
-            name (str, optional): Name of this ingredient. This differs from the Material name. For example, a Material "cheese" may be an Ingredient named "topping" in a "Make Pizza" action. Defaults to None.
-        """
-        super(WholeIngredient, self).__init__(
+        super(UnspecifiedAmountIngredient, self).__init__(
             material=material, amount=None, unit=None, name=name, **contents
         )
 
