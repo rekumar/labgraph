@@ -4,7 +4,7 @@ from typing import Dict, List, Literal, Optional, Union, cast
 import pymongo
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
 from labgraph.data.nodes import BaseNode
-from labgraph.utils.data_objects import get_collection
+from labgraph.utils.data_objects import LabgraphMongoDB, get_collection
 from labgraph.views.nodes import (
     ActionView,
     MaterialView,
@@ -16,9 +16,8 @@ from bson import ObjectId
 
 
 class SampleView(BaseView):
-    def __init__(self):
-        super().__init__("samples", Sample)
-        self._collection = get_collection("samples")
+    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+        super().__init__("samples", Sample, labgraph_mongodb_instance = labgraph_mongodb_instance)
         self.actionview = ActionView()
         self.materialview = MaterialView()
         self.analysisview = AnalysisView()

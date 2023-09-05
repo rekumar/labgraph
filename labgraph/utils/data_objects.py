@@ -10,7 +10,8 @@ from pymongo import collection, database
 from .db_lock import MongoLock
 
 
-class _GetMongoCollection:
+
+class LabgraphDefaultMongoDB:
     client: Optional[pymongo.MongoClient] = None
     db: Optional[database.Database] = None
     db_lock: Optional[MongoLock] = None
@@ -43,7 +44,30 @@ class _GetMongoCollection:
         if cls.db_lock is None:
             cls.db_lock = MongoLock(collection=cls.get_collection("_lock"), name=name)
         return cls.db_lock
+    
 
+get_collection = LabgraphDefaultMongoDB.get_collection
+get_lock = LabgraphDefaultMongoDB.get_lock
 
-get_collection = _GetMongoCollection.get_collection
-get_lock = _GetMongoCollection.get_lock
+class LabgraphMongoDB:
+    """
+    A convenient wrapper for MongoClient. We can get a database object by calling ``get_collection`` function.
+    """
+
+    def __init__(self, host:str, port:int, db_name:str, username:Optional[str] = None, password:Optional[str] = None):
+        self.client = pymongo.MongoClient(
+            host=host,
+            port=port,
+            username=username or "",
+            password=password or "",
+        )
+        self.db = self.client[db_name]
+
+    def get_collection(self, name: str) -> collection.Collection:
+        """
+        Get collection by name
+        """
+        return self.db[name]
+
+    def get_lock(self, name: str) -> MongoLock:
+        return MongoLock(collection=self.get_collection("_lock"), name=name)

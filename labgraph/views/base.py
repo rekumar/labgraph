@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from bson import ObjectId
 from datetime import datetime
-from typing import Literal, cast, List, Dict
-from labgraph.utils.data_objects import get_collection
+from typing import Literal, Optional, cast, List, Dict
+from labgraph.utils.data_objects import LabgraphMongoDB, LabgraphDefaultMongoDB
 from labgraph.data.nodes import BaseNode
 from labgraph.data.actors import BaseActor
 import pymongo
@@ -16,9 +16,12 @@ class BaseView:
     """
 
     def __init__(
-        self, collection: str, entry_class: type, allow_duplicate_names: bool = True
+        self, collection: str, entry_class: type, allow_duplicate_names: bool = True, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
     ):
-        self._collection = get_collection(collection)
+        if labgraph_mongodb_instance is None:
+            labgraph_mongodb_instance = LabgraphDefaultMongoDB()
+        
+        self._collection = labgraph_mongodb_instance.get_collection(collection)
         self._entry_class = entry_class
         self.allow_duplicate_names = allow_duplicate_names
 

@@ -15,7 +15,7 @@ def make_config_file():
         "mongodb": {
             "host": "localhost",
             "port": 27017,
-            "db_name": "Labgraph_Test",
+            "db_name": "xxxxxxxxLabgraph_Test",
         }
     }
     with open(config_path, "w") as f:
