@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from labgraph.data.nodes import (
     Action,
     Analysis,
@@ -14,26 +14,23 @@ class MaterialView(BaseNodeView):
     def __init__(self):
         super().__init__("materials", Material)
 
-
-class ActionView(BaseNodeView):
+class BaseNodeWithActorView(BaseNodeView):
+    def get_by_actor(self, actor: Union[Actor, List[Actor]]):
+        if isinstance(actor, Actor):
+            actor = [actor]
+        if not all(isinstance(a, Actor) for a in actor):
+            raise TypeError("argument `actor` must be an Actor or a list of Actors!")
+        
+        actor_ids = [a.id for a in actor]
+        return self.filter({"actor_id": {"$in": actor_ids}})
+class ActionView(BaseNodeWithActorView):
     def __init__(self):
         super().__init__("actions", Action)
 
-    def get_by_actor(self, actor: Actor) -> List[Action]:
-        return self.filter({"actor_id": actor.id})
-
-
-class MeasurementView(BaseNodeView):
+class MeasurementView(BaseNodeWithActorView):
     def __init__(self):
         super().__init__("measurements", Measurement)
 
-    def get_by_actor(self, actor: Actor) -> List[Action]:
-        return self.filter({"actor_id": actor.id})
-
-
-class AnalysisView(BaseNodeView):
+class AnalysisView(BaseNodeWithActorView):
     def __init__(self):
         super().__init__("analyses", Analysis)
-
-    def get_by_actor(self, actor: Actor) -> List[Action]:
-        return self.filter({"actor_id": actor.id})

@@ -41,6 +41,14 @@ def test_NodeUpdates(add_single_sample):
     p_ = actionview.get(p.id)
     assert p_._contents["final_step"] == True
 
+    current_actors = p_.actor
+    new_actor = Actor.get_by_name("LabMan")
+    p_.add_actor(Actor.get_by_name("LabMan"))
+    p_.save()
+    p__ = actionview.get(p.id)
+    assert all(a in p__.actor for a in current_actors + [new_actor])
+
+
     measurementview = views.MeasurementView()
     me = measurementview.get_by_name("XRD")[0]
     me._contents["metadata"] = {"temperature": 300}
@@ -61,6 +69,7 @@ def test_NodeUpdates(add_single_sample):
     a_ = analysisview.get(a.id)
     assert a_._contents["metadata"] == {"temperature": 300}
     assert a_.updated_at == new_updated_at
+    
 
 
 def test_NodeAddition(add_actors_to_db):

@@ -211,6 +211,8 @@ class BaseActor:
     def keys(self):
         return list(self._user_fields.keys())
 
+    def __hash__(self):
+        return hash(self.name + str(self.id))
 
 class Actor(BaseActor):
     """An experimental actor (hardware, system, or lab facility) that can perform synthesis Action's or Measurement's"""
