@@ -62,7 +62,6 @@ def test_NodeView_AcrossDBs():
         "port": 27017,
         "db_name": "xxxxxxxLabgraph_Test_2",
     }
-    
     View1 = views.MaterialView()
     db2_instance = LabgraphMongoDB(**second_db_info)
     View2 = views.MaterialView(labgraph_mongodb_instance=db2_instance)
@@ -71,17 +70,117 @@ def test_NodeView_AcrossDBs():
     View2.add(m2)
     
     with pytest.raises(NotFoundInDatabaseError):
-        View1.get(m2.id)
+        View1.get_by_id(m2.id)
         
     with pytest.raises(NotFoundInDatabaseError):
-        View2.get(m1.id)
+        View2.get_by_id(m1.id)
         
     m2.save() #class methods go to the default database defined in Labgraph config
-    View1.get(m2.id)
+    View1.get_by_id(m2.id)
     
     drop_collections(labgraph_mongodb_instance=db2_instance)
         
         
+def test_FullSampleAcrossDBs():
+    
+    second_db_info = {
+        "host": "localhost",
+        "port": 27017,
+        "db_name": "xxxxxxxLabgraph_Test_2",
+    }
+    db_instance = LabgraphMongoDB(**second_db_info)
+    av = views.ActorView(labgraph_mongodb_instance=db_instance)
+    
+    operator = Actor(name="Operatorr", description="The person who did the work")
+    aeris = Actor(name="Aeris", description="The XRD instrument")
+    tubefurnace1 = Actor(name="TubeFurnace1", description="The tube furnace")
+    xrd = Actor(name="Phase Identification", description="The XRD analysis")
+    
+    av.add(operator)
+    av.add(aeris)
+    av.add(tubefurnace1)
+    av.add(xrd)
+    
+    operator = av.get_by_name(name="Operatorr")[0]
+    aeris = av.get_by_name(name="Aeris")[0]
+    tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
+    xrd = av.get_by_name(name="Phase Identification")[0]
+
+
+    # define sample nodes
+    m0 = Material(
+        name="Titanium Dioxide",
+        formula="TiO2",
+    )
+
+    p0 = Action(
+        name="procurement",
+        generated_materials=[m0],
+        actor=operator,
+    )
+
+    p1 = Action(
+        "grind",
+        ingredients=[
+            Ingredient(
+                material=m0,
+                amount=1,
+                unit="g",
+            )
+        ],
+        actor=operator,
+    )
+    m1 = p1.make_generic_generated_material()
+
+    p2 = Action("sinter", ingredients=[WholeIngredient(m1)], actor=tubefurnace1)
+    m2 = p2.make_generic_generated_material()
+
+    p3 = Action(
+        "grind", ingredients=[WholeIngredient(m2)], actor=operator, final_step=True
+    )
+    m3 = p3.make_generic_generated_material()
+
+    me0 = Measurement(
+        name="XRD",
+        material=m3,
+        actor=aeris,
+    )
+
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
+
+    # make a sample
+    alab_sample = Sample(
+        name="first sample", nodes=[m0, p0, p1, p2, p3, m3, m1, m2, me0, a0]
+    )
+
+    with pytest.raises(NotFoundInDatabaseError):
+        views.SampleView().add(alab_sample)
+    
+    sample_view = views.SampleView(labgraph_mongodb_instance=db_instance)
+    sample_view.add(alab_sample)
+
+    alab_sample_ = sample_view.get_by_id(alab_sample.id)
+    assert alab_sample_.name == "first sample"
+
+    # make sure all individual nodes were added successfully
+    view_dict = {
+        Measurement: views.MeasurementView(labgraph_mongodb_instance=db_instance),
+        Analysis: views.AnalysisView(labgraph_mongodb_instance=db_instance),
+        Action: views.ActionView(labgraph_mongodb_instance=db_instance),
+        Material: views.MaterialView(labgraph_mongodb_instance=db_instance),
+    }
+    for node in alab_sample.nodes:
+        view = view_dict[type(node)]
+        assert view.get_by_id(node.id) == node
+
+    with pytest.raises(AlreadyInDatabaseError):
+        sample_view.add(alab_sample)
+        
+        
+    sample_view.remove(id=alab_sample.id, remove_nodes=False)
+    sample_view.add(alab_sample)
+    with pytest.raises(NotImplementedError):
+        sample_view.remove(id=alab_sample.id, remove_nodes=True)
 
         
         

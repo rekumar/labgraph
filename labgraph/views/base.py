@@ -16,11 +16,16 @@ class BaseView:
     """
 
     def __init__(
-        self, collection: str, entry_class: type, allow_duplicate_names: bool = True, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        self,
+        collection: str,
+        entry_class: type,
+        allow_duplicate_names: bool = True,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
     ):
         if labgraph_mongodb_instance is None:
             labgraph_mongodb_instance = LabgraphDefaultMongoDB()
-        
+            
+        self._labgraph_mongodb_instance = labgraph_mongodb_instance
         self._collection = labgraph_mongodb_instance.get_collection(collection)
         self._entry_class = entry_class
         self.allow_duplicate_names = allow_duplicate_names
@@ -113,11 +118,12 @@ class BaseView:
             )
         return entries
 
-    def get(self, id: ObjectId) -> BaseNode:
+    def get_by_id(self, id: ObjectId) -> BaseNode:
+        id = ObjectId(id)
         data = self._collection.find_one({"_id": id})
         if data is None:
             raise NotFoundInDatabaseError(
-                f"Cannot find an {self._entry_class.__name__} with id: {id}"
+                f"Cannot find an {self._entry_class.__name__} with id: {id}. Looking in collection {self._collection}"
             )
         return self._entry_to_object(data)
 
@@ -171,7 +177,7 @@ class BaseView:
         return self.filter(filter_dict, datetime_min, datetime_max)[0]
 
     def _entry_to_object(self, entry: dict):
-        return self._entry_class.from_dict(entry)
+        return self._entry_class.from_dict(entry, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
 
     def _exists(self, id: ObjectId) -> bool:
         """Checks if an entry exists by this id
@@ -186,12 +192,18 @@ class BaseView:
 
 
 class BaseNodeView(BaseView):
-    def update(self, entry: BaseNode, _nodes_pending_deletion: List[dict] = None):
+    def update(
+        self,
+        entry: BaseNode,
+        no_version_update: bool = False,
+        _nodes_pending_deletion: List[dict] = None,
+    ):
         """Updates an entry in the database. The previous entry will be placed in a `version_history` field of the entry.
 
         Args:
             entry (BaseObject): Node object to be updated
             _nodes_pending_deletion (List[dict], optional): Nodes that are pending deletion. This is used internally by sample/node deletion routines. Defaults to None.
+            no_version_update (bool, optional): If True, will not update the version history. Defaults to False.
         Raises:
             TypeError: Node is of wrong type
             NotFoundInDatabaseError: Node does not exist in the database
@@ -264,16 +276,22 @@ class BaseNodeView(BaseView):
             new_entry["updated_at"] = datetime.now().replace(
                 microsecond=0
             )  # remove microseconds, they get lost in MongoDB anyways
-            new_entry["version_history"] = old_entry.get("version_history", [])
-            old_entry.pop("_id", None)
-            old_entry.pop("version_history", None)
-            new_entry["version_history"].append(old_entry)
-            self._collection.replace_one({"_id": entry.id}, new_entry)
+            if no_version_update:
+                self._collection.update_one(
+                    {"_id": entry.id},
+                    {"$set": new_entry},
+                )
+            else:
+                new_entry["version_history"] = old_entry.get("version_history", [])
+                old_entry.pop("_id", None)
+                old_entry.pop("version_history", None)
+                new_entry["version_history"].append(old_entry)
+                self._collection.replace_one({"_id": entry.id}, new_entry)
+                entry._version_history = new_entry["version_history"]
 
             # update our local copy of the node to reflect database changes
             entry._created_at = new_entry["created_at"]
             entry._updated_at = new_entry["updated_at"]
-            entry._version_history = new_entry["version_history"]
 
     def __delete_node(self, id: ObjectId):
         """Immediately deletes a single node from the database. This will NOT check for graph integrity -- use .remove() instead! This is used internally by .remove().
@@ -300,9 +318,9 @@ class BaseNodeView(BaseView):
             _remove_references_to_node,
         )
 
-        node_in_question = self.get(id)
-        affected_nodes = get_affected_nodes(node_in_question)
-        affected_samples = get_affected_samples(node_in_question)
+        node_in_question = self.get_by_id(id)
+        affected_nodes = get_affected_nodes(node_in_question, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        affected_samples = get_affected_samples(node_in_question)#, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
 
         if len(affected_nodes) == 0 and len(affected_samples) == 0:
             self._collection.delete_one({"_id": id})
@@ -327,11 +345,11 @@ class BaseNodeView(BaseView):
         from labgraph import views
 
         VIEWS = {
-            "Sample": views.SampleView(),
-            "Material": views.MaterialView(),
-            "Measurement": views.MeasurementView(),
-            "Action": views.ActionView(),
-            "Analysis": views.AnalysisView(),
+            "Sample": views.SampleView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
+            "Material": views.MaterialView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
+            "Measurement": views.MeasurementView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
+            "Action": views.ActionView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
+            "Analysis": views.AnalysisView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
         }
         # ensure samples will maintain valid graphs after node removals
         invalidated_samples = []

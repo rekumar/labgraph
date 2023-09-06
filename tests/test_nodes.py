@@ -24,8 +24,14 @@ def test_NodeUpdates(add_single_sample):
     m._contents["formula"] = "TiO2"
     materialview.update(m)
 
-    m_ = materialview.get(m.id)
+    m_ = materialview.get_by_id(m.id)
     assert m_._contents["formula"] == "TiO2"
+    assert m_.get("formula") == "TiO2"
+    assert m_.get("nonexistent_key", "default_value") == "default_value"
+    with pytest.raises(KeyError):
+        m_["nonexistent_key"]
+    with pytest.raises(KeyError):
+        m_.get("nonexistent_key")
 
     m._contents["upstream"] = "this shouldnt be allowed"
     with pytest.raises(ValueError):
@@ -38,19 +44,19 @@ def test_NodeUpdates(add_single_sample):
     p._contents["final_step"] = True
     actionview.update(p)
 
-    p_ = actionview.get(p.id)
+    p_ = actionview.get_by_id(p.id)
     assert p_._contents["final_step"] == True
 
     current_actors = p_.actor
     new_actor = Actor.get_by_name("LabMan")
     p_.add_actor(Actor.get_by_name("LabMan"))
     p_.save()
-    p__ = actionview.get(p.id)
+    p__ = actionview.get_by_id(p.id)
     assert all(a in p__.actor for a in current_actors + [new_actor])
 
     p_.remove_actor(new_actor)
     p_.save()
-    p__ = actionview.get(p.id)
+    p__ = actionview.get_by_id(p.id)
     assert new_actor not in p__.actor
 
     with pytest.raises(ValueError):
@@ -62,7 +68,7 @@ def test_NodeUpdates(add_single_sample):
     me._contents["metadata"] = {"temperature": 300}
     measurementview.update(me)
 
-    me_ = measurementview.get(me.id)
+    me_ = measurementview.get_by_id(me.id)
     assert me_._contents["metadata"] == {"temperature": 300}
 
     analysisview = views.AnalysisView()
@@ -74,7 +80,7 @@ def test_NodeUpdates(add_single_sample):
     new_updated_at = a.updated_at
     assert new_updated_at > last_updated_at
 
-    a_ = analysisview.get(a.id)
+    a_ = analysisview.get_by_id(a.id)
     assert a_._contents["metadata"] == {"temperature": 300}
     assert a_.updated_at == new_updated_at
     
@@ -287,7 +293,7 @@ def test_Node_classmethods(add_single_sample):
         assert "new_field" in node_.keys()
         assert node["new_field"] == "new_value"
 
-        node_ = cls.get(node.id)
+        node_ = cls.get_by_id(node.id)
         assert node == node_
 
         nodes_ = cls.get_by_tags(["new_tag"])

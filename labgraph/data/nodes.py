@@ -3,6 +3,7 @@ from bson import ObjectId, BSON
 from typing import Any, Dict, List, Optional, Union, Literal
 
 from labgraph.errors import AlreadyInDatabaseError, NotFoundInDatabaseError
+from labgraph.utils.data_objects import LabgraphMongoDB
 
 from .actors import Actor
 from abc import ABC, abstractmethod
@@ -18,7 +19,10 @@ class NodeList(list):
 
     However the user can append node objects directly, and the NodeList will convert them to dicts. Furthermore, users can retrieve the node objects with the .get() method.
     """
-
+    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+        super().__init__()
+        self._labgraph_mongodb_instance = labgraph_mongodb_instance
+        
     def append(self, value: Union["BaseNode", Dict[str, Any]]):
         """Append a node to the NodeList
 
@@ -40,7 +44,7 @@ class NodeList(list):
                 )
             entry = {
                 "node_type": value["node_type"],
-                "node_id": value["node_id"],
+                "node_id": ObjectId(value["node_id"]),
             }
             if entry not in self:
                 super().append(entry)
@@ -76,15 +80,16 @@ class NodeList(list):
             entry = self[index]
             node_type = entry["node_type"]
             node_id = entry["node_id"]
-            view = VIEWS[node_type]()
-            return view.get(id=node_id)
-
+            view = VIEWS[node_type](labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+            node = view.get_by_id(id=node_id)
+            return node
         node_objects = []
         for entry in self:
             node_type = entry["node_type"]
             node_id = entry["node_id"]
-            view = VIEWS[node_type]()
-            node_objects.append(view.get(id=node_id))
+            view = VIEWS[node_type](labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+            node = view.get_by_id(id=node_id)
+            node_objects.append(node)
         return node_objects
 
 
@@ -98,11 +103,12 @@ class BaseNode(ABC):
         labgraph_node_type: Literal[
             "Material", "Measurement", "Analysis", "Action"
         ] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
     ):
         self.name = name
         self._id = ObjectId()
-        self.upstream = NodeList()
-        self.downstream = NodeList()
+        self.upstream = NodeList(labgraph_mongodb_instance=labgraph_mongodb_instance)
+        self.downstream = NodeList(labgraph_mongodb_instance=labgraph_mongodb_instance)
         for us in upstream or []:
             self.upstream.append(us)
         for ds in downstream or []:
@@ -128,6 +134,7 @@ class BaseNode(ABC):
             )
 
         self.__labgraph_node_type = labgraph_node_type
+        self._labgraph_mongodb_instance = labgraph_mongodb_instance
 
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
@@ -187,7 +194,7 @@ class BaseNode(ABC):
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, d: Dict[str, Any]):
+    def from_dict(cls, d: Dict[str, Any], labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
         raise NotImplementedError
 
     def is_valid_for_mongodb(self) -> bool:
@@ -231,6 +238,28 @@ class BaseNode(ABC):
     def __repr__(self):
         return f"<{self.labgraph_node_type}: {self.name}>"
 
+    ## dict-like interface to add or remove node contents
+    def __getitem__(self, key: str):
+        return self._contents[key]
+
+    def __setitem__(self, key: str, value: Any):
+        self._contents[key] = value
+
+    def keys(self):
+        return list(self._contents.keys())
+
+    def get(self, key: str, default_value: Optional[Any] = None):
+        if key in self._contents:
+            return self._contents[key]
+        elif default_value is not None:
+            return default_value
+        else:
+            raise KeyError(
+                f'Key "{key}" not found in the contents of node {self} ({self.id})'
+            )
+
+    ## shortcut methods to get or set nodes from the default Labgraph database
+
     def save(self):
         """Saves the node to the database."""
         view = self.__get_view()
@@ -254,17 +283,8 @@ class BaseNode(ABC):
         view = VIEWS[cls.__name__]()
         return view
 
-    def __getitem__(self, key: str):
-        return self._contents[key]
-
-    def __setitem__(self, key: str, value: Any):
-        self._contents[key] = value
-
-    def keys(self):
-        return list(self._contents.keys())
-
     @classmethod
-    def get(cls, id: ObjectId) -> "BaseNode":
+    def get_by_id(cls, id: ObjectId) -> "BaseNode":
         """Get a node from the database by id
 
         Args:
@@ -274,7 +294,7 @@ class BaseNode(ABC):
             BaseNode: Node object with the given id
         """
         view = cls.__get_view()
-        return view.get(id)
+        return view.get_by_id(id)
 
     @classmethod
     def get_by_name(cls, name: str) -> List["BaseNode"]:
@@ -365,7 +385,9 @@ class BaseNode(ABC):
 
     def raise_if_invalid(self):
         """method to validate the object. Necessary before adding to database. If node is invalid, this method should raise an InvalidNodeDefinition exception."""
-        return 
+        return
+
+
 ## Materials
 class Material(BaseNode):
     """Class to define a Material node. These nodes capture information about a material in a given state. Each Material is created by an Action. Measurements can act upon a Material to yield raw characterization data."""
@@ -374,6 +396,7 @@ class Material(BaseNode):
         self,
         name: str,
         tags: Optional[Union[List[str], None]] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Initialize a Material node. This creates the node in memory -- it is not added to the database yet!
@@ -384,7 +407,7 @@ class Material(BaseNode):
             **contents: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
         """
         super(Material, self).__init__(
-            name=name, tags=tags, labgraph_node_type="Material"
+            name=name, tags=tags, labgraph_node_type="Material", labgraph_mongodb_instance=labgraph_mongodb_instance
         )
         self._contents = contents
 
@@ -401,7 +424,7 @@ class Material(BaseNode):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Material":
+    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Material":
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
         created_at = entry.pop("created_at", None)
@@ -411,9 +434,9 @@ class Material(BaseNode):
         us = entry.pop("upstream")
         ds = entry.pop("downstream")
 
-        obj = cls(**entry, **contents)
+        obj = cls(**entry, **contents, labgraph_mongodb_instance=labgraph_mongodb_instance)
         if _id is not None:
-            obj._id = _id
+            obj._id = ObjectId(_id)
         obj._version_history = version_history
         obj._created_at = entry.pop("created_at", None)
         obj._updated_at = entry.pop("updated_at", None)
@@ -462,12 +485,15 @@ class Ingredient:
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
+        self._labgraph_mongodb_instance = None
 
     @property
     def material(self) -> Material:
+        from labgraph.views import MaterialView
+        
         if not self.__material:
             try:
-                self.__material = Material.get(self.material_id)
+                self.__material = MaterialView(labgraph_mongodb_instance=self._labgraph_mongodb_instance).get_by_id(self.material_id)
             except:
                 raise NotFoundInDatabaseError(
                     f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Ingredient using Ingredient.from_dict() for an Ingredient that was not yet saved to the database."
@@ -481,7 +507,7 @@ class Ingredient:
         return d
 
     @classmethod
-    def from_dict(cls, d: dict):
+    def from_dict(cls, d: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
         dummy_material = Material(name="this is ugly and tricky but whatever")
 
         ingredient = cls(
@@ -492,7 +518,8 @@ class Ingredient:
         )
 
         ingredient.__material = None
-        ingredient.material_id = d["material_id"]
+        ingredient.material_id = ObjectId(d["material_id"])
+        ingredient._labgraph_mongodb_instance = labgraph_mongodb_instance
         return ingredient
 
     def __repr__(self):
@@ -533,6 +560,7 @@ class BaseNodeWithActor(BaseNode):
         actor: Union[Actor, List[Actor]],
         tags: Optional[List[str]] = None,
         labgraph_node_type: Optional[str] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
 
@@ -541,26 +569,28 @@ class BaseNodeWithActor(BaseNode):
             actor (Union[Actor, List[Actor]]): Actor(s) which perform this Action.
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
-        super(BaseNodeWithActor, self).__init__(name=name, tags=tags, labgraph_node_type=labgraph_node_type)
+        super(BaseNodeWithActor, self).__init__(
+            name=name, tags=tags, labgraph_node_type=labgraph_node_type, labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
         if isinstance(actor, Actor):
             actor = [actor]
         self.__actor = set()
         for a in actor:
             self.add_actor(actor=a)
-        
+
     @property
     def actor(self):
         if len(self.__actor) == 0:
             return None
         return list(self.__actor)
-    
+
     def add_actor(self, actor: Actor):
         if not isinstance(actor, Actor):
             raise TypeError(
                 "The `actor` argument must be of type `labgraph.nodes.Actor`!"
             )
         self.__actor.add(actor)
-        
+
     def remove_actor(self, actor: Actor):
         if not isinstance(actor, Actor):
             raise TypeError(
@@ -571,7 +601,7 @@ class BaseNodeWithActor(BaseNode):
                 f"Cannot remove {actor} from {self}, as it is not in this node to begin with!"
             )
         self.__actor.remove(actor)
-        
+
     @property
     def actor_id(self):
         return [a.id for a in self.__actor]
@@ -580,7 +610,7 @@ class BaseNodeWithActor(BaseNode):
         d = super(BaseNodeWithActor, self).to_dict()
         d["actor_id"] = self.actor_id
         return d
-    
+
     def raise_if_invalid(self):
         super().raise_if_invalid()
 
@@ -588,7 +618,8 @@ class BaseNodeWithActor(BaseNode):
             raise InvalidNodeDefinition(
                 f"{self} has no actor! You must add an actor to this type of node using either the `actor = ` argument in the constructor, or the `self.add_actor(actor= )` method after construction."
             )
-        
+
+
 class Action(BaseNodeWithActor):
     def __init__(
         self,
@@ -597,6 +628,7 @@ class Action(BaseNodeWithActor):
         ingredients: List[Ingredient] = [],
         generated_materials: List[Material] = None,
         tags: List[str] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
@@ -608,7 +640,9 @@ class Action(BaseNodeWithActor):
             generated_materials (List[Material], optional): Material Node(s) created by this Action. Defaults to None.
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
-        super(Action, self).__init__(name=name, tags=tags, actor=actor, labgraph_node_type="Action")
+        super(Action, self).__init__(
+            name=name, tags=tags, actor=actor, labgraph_node_type="Action", labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
         self._contents = contents
         self.ingredients = []
         self.__generated_materials = []
@@ -647,7 +681,7 @@ class Action(BaseNodeWithActor):
             """we must have built this Action from a database entry, so we need to populate the generated_materials list from the downstream nodes."""
             try:
                 self.__generated_materials = [
-                    Material.get(ds["node_id"]) for ds in self.downstream
+                    Material.get_by_id(ds["node_id"]) for ds in self.downstream
                 ]
             except:
                 raise NotFoundInDatabaseError(
@@ -694,7 +728,7 @@ class Action(BaseNodeWithActor):
 
     def raise_if_invalid(self):
         super().raise_if_invalid()
-        
+
         for node in self.upstream:
             if node["node_type"] != "Material":
                 raise InvalidNodeDefinition(
@@ -718,16 +752,16 @@ class Action(BaseNodeWithActor):
         return d
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Action":
+    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Action":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
+        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
         actor = [
-            ActorView().get(id=actor_id)
-            for actor_id in entry.pop("actor_id")
+            actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
         ingredients = [
-            Ingredient.from_dict(this_ingredient)
+            Ingredient.from_dict(this_ingredient, labgraph_mongodb_instance=labgraph_mongodb_instance)
             for this_ingredient in entry.pop("ingredients", [])
         ]
         _id = entry.pop("_id", None)
@@ -744,7 +778,7 @@ class Action(BaseNodeWithActor):
         )
 
         if _id:
-            obj._id = _id
+            obj._id = ObjectId(_id)
 
         # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
         for us in upstream:
@@ -766,6 +800,7 @@ class Measurement(BaseNodeWithActor):
         material: Material = None,
         actor: Union[Actor, List[Actor]] = None,
         tags: List[str] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """A Measurement Node. This is a node that represents a measurement of a material by an actor.
@@ -780,7 +815,7 @@ class Measurement(BaseNodeWithActor):
             TypeError: Invalid type for `material` argument.
         """
         super(Measurement, self).__init__(
-            name=name, tags=tags, actor=actor, labgraph_node_type="Measurement"
+            name=name, tags=tags, actor=actor, labgraph_node_type="Measurement", labgraph_mongodb_instance=labgraph_mongodb_instance
         )
         self.__material = None
         if material:
@@ -792,7 +827,7 @@ class Measurement(BaseNodeWithActor):
         if not self.__material and len(self.upstream) > 0:
             """we must have built this Measurement from a database entry, so we need to populate the material from the upstream nodes."""
             try:
-                self.__material = Material.get(self.upstream[0]["node_id"])
+                self.__material = Material.get_by_id(self.upstream[0]["node_id"])
             except:
                 raise NotFoundInDatabaseError(
                     f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Measurement using Measurement.from_dict() for a Measurement that was not yet saved to the database."
@@ -815,7 +850,7 @@ class Measurement(BaseNodeWithActor):
 
     def raise_if_invalid(self):
         super().raise_if_invalid()
-        
+
         for node in self.upstream:
             if node["node_type"] != "Material":
                 raise InvalidNodeDefinition(
@@ -834,13 +869,13 @@ class Measurement(BaseNodeWithActor):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Measurement":
+    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Measurement":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
+        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
         actor = [
-            ActorView().get(id=actor_id)
-            for actor_id in entry.pop("actor_id")
+            actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
@@ -853,7 +888,7 @@ class Measurement(BaseNodeWithActor):
         obj = cls(actor=actor, **entry, **contents)
 
         if _id is not None:
-            obj._id = _id
+            obj._id = ObjectId(_id)
 
         # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
         for us in upstream:
@@ -876,6 +911,7 @@ class Analysis(BaseNodeWithActor):
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Creates an Analysis node. This node represents data processing from upstream Measurement(s) and/or Analysis/es node(s). For example, a "Density" Analysis may accept "Mass" and "Volume" measurements to compute density.
@@ -891,7 +927,7 @@ class Analysis(BaseNodeWithActor):
             TypeError: Invalid node type passed to `measurements` or `analyses` arguments.
         """
         super(Analysis, self).__init__(
-            name=name, tags=tags, actor=actor, labgraph_node_type="Analysis"
+            name=name, tags=tags, actor=actor, labgraph_node_type="Analysis", labgraph_mongodb_instance=labgraph_mongodb_instance
         )
         self.__measurements = []
         self.__upstream_analyses = []
@@ -945,7 +981,7 @@ class Analysis(BaseNodeWithActor):
             """we must have built this Analysis from a database entry, so we need to populate the measurements from the upstream nodes."""
             try:
                 self.__measurements = [
-                    Measurement.get(ms["node_id"])
+                    Measurement.get_by_id(ms["node_id"])
                     for ms in self.upstream
                     if ms["node_type"] == "Measurement"
                 ]
@@ -961,7 +997,7 @@ class Analysis(BaseNodeWithActor):
             """we must have built this Analysis from a database entry, so we need to populate the upstream_analyses from the upstream nodes."""
             try:
                 self.__upstream_analyses = [
-                    Analysis.get(ana["node_id"])
+                    Analysis.get_by_id(ana["node_id"])
                     for ana in self.upstream
                     if ana["node_type"] == "Analysis"
                 ]
@@ -980,7 +1016,7 @@ class Analysis(BaseNodeWithActor):
                     f"{self} has upstream node {node} of type {node['node_type']}. All upstream nodes must be of type Measurement."
                 )
 
-        # Allow analyses to have no upstream nodes, like if training an ML model or running a simulation to feed other analyses. 
+        # Allow analyses to have no upstream nodes, like if training an ML model or running a simulation to feed other analyses.
         # if len(self.upstream) == 0:
         #     raise InvalidNodeDefinition(
         #         f"{self} is not linked to any Measurements or Analyses. An Analysis must have at least one upstream Measurement or Analysis!"
@@ -993,12 +1029,12 @@ class Analysis(BaseNodeWithActor):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict) -> "Analysis":
+    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Analysis":
         from labgraph.views import ActorView
 
+        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
         actor = [
-            ActorView().get(id=actor_id)
-            for actor_id in entry.pop("actor_id")
+            actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
@@ -1015,7 +1051,7 @@ class Analysis(BaseNodeWithActor):
             **contents,
         )
         if _id is not None:
-            obj._id = _id
+            obj._id = ObjectId(_id)
 
         # obj.upstream is a NodeList, not a normal list, so we need to append the upstream material manually
         for us in upstream:

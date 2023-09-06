@@ -45,10 +45,11 @@ class LabgraphDefaultMongoDB:
             cls.db_lock = MongoLock(collection=cls.get_collection("_lock"), name=name)
         return cls.db_lock
     
-
-get_collection = LabgraphDefaultMongoDB.get_collection
-get_lock = LabgraphDefaultMongoDB.get_lock
-
+    def __eq__(self, other):
+        if isinstance(other, LabgraphDefaultMongoDB):
+            return self.db == other.db
+        return False
+    
 class LabgraphMongoDB:
     """
     A convenient wrapper for MongoClient. We can get a database object by calling ``get_collection`` function.

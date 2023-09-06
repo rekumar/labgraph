@@ -1,4 +1,5 @@
-from typing import Any, List, Union
+from copy import deepcopy
+from typing import Any, List, Optional, Union
 import networkx as nx
 from bson import ObjectId
 import matplotlib.pyplot as plt
@@ -15,6 +16,7 @@ from .nodes import (
     WholeIngredient,
 )
 from datetime import datetime
+from labgraph.utils import LabgraphMongoDB
 
 ALLOWED_NODE_TYPE = Union[Material, Action, Measurement, Analysis]
 
@@ -199,27 +201,37 @@ class Sample:
         entry["contents"] = self._contents
         if verbose:
             self._sort_nodes()
-            entry["node_contents"] = []
             entry["node_contents"] = [node.to_dict() for node in self.nodes]
 
         return entry
 
     @classmethod
-    def from_dict(cls, sample_dict: dict) -> "Sample":
+    def from_dict(
+        cls,
+        sample_dict: dict,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+    ) -> "Sample":
         if "node_contents" not in sample_dict:
             raise ValueError(
                 "Input dictionary does not contain node contents. Use the to_dict(verbose=True) method to get a dictionary with node contents."
             )
 
-        def get_node_class(node_id) -> BaseNode:
-            for nodetype in [Material, Action, Analysis, Measurement]:
-                if node_id in sample_dict["nodes"][nodetype.__name__]:
-                    return nodetype
+        nodes = []
 
-        nodes = [
-            get_node_class(entry["_id"]).from_dict(entry)
-            for entry in sample_dict["node_contents"]
-        ]
+        def get_node_contents(node_id) -> dict:
+            for node in sample_dict["node_contents"]:
+                if node["_id"] == node_id:
+                    return deepcopy(node)
+            raise ValueError(f"Node with id {node_id} not found in node_contents!")
+
+        for NodeClass in [Material, Action, Analysis, Measurement]:
+            for node_id in sample_dict["nodes"][NodeClass.__name__]:
+                nodes.append(
+                    NodeClass.from_dict(
+                        get_node_contents(node_id),
+                        labgraph_mongodb_instance=labgraph_mongodb_instance,
+                    )
+                )
 
         this_sample = cls(
             name=sample_dict["name"],
@@ -229,7 +241,7 @@ class Sample:
             **sample_dict["contents"],
         )
         if "_id" in sample_dict:
-            this_sample._id = sample_dict["_id"]
+            this_sample._id = ObjectId(sample_dict["_id"])
 
         return this_sample
 
@@ -257,15 +269,32 @@ class Sample:
             return False
         return other.id == self.id
 
+    ## dict-like interface to add or remove sample contents
+
     def __getitem__(self, key: str):
         return self._contents[key]
 
     def __setitem__(self, key: str, value: Any):
         self._contents[key] = value
 
+    def __contains__(self, key: str):
+        return key in self._contents
+
     def keys(self):
         return list(self._contents.keys())
 
+    def get(self, key: str, default_value: Optional[Any] = None):
+        if key in self._contents:
+            return self._contents[key]
+        elif default_value:
+            return default_value
+        else:
+            raise KeyError(f"Key {key} not found in the contents of node {self}")
+
+    def pop(self, key: str, default_value: Optional[Any] = None):
+        return self._contents.pop(key, default_value)
+
+    ## shortcut methods to get or set nodes from the default Labgraph database
     def save(self):
         """Save or update the sample in the database"""
         from labgraph.views import SampleView
@@ -277,7 +306,7 @@ class Sample:
         )
 
     @classmethod
-    def get(self, id: ObjectId) -> "Sample":
+    def get_by_id(self, id: ObjectId) -> "Sample":
         """Get a sample from the database by id
 
         Args:
@@ -288,7 +317,7 @@ class Sample:
         """
         from labgraph.views import SampleView
 
-        return SampleView().get(id)
+        return SampleView().get_by_id(id)
 
     @classmethod
     def get_by_name(self, name: str) -> List["Sample"]:

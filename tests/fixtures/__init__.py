@@ -1,3 +1,4 @@
+from labgraph.utils.data_objects import LabgraphMongoDB
 import pytest
 
 from .example_system import *
@@ -37,3 +38,11 @@ def clean_db():
     drop_collections()
     yield
     drop_collections()
+    
+    # clean up second db used for remote db tests
+    second_db_info = {
+        "host": "localhost",
+        "port": 27017,
+        "db_name": "xxxxxxxLabgraph_Test_2",
+    }
+    drop_collections(labgraph_mongodb_instance=LabgraphMongoDB(**second_db_info))

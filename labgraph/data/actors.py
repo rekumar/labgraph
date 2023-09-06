@@ -3,6 +3,7 @@ from copy import deepcopy
 import datetime
 from typing import Any, Dict, List, Optional
 from bson import BSON, ObjectId
+from labgraph.utils.data_objects import LabgraphMongoDB
 
 
 class BaseActor:
@@ -60,7 +61,8 @@ class BaseActor:
         return d
 
     @classmethod
-    def from_dict(cls, entry: Dict[str, Any]):
+    def from_dict(cls, entry: Dict[str, Any], labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+        """keep labgraph_mongodb_instance arg for compatibility with BaseView"""
         _id = entry.pop("_id", None)
         entry.pop("created_at", None)
         entry.pop("updated_at", None)

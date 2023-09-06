@@ -141,7 +141,7 @@ def test_AddSample(add_actors_to_db):
 
     assert views.SampleView().add(alab_sample) == alab_sample.id
 
-    alab_sample_ = views.SampleView().get(alab_sample.id)
+    alab_sample_ = views.SampleView().get_by_id(alab_sample.id)
     assert alab_sample_.name == "first sample"
 
     # make sure all individual nodes were added successfully
@@ -153,7 +153,7 @@ def test_AddSample(add_actors_to_db):
     }
     for node in alab_sample.nodes:
         view = view_dict[type(node)]
-        assert view.get(node.id) == node
+        assert view.get_by_id(node.id) == node
 
     with pytest.raises(AlreadyInDatabaseError):
         views.SampleView().add(alab_sample)
@@ -221,8 +221,8 @@ def test_ActionGraph(add_single_sample):
     sample_id2 = build_a_sample("sample2")
 
     sv = views.SampleView()
-    sample1 = sv.get(sample_id1)
-    sample2 = sv.get(sample_id2)
+    sample1 = sv.get_by_id(sample_id1)
+    sample2 = sv.get_by_id(sample_id2)
 
     assert action_sequence_distance(sample1, sample2) == 0
 
@@ -241,7 +241,7 @@ def test_SampleEquality(add_single_sample):
     assert sample1 == sample1_
 
     sampleid_2 = build_a_sample("sample2")
-    sample2 = sv.get(sampleid_2)
+    sample2 = sv.get_by_id(sampleid_2)
     assert sample1 != sample2
 
 
@@ -291,7 +291,7 @@ def test_SampleDeletionKeepNodes(add_single_sample):
 
     # make sure nodes are still in the database
     for node in sample.nodes:
-        assert views.get_view(node).get(node.id) == node
+        assert views.get_view(node).get_by_id(node.id) == node
 
 
 def test_SampleDeletionDeleteNodes(add_single_sample):
@@ -314,18 +314,18 @@ def test_SampleDeletionMultipleSamplesAffected(add_single_sample):
     sample_id2 = build_a_sample("sample2")
 
     sv = views.SampleView()
-    sample1 = sv.get(sample_id1)
-    sample2 = sv.get(sample_id2)
+    sample1 = sv.get_by_id(sample_id1)
+    sample2 = sv.get_by_id(sample_id2)
 
     # delete sample1
     sv.remove(sample1.id, remove_nodes=True, _force_dangerous=True)
 
     # make sure sample2 is still in the database
     with pytest.raises(NotFoundInDatabaseError):
-        sv.get(sample1.id)
+        sv.get_by_id(sample1.id)
 
     with pytest.raises(NotFoundInDatabaseError):
-        sv.get(sample2.id)
+        sv.get_by_id(sample2.id)
 
 
 def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
@@ -333,8 +333,8 @@ def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
     sample_id2 = build_a_sample("sample2")
 
     sv = views.SampleView()
-    sample1 = sv.get(sample_id1)
-    sample2 = sv.get(sample_id2)
+    sample1 = sv.get_by_id(sample_id1)
+    sample2 = sv.get_by_id(sample_id2)
 
     node_to_delete = sample1.nodes[0]  # this material is shared across all samples
 
@@ -343,10 +343,10 @@ def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
 
     # make sure sample2 is still in the database
     with pytest.raises(NotFoundInDatabaseError):
-        sv.get(sample1.id)
+        sv.get_by_id(sample1.id)
 
     with pytest.raises(NotFoundInDatabaseError):
-        sv.get(sample2.id)
+        sv.get_by_id(sample2.id)
 
 
 def test_Sample_classmethods(add_single_sample):
@@ -365,7 +365,7 @@ def test_Sample_classmethods(add_single_sample):
     assert "new_field" in node_.keys()
     assert node["new_field"] == "new_value"
 
-    node_ = cls.get(node.id)
+    node_ = cls.get_by_id(node.id)
     assert node == node_
 
     nodes_ = cls.get_by_tags(["new_tag"])
@@ -380,69 +380,69 @@ def test_Sample_classmethods(add_single_sample):
 
 def test_Sample_tofromdict(add_single_sample):
     # existing sample
-sv = views.SampleView()
-sample = sv.get_by_name("first sample")[0]
-not_verbose_sample_dict = sample.to_dict(verbose=False)
-with pytest.raises(ValueError):
-    Sample.from_dict(not_verbose_sample_dict)
+    sv = views.SampleView()
+    sample = sv.get_by_name("first sample")[0]
+    not_verbose_sample_dict = sample.to_dict(verbose=False)
+    with pytest.raises(ValueError):
+        Sample.from_dict(not_verbose_sample_dict)
 
-sample_dict = sample.to_dict(verbose=True)
-sample_ = Sample.from_dict(sample_dict)
-assert sample == sample_
+    sample_dict = sample.to_dict(verbose=True)
+    sample_ = Sample.from_dict(sample_dict)
+    assert sample == sample_
 
-# new sample
-av = views.ActorView()
-operator = av.get_by_name(name="Operator")[0]
-aeris = av.get_by_name(name="Aeris")[0]
-tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
+    # new sample
+    av = views.ActorView()
+    operator = av.get_by_name(name="Operator")[0]
+    aeris = av.get_by_name(name="Aeris")[0]
+    tubefurnace1 = av.get_by_name(name="TubeFurnace1")[0]
 
-xrd = av.get_by_name(name="Phase Identification")[0]
+    xrd = av.get_by_name(name="Phase Identification")[0]
 
-# define sample nodes
-m0 = Material(
-    name="Titanium Dioxide",
-    formula="TiO2",
-)
+    # define sample nodes
+    m0 = Material(
+        name="Titanium Dioxide",
+        formula="TiO2",
+    )
 
-p0 = Action(
-    name="procurement",
-    generated_materials=[m0],
-    actor=operator,
-)
+    p0 = Action(
+        name="procurement",
+        generated_materials=[m0],
+        actor=operator,
+    )
 
-p1 = Action(
-    "grind",
-    ingredients=[
-        Ingredient(
-            material=m0,
-            amount=1,
-            unit="g",
-        )
-    ],
-    actor=operator,
-)
-m1 = p1.make_generic_generated_material()
+    p1 = Action(
+        "grind",
+        ingredients=[
+            Ingredient(
+                material=m0,
+                amount=1,
+                unit="g",
+            )
+        ],
+        actor=operator,
+    )
+    m1 = p1.make_generic_generated_material()
 
-p2 = Action("sinter", ingredients=[WholeIngredient(m1)], actor=tubefurnace1)
-m2 = p2.make_generic_generated_material()
+    p2 = Action("sinter", ingredients=[WholeIngredient(m1)], actor=tubefurnace1)
+    m2 = p2.make_generic_generated_material()
 
-p3 = Action(
-    "grind", ingredients=[WholeIngredient(m2)], actor=operator, final_step=True
-)
-m3 = p3.make_generic_generated_material()
+    p3 = Action(
+        "grind", ingredients=[WholeIngredient(m2)], actor=operator, final_step=True
+    )
+    m3 = p3.make_generic_generated_material()
 
-me0 = Measurement(
-    name="XRD",
-    material=m3,
-    actor=aeris,
-)
+    me0 = Measurement(
+        name="XRD",
+        material=m3,
+        actor=aeris,
+    )
 
-a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
+    a0 = Analysis(name="Phase Identification", measurements=[me0], actor=xrd)
 
-# make a sample
-sample = Sample(
-    name="first sample", nodes=[m0, p0, p1, p2, p3, m3, m1, m2, me0, a0]
-)
-sample_dict = sample.to_dict(verbose=True)
-sample_ = Sample.from_dict(sample_dict)
+    # make a sample
+    sample = Sample(
+        name="first sample", nodes=[m0, p0, p1, p2, p3, m3, m1, m2, me0, a0]
+    )
+    sample_dict = sample.to_dict(verbose=True)
+    sample_ = Sample.from_dict(sample_dict)
     assert sample == sample_

@@ -4,7 +4,7 @@ from typing import Dict, List, Literal, Optional, Union, cast
 import pymongo
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
 from labgraph.data.nodes import BaseNode
-from labgraph.utils.data_objects import LabgraphMongoDB, get_collection
+from labgraph.utils.data_objects import LabgraphDefaultMongoDB, LabgraphMongoDB
 from labgraph.views.nodes import (
     ActionView,
     MaterialView,
@@ -17,11 +17,21 @@ from bson import ObjectId
 
 class SampleView(BaseView):
     def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("samples", Sample, labgraph_mongodb_instance = labgraph_mongodb_instance)
-        self.actionview = ActionView()
-        self.materialview = MaterialView()
-        self.analysisview = AnalysisView()
-        self.measurementview = MeasurementView()
+        super().__init__(
+            "samples", Sample, labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
+        self.actionview = ActionView(
+            labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
+        self.materialview = MaterialView(
+            labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
+        self.analysisview = AnalysisView(
+            labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
+        self.measurementview = MeasurementView(
+            labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
 
     def add(
         self,
@@ -38,7 +48,7 @@ class SampleView(BaseView):
             )
 
         try:
-            self.get(id=entry.id)
+            self.get_by_id(id=entry.id)
             found_in_db = True
         except NotFoundInDatabaseError:
             found_in_db = False
@@ -109,10 +119,13 @@ class SampleView(BaseView):
             if_already_in_db="raise",
             additional_incoming_node_ids=[node.id for node in master_sample.nodes],
         )
-        for sample in samples:
-            sample.save()
-
-        self.remove(id=master_sample.id, remove_nodes=False)
+        try:
+            for sample in samples:
+                self.add(sample)
+        except Exception as e:
+            raise e
+        finally:
+            self.remove(id=master_sample.id, remove_nodes=False)
 
     def _check_if_nodes_are_valid(self, sample: Sample) -> bool:
         """ensure that all nodes contained within the sample can be encoded to BSON and added to the database. This will fail if user supplies data formats that cannot be encoded to BSON."""
@@ -149,10 +162,10 @@ class SampleView(BaseView):
         # }
 
         checkifvalid_methods = {
-            "Action": self.actionview.get,
-            "Material": self.materialview.get,
-            "Measurement": self.measurementview.get,
-            "Analysis": self.analysisview.get,
+            "Action": self.actionview.get_by_id,
+            "Material": self.materialview.get_by_id,
+            "Measurement": self.measurementview.get_by_id,
+            "Analysis": self.analysisview.get_by_id,
         }
 
         for node in sample.nodes:
@@ -163,7 +176,6 @@ class SampleView(BaseView):
                     checkifvalid = checkifvalid_methods[related_node["node_type"]]
                     checkifvalid(id=related_node["node_id"])
                 except NotFoundInDatabaseError as e:
-                    print(str(e))
                     return False
         return True
 
@@ -181,13 +193,13 @@ class SampleView(BaseView):
         for nodetype, nodeids in nodes.items():
             for nodeid in nodeids:
                 if nodetype == "Action":
-                    node = self.actionview.get(id=nodeid)
+                    node = self.actionview.get_by_id(id=nodeid)
                 elif nodetype == "Material":
-                    node = self.materialview.get(id=nodeid)
+                    node = self.materialview.get_by_id(id=nodeid)
                 elif nodetype == "Measurement":
-                    node = self.measurementview.get(id=nodeid)
+                    node = self.measurementview.get_by_id(id=nodeid)
                 elif nodetype == "Analysis":
-                    node = self.analysisview.get(id=nodeid)
+                    node = self.analysisview.get_by_id(id=nodeid)
                 s.add_node(node)
         s._sort_nodes()
 
@@ -198,7 +210,7 @@ class SampleView(BaseView):
 
         return s
 
-    def get(self, id: ObjectId) -> Sample:
+    def get_by_id(self, id: ObjectId) -> Sample:
         entry = self._collection.find_one({"_id": id})
         if entry is None:
             raise NotFoundInDatabaseError(
@@ -385,6 +397,8 @@ class SampleView(BaseView):
             TypeError: Entry is of wrong type
             NotFoundInDatabaseError: Entry does not exist in the database
         """
+        if remove_nodes and self._labgraph_mongodb_instance != LabgraphDefaultMongoDB():
+            raise NotImplementedError("Sample deletion with node removal is not supported when using a LabgraphMongoDB instance. If you need to do this, please set this DB as the default using a labgraph config file (`labgraph.utils.make_config()`), in which case deletion with node removal is supported. Sorry!")
         if not self._exists(id):
             if _force_dangerous:
                 return
@@ -392,14 +406,13 @@ class SampleView(BaseView):
                 raise NotFoundInDatabaseError(
                     f"Cannot remove Sample with id {id} because it does not exist in the database."
                 )
-
-        sample = self.get(id)
+        sample = self.get_by_id(id)
         if remove_nodes:
             VIEWS = {
-                "Action": ActionView(),
-                "Material": MaterialView(),
-                "Measurement": MeasurementView(),
-                "Analysis": AnalysisView(),
+                "Action": self.actionview,
+                "Material": self.materialview,
+                "Measurement": self.measurementview,
+                "Analysis": self.analysisview,
             }
             for node in sample.nodes:
                 VIEWS[node.__class__.__name__].remove(

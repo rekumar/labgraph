@@ -113,7 +113,7 @@ def get_samples_graph() -> Graph:
     g = nx.DiGraph()
 
     for sample_id in sample_ids:
-        sample = sample_view.get(ObjectId(sample_id))
+        sample = sample_view.get_by_id(ObjectId(sample_id))
         g = nx.compose(g, sample.graph)
 
     layout = graphviz_layout(g, prog="dot")
