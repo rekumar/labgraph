@@ -210,6 +210,12 @@ class BaseActor:
     def __setitem__(self, key: str, value: Any):
         self._user_fields[key] = value
 
+    def __contains__(self, key: str):
+        return key in self._user_fields
+    
+    def pop(self, key: str, default_value: Optional[Any] = None):
+        return self._user_fields.pop(key, default_value)
+    
     def keys(self):
         return list(self._user_fields.keys())
 

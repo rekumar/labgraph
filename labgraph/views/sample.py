@@ -73,7 +73,7 @@ class SampleView(BaseView):
                 "Sample graph is not valid! Check for isolated nodes, graph cycles, or node dependencies that are not covered by either 1. existing database entries 2. nodes in this Sample or 3. nodes in the `additional_incoming_nodes` list."
             )
 
-        for node in entry.nodes:
+        for node in entry._nodes:
             if isinstance(node, Action):
                 self.actionview.add(node, if_already_in_db="update")
             elif isinstance(node, Material):
@@ -111,13 +111,13 @@ class SampleView(BaseView):
             description="This is a wrapper Sample to batch add nodes from multiple new, correlated samples. This should be deleted almost instantly after the contained samples are defined in the database.",
         )
         for sample in samples:
-            for node in sample.nodes:
+            for node in sample._nodes:
                 master_sample.add_node(node)
 
         self.add(
             entry=master_sample,
             if_already_in_db="raise",
-            additional_incoming_node_ids=[node.id for node in master_sample.nodes],
+            additional_incoming_node_ids=[node.id for node in master_sample._nodes],
         )
         try:
             for sample in samples:
@@ -130,7 +130,7 @@ class SampleView(BaseView):
     def _check_if_nodes_are_valid(self, sample: Sample) -> bool:
         """ensure that all nodes contained within the sample can be encoded to BSON and added to the database. This will fail if user supplies data formats that cannot be encoded to BSON."""
         bad_nodes = []
-        for node in sample.nodes:
+        for node in sample._nodes:
             node: BaseNode
             node.raise_if_invalid()
             if not node.is_valid_for_mongodb():
@@ -148,7 +148,7 @@ class SampleView(BaseView):
         # we need to check the graph in the db to make sure it is valid.
 
         upcoming_nodes = [
-            node.id for node in sample.nodes
+            node.id for node in sample._nodes
         ]  # all nodes that will be added along with this sample
 
         if additional_incoming_node_ids is not None:
@@ -168,7 +168,7 @@ class SampleView(BaseView):
             "Analysis": self.analysisview.get_by_id,
         }
 
-        for node in sample.nodes:
+        for node in sample._nodes:
             for related_node in node.upstream + node.downstream:
                 if related_node["node_id"] in upcoming_nodes:
                     continue
@@ -325,7 +325,7 @@ class SampleView(BaseView):
             entry
         )  # will throw error if any nodes cannot be encoded to BSON
 
-        for node in entry.nodes:
+        for node in entry._nodes:
             if isinstance(node, Action):
                 self.actionview.add(node, if_already_in_db="update")
             elif isinstance(node, Material):
@@ -414,7 +414,7 @@ class SampleView(BaseView):
                 "Measurement": self.measurementview,
                 "Analysis": self.analysisview,
             }
-            for node in sample.nodes:
+            for node in sample._nodes:
                 VIEWS[node.__class__.__name__].remove(
                     node.id, _force_dangerous=_force_dangerous
                 )

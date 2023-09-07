@@ -39,7 +39,7 @@ class Sample:
 
         self.description = description or ""
         self.tags = tags or []
-        self.nodes = []
+        self._nodes = []
         if nodes is not None:
             for node in nodes:
                 # do it this way to type check each node before adding it to this Sample
@@ -56,19 +56,21 @@ class Sample:
             raise ValueError(
                 f"Node must be a Material, Action, Analysis, or Measurement object! You provided {node}"
             )
-        if node in self.nodes:
+        if node in self._nodes:
             if not node._updated_at:
                 return  # this hasn't been saved to the database yet, so we don't need to overwrite
-            node_in_sample = self.nodes[self.nodes.index(node)]
+            node_in_sample = self._nodes[self._nodes.index(node)]
             if not node_in_sample._updated_at:
-                self.nodes[
-                    self.nodes.index(node)
+                self._nodes[
+                    self._nodes.index(node)
                 ] = node  # overwrite the node in the sample with the newer one
             if node.updated_at > node_in_sample.updated_at:
-                self.nodes[self.nodes.index(node)] = node
+                self._nodes[self._nodes.index(node)] = node
             return
 
-        self.nodes.append(node)
+        node.upstream._parent_sample = self
+        node.downstream._parent_sample = self
+        self._nodes.append(node)
 
     def add_linear_process(self, actions: List[Action]):
         """
@@ -120,11 +122,33 @@ class Sample:
             self.add_node(final_material)
 
     @property
+    def nodes(self):
+        self._sort_nodes()
+        return self._nodes
+    
+    def node_by_id(self, node_id: ObjectId) -> Optional[BaseNode]:
+        """Find a node in the sample with the given id
+
+        Args:
+            node_id (ObjectId): id of the node to find
+
+        Raises:
+            ValueError: if no node with the given id is found
+
+        Returns:
+            Optional[BaseNode]: Node from this sample with the given id 
+        """
+        for node in self._nodes:
+            if node.id == node_id:
+                return node
+        raise ValueError(f"Node with id {node_id} not found in Sample {self}")
+    
+    @property
     def graph(self):
         graph = nx.DiGraph()
-        for node in self.nodes:
+        for node in self._nodes:
             node: BaseNode
-            graph.add_node(node.id, type=node.labgraph_node_type, name=node.name)
+            graph.add_node(node.id, type=node.labgraph_node_type, **node.to_dict())
             for upstream in node.upstream:
                 if upstream["node_id"] not in graph.nodes:
                     graph.add_node(
@@ -167,7 +191,7 @@ class Sample:
         if not include_outside_nodes:
             nodes_to_delete = []
             for nid in g.nodes:
-                if not any([nid == node.id for node in self.nodes]):
+                if not any([nid == node.id for node in self._nodes]):
                     nodes_to_delete.append(nid)
             for nid in nodes_to_delete:
                 g.remove_node(nid)
@@ -178,7 +202,7 @@ class Sample:
             nodetype: []
             for nodetype in ["Material", "Action", "Analysis", "Measurement"]
         }
-        for node in self.nodes:
+        for node in self._nodes:
             node: BaseNode
             node_dict[node.labgraph_node_type].append(node.id)
 
@@ -201,7 +225,7 @@ class Sample:
         entry["contents"] = self._contents
         if verbose:
             self._sort_nodes()
-            entry["node_contents"] = [node.to_dict() for node in self.nodes]
+            entry["node_contents"] = [node.to_dict() for node in self._nodes]
 
         return entry
 
@@ -259,7 +283,7 @@ class Sample:
         sort the node list in graph hierarchical order
         """
         weights = list(nx.topological_sort(self.graph))
-        self.nodes.sort(key=lambda node: weights.index(node.id))
+        self._nodes.sort(key=lambda node: weights.index(node.id))
 
     def __repr__(self):
         return f"<Sample: {self.name}>"
@@ -301,7 +325,7 @@ class Sample:
 
         SampleView().add(
             entry=self,
-            additional_incoming_node_ids=[node.id for node in self.nodes],
+            additional_incoming_node_ids=[node.id for node in self._nodes],
             if_already_in_db="update",
         )
 

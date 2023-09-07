@@ -24,7 +24,7 @@ class BaseView:
     ):
         if labgraph_mongodb_instance is None:
             labgraph_mongodb_instance = LabgraphDefaultMongoDB()
-            
+
         self._labgraph_mongodb_instance = labgraph_mongodb_instance
         self._collection = labgraph_mongodb_instance.get_collection(collection)
         self._entry_class = entry_class
@@ -119,8 +119,7 @@ class BaseView:
         return entries
 
     def get_by_id(self, id: ObjectId) -> BaseNode:
-        id = ObjectId(id)
-        data = self._collection.find_one({"_id": id})
+        data = self._collection.find_one({"_id": ObjectId(id)})
         if data is None:
             raise NotFoundInDatabaseError(
                 f"Cannot find an {self._entry_class.__name__} with id: {id}. Looking in collection {self._collection}"
@@ -177,7 +176,9 @@ class BaseView:
         return self.filter(filter_dict, datetime_min, datetime_max)[0]
 
     def _entry_to_object(self, entry: dict):
-        return self._entry_class.from_dict(entry, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        return self._entry_class.from_dict(
+            entry, labgraph_mongodb_instance=self._labgraph_mongodb_instance
+        )
 
     def _exists(self, id: ObjectId) -> bool:
         """Checks if an entry exists by this id
@@ -319,8 +320,12 @@ class BaseNodeView(BaseView):
         )
 
         node_in_question = self.get_by_id(id)
-        affected_nodes = get_affected_nodes(node_in_question, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
-        affected_samples = get_affected_samples(node_in_question)#, labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        affected_nodes = get_affected_nodes(
+            node_in_question, labgraph_mongodb_instance=self._labgraph_mongodb_instance
+        )
+        affected_samples = get_affected_samples(
+            node_in_question
+        )  # , labgraph_mongodb_instance=self._labgraph_mongodb_instance)
 
         if len(affected_nodes) == 0 and len(affected_samples) == 0:
             self._collection.delete_one({"_id": id})
@@ -345,11 +350,21 @@ class BaseNodeView(BaseView):
         from labgraph import views
 
         VIEWS = {
-            "Sample": views.SampleView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
-            "Material": views.MaterialView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
-            "Measurement": views.MeasurementView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
-            "Action": views.ActionView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
-            "Analysis": views.AnalysisView(labgraph_mongodb_instance=self._labgraph_mongodb_instance),
+            "Sample": views.SampleView(
+                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            ),
+            "Material": views.MaterialView(
+                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            ),
+            "Measurement": views.MeasurementView(
+                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            ),
+            "Action": views.ActionView(
+                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            ),
+            "Analysis": views.AnalysisView(
+                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            ),
         }
         # ensure samples will maintain valid graphs after node removals
         invalidated_samples = []
@@ -358,10 +373,10 @@ class BaseNodeView(BaseView):
         ]  # node ids to remove from samples
         for sample in affected_samples:
             # remove all references to affected nodes from sample
-            sample.nodes = [
-                node for node in sample.nodes if node.id not in affected_node_ids
+            sample._nodes = [
+                node for node in sample._nodes if node.id not in affected_node_ids
             ]
-            for node in sample.nodes:
+            for node in sample._nodes:
                 node.upstream = [
                     upstream_node
                     for upstream_node in node.upstream
@@ -427,7 +442,7 @@ class BaseActorView(BaseView):
         new_entry = entry.to_dict()
         new_entry["created_at"] = old_entry["created_at"]
         new_entry["updated_at"] = (
-            datetime.now().replace(microsecond=0),
+            datetime.now().replace(microsecond=0)
         )  # remove microseconds, they get lost in MongoDB anyways
         self._collection.replace_one({"_id": entry.id}, new_entry)
 

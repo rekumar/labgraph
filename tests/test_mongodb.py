@@ -169,7 +169,7 @@ def test_FullSampleAcrossDBs():
         Action: views.ActionView(labgraph_mongodb_instance=db_instance),
         Material: views.MaterialView(labgraph_mongodb_instance=db_instance),
     }
-    for node in alab_sample.nodes:
+    for node in alab_sample._nodes:
         view = view_dict[type(node)]
         assert view.get_by_id(node.id) == node
 

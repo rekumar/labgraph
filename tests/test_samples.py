@@ -63,7 +63,7 @@ def build_a_sample(name: str) -> ObjectId:
     # make a sample
     alab_sample = Sample(name=name)
     alab_sample.add_linear_process([p1, p2, p3])
-    m_final = alab_sample.nodes[-1]
+    m_final = alab_sample._nodes[-1]
 
     me0 = Measurement(
         name="XRD",
@@ -151,7 +151,7 @@ def test_AddSample(add_actors_to_db):
         Action: views.ActionView(),
         Material: views.MaterialView(),
     }
-    for node in alab_sample.nodes:
+    for node in alab_sample._nodes:
         view = view_dict[type(node)]
         assert view.get_by_id(node.id) == node
 
@@ -198,7 +198,7 @@ def test_AddLinearSample(add_actors_to_db):
     # make a sample
     alab_sample = Sample(name="first sample")
     alab_sample.add_linear_process([p0, p1, p2, p3])
-    m_final = alab_sample.nodes[-1]
+    m_final = alab_sample._nodes[-1]
 
     me0 = Measurement(
         name="XRD",
@@ -336,7 +336,7 @@ def test_NodeDeletionMultipleSamplesAffected(add_single_sample):
     sample1 = sv.get_by_id(sample_id1)
     sample2 = sv.get_by_id(sample_id2)
 
-    node_to_delete = sample1.nodes[0]  # this material is shared across all samples
+    node_to_delete = sample1._nodes[0]  # this material is shared across all samples
 
     # delete sample1
     views.get_view(node_to_delete).remove(node_to_delete.id, _force_dangerous=True)

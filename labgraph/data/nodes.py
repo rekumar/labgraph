@@ -1,6 +1,7 @@
+from copy import deepcopy
 import datetime
 from bson import ObjectId, BSON
-from typing import Any, Dict, List, Optional, Union, Literal
+from typing import Any, Dict, List, Optional, Union, Literal, TYPE_CHECKING
 
 from labgraph.errors import AlreadyInDatabaseError, NotFoundInDatabaseError
 from labgraph.utils.data_objects import LabgraphMongoDB
@@ -8,6 +9,9 @@ from labgraph.utils.data_objects import LabgraphMongoDB
 from .actors import Actor
 from abc import ABC, abstractmethod
 import re
+
+if TYPE_CHECKING:
+    from labgraph.data.sample import Sample
 
 
 class InvalidNodeDefinition(Exception):
@@ -19,10 +23,38 @@ class NodeList(list):
 
     However the user can append node objects directly, and the NodeList will convert them to dicts. Furthermore, users can retrieve the node objects with the .get() method.
     """
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+
+    def __init__(
+        self,
+        parent_sample: Optional["Sample"] = None,
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+    ):
         super().__init__()
+        self._parent_sample = parent_sample
         self._labgraph_mongodb_instance = labgraph_mongodb_instance
-        
+
+    def _validate_list_entry(self, value: Union["BaseNode", Dict[str, Any]]):
+        if isinstance(value, BaseNode):
+            value = {
+                "node_type": value.labgraph_node_type,
+                "node_id": value._id,
+            }
+        if isinstance(value, dict):
+            if not all([k in value for k in ["node_type", "node_id"]]):
+                raise ValueError(
+                    "Invalid node entry. Dicts appended to NodeList must have keys 'node_type' and 'node_id'"
+                )
+            value = {
+                "node_type": value["node_type"],
+                "node_id": ObjectId(value["node_id"]),
+            }
+        else:
+            raise ValueError(
+                "Invalid node entry. NodeList can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
+            )
+
+        return value
+
     def append(self, value: Union["BaseNode", Dict[str, Any]]):
         """Append a node to the NodeList
 
@@ -32,36 +64,21 @@ class NodeList(list):
         Raises:
             ValueError: Invalid node entry/dict.
         """
-        if isinstance(value, BaseNode):
-            value = {
-                "node_type": value.__class__.__name__,
-                "node_id": value._id,
-            }
-        if isinstance(value, dict):
-            if not all([k in value for k in ["node_type", "node_id"]]):
-                raise ValueError(
-                    "Invalid node entry. Dicts appended to NodeList must have keys 'node_type' and 'node_id'"
-                )
-            entry = {
-                "node_type": value["node_type"],
-                "node_id": ObjectId(value["node_id"]),
-            }
-            if entry not in self:
-                super().append(entry)
-        else:
-            raise ValueError(
-                "Invalid node entry. NodeList can only contain BaseNode instances or dicts with keys 'node_type' and 'node_id'"
-            )
+        entry = self._validate_list_entry(value)
+        super().append(entry)
 
-    def get(self, index: Optional[int] = None) -> Union["BaseNode", List["BaseNode"]]:
-        """Get a node object from the NodeList. If an index is passed, the node at that index is returned. If no index is passed, a list of all nodes is returned.
+    def remove(self, value: Union["BaseNode", Dict[str, Any]]):
+        entry = self._validate_list_entry(value)
+        super().remove(entry)
 
-        Args:
-            index (Optional[int], optional): Index of node to retrieve. Defaults to None, in which case the entire list is returned as a list of node objects.
+    def _look_in_parent_sample_then_database(
+        self, node_id: ObjectId, node_type: str
+    ) -> "BaseNode":
+        if self._parent_sample:
+            for node in self._parent_sample._nodes:
+                if node.id == node_id and node.labgraph_node_type == node_type:
+                    return node
 
-        Returns:
-            Union[BaseNode, List[BaseNode]]: Either a single node object, or a list of node objects. Depends on whether an index is passed.
-        """
         from labgraph.views import (
             MaterialView,
             MeasurementView,
@@ -75,22 +92,48 @@ class NodeList(list):
             "Analysis": AnalysisView,
             "Action": ActionView,
         }
+        view = VIEWS[node_type](
+            labgraph_mongodb_instance=self._labgraph_mongodb_instance
+        )
+        return view.get_by_id(id=node_id)
+
+    def get(self, index: Optional[int] = None) -> Union["BaseNode", List["BaseNode"]]:
+        """Get a node object from the NodeList. If an index is passed, the node at that index is returned. If no index is passed, a list of all nodes is returned.
+
+        Args:
+            index (Optional[int], optional): Index of node to retrieve. Defaults to None, in which case the entire list is returned as a list of node objects.
+
+        Returns:
+            Union[BaseNode, List[BaseNode]]: Either a single node object, or a list of node objects. Depends on whether an index is passed.
+        """
 
         if index is not None:
             entry = self[index]
             node_type = entry["node_type"]
             node_id = entry["node_id"]
-            view = VIEWS[node_type](labgraph_mongodb_instance=self._labgraph_mongodb_instance)
-            node = view.get_by_id(id=node_id)
-            return node
+            return self._look_in_parent_sample_then_database(
+                node_id=node_id, node_type=node_type
+            )
+
         node_objects = []
         for entry in self:
             node_type = entry["node_type"]
             node_id = entry["node_id"]
-            view = VIEWS[node_type](labgraph_mongodb_instance=self._labgraph_mongodb_instance)
-            node = view.get_by_id(id=node_id)
-            node_objects.append(node)
+            node_objects.append(
+                self._look_in_parent_sample_then_database(
+                    node_id=node_id, node_type=node_type
+                )
+            )
         return node_objects
+
+    def __copy__(self):
+        new_list = NodeList()
+        for entry in self:
+            new_list.append(entry)
+        return new_list
+
+    def __deepcopy__(self, memo):
+        return self.__copy__()
 
 
 class BaseNode(ABC):
@@ -155,7 +198,6 @@ class BaseNode(ABC):
             self.downstream.append(new_entry)
 
     def to_dict(self):
-        # hidden_property_mangle_prefix = r"_\w*__\w*"  # matches __property mangle prefix
         full_dict = {
             k: v
             for k, v in self.__dict__.items()
@@ -163,8 +205,6 @@ class BaseNode(ABC):
             if not k.startswith("_")
         }  # dont include underscored class attributes
 
-        # full_dict.pop("_version_history", None)
-        # contents = full_dict.pop("_contents", {})
 
         return_dict = {
             "_id": self._id,  # only underscored value we need
@@ -181,20 +221,23 @@ class BaseNode(ABC):
         ]:
             if key in full_dict:
                 return_dict[key] = full_dict[key]
-
+                
         for key in self._contents:
             if key in return_dict:
                 raise ValueError(
                     f"User field {key} in node {self.name} of type {self.__class__} conflicts with default node attribute {key} -- please rename the parameter!"
                 )
         return_dict["contents"] = self._contents
-        # return_dict.update(self._contents)
 
         return return_dict
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, d: Dict[str, Any], labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+    def from_dict(
+        cls,
+        d: Dict[str, Any],
+        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+    ):
         raise NotImplementedError
 
     def is_valid_for_mongodb(self) -> bool:
@@ -245,6 +288,12 @@ class BaseNode(ABC):
     def __setitem__(self, key: str, value: Any):
         self._contents[key] = value
 
+    def __contains__(self, key: str) -> bool:
+        return key in self._contents
+
+    def pop(self, key: str, default_value: Optional[Any] = None):
+        return self._contents.pop(key, default_value)
+    
     def keys(self):
         return list(self._contents.keys())
 
@@ -407,7 +456,10 @@ class Material(BaseNode):
             **contents: Any additional values to be stored in the node. These will be stored as key-value pairs in the node entry in the database. While these values are not used by the database, they can be useful for storing additional information about the node according to user needs. All values within these fields must be BSON-serializable (e.g. no numpy arrays, etc.) such that they can be stored using MongoDB.
         """
         super(Material, self).__init__(
-            name=name, tags=tags, labgraph_node_type="Material", labgraph_mongodb_instance=labgraph_mongodb_instance
+            name=name,
+            tags=tags,
+            labgraph_node_type="Material",
+            labgraph_mongodb_instance=labgraph_mongodb_instance,
         )
         self._contents = contents
 
@@ -424,7 +476,10 @@ class Material(BaseNode):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Material":
+    def from_dict(
+        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+    ) -> "Material":
+        entry = deepcopy(entry)
         _id = entry.pop("_id", None)
         version_history = entry.pop("version_history", [])
         created_at = entry.pop("created_at", None)
@@ -434,7 +489,9 @@ class Material(BaseNode):
         us = entry.pop("upstream")
         ds = entry.pop("downstream")
 
-        obj = cls(**entry, **contents, labgraph_mongodb_instance=labgraph_mongodb_instance)
+        obj = cls(
+            **entry, **contents, labgraph_mongodb_instance=labgraph_mongodb_instance
+        )
         if _id is not None:
             obj._id = ObjectId(_id)
         obj._version_history = version_history
@@ -490,10 +547,12 @@ class Ingredient:
     @property
     def material(self) -> Material:
         from labgraph.views import MaterialView
-        
+
         if not self.__material:
             try:
-                self.__material = MaterialView(labgraph_mongodb_instance=self._labgraph_mongodb_instance).get_by_id(self.material_id)
+                self.__material = MaterialView(
+                    labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                ).get_by_id(self.material_id)
             except:
                 raise NotFoundInDatabaseError(
                     f"Could not retrieve material for {str(self)} from database! Upstream Material node was not found in the database. Most likely you rebuilt this Ingredient using Ingredient.from_dict() for an Ingredient that was not yet saved to the database."
@@ -507,7 +566,10 @@ class Ingredient:
         return d
 
     @classmethod
-    def from_dict(cls, d: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+    def from_dict(
+        cls, d: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+    ):
+        d = deepcopy(d)
         dummy_material = Material(name="this is ugly and tricky but whatever")
 
         ingredient = cls(
@@ -570,7 +632,10 @@ class BaseNodeWithActor(BaseNode):
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
         super(BaseNodeWithActor, self).__init__(
-            name=name, tags=tags, labgraph_node_type=labgraph_node_type, labgraph_mongodb_instance=labgraph_mongodb_instance
+            name=name,
+            tags=tags,
+            labgraph_node_type=labgraph_node_type,
+            labgraph_mongodb_instance=labgraph_mongodb_instance,
         )
         if isinstance(actor, Actor):
             actor = [actor]
@@ -641,7 +706,11 @@ class Action(BaseNodeWithActor):
             tags (List[str], optional): List of string tags used to identify this Action node. Defaults to None.
         """
         super(Action, self).__init__(
-            name=name, tags=tags, actor=actor, labgraph_node_type="Action", labgraph_mongodb_instance=labgraph_mongodb_instance
+            name=name,
+            tags=tags,
+            actor=actor,
+            labgraph_node_type="Action",
+            labgraph_mongodb_instance=labgraph_mongodb_instance,
         )
         self._contents = contents
         self.ingredients = []
@@ -752,16 +821,22 @@ class Action(BaseNodeWithActor):
         return d
 
     @classmethod
-    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Action":
+    def from_dict(
+        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+    ) -> "Action":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
-        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
+        entry = deepcopy(entry)
+
+        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
         ingredients = [
-            Ingredient.from_dict(this_ingredient, labgraph_mongodb_instance=labgraph_mongodb_instance)
+            Ingredient.from_dict(
+                this_ingredient, labgraph_mongodb_instance=labgraph_mongodb_instance
+            )
             for this_ingredient in entry.pop("ingredients", [])
         ]
         _id = entry.pop("_id", None)
@@ -815,7 +890,11 @@ class Measurement(BaseNodeWithActor):
             TypeError: Invalid type for `material` argument.
         """
         super(Measurement, self).__init__(
-            name=name, tags=tags, actor=actor, labgraph_node_type="Measurement", labgraph_mongodb_instance=labgraph_mongodb_instance
+            name=name,
+            tags=tags,
+            actor=actor,
+            labgraph_node_type="Measurement",
+            labgraph_mongodb_instance=labgraph_mongodb_instance,
         )
         self.__material = None
         if material:
@@ -869,11 +948,15 @@ class Measurement(BaseNodeWithActor):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Measurement":
+    def from_dict(
+        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+    ) -> "Measurement":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
-        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
+        entry = deepcopy(entry)
+
+        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
@@ -927,7 +1010,11 @@ class Analysis(BaseNodeWithActor):
             TypeError: Invalid node type passed to `measurements` or `analyses` arguments.
         """
         super(Analysis, self).__init__(
-            name=name, tags=tags, actor=actor, labgraph_node_type="Analysis", labgraph_mongodb_instance=labgraph_mongodb_instance
+            name=name,
+            tags=tags,
+            actor=actor,
+            labgraph_node_type="Analysis",
+            labgraph_mongodb_instance=labgraph_mongodb_instance,
         )
         self.__measurements = []
         self.__upstream_analyses = []
@@ -1029,10 +1116,14 @@ class Analysis(BaseNodeWithActor):
                 )
 
     @classmethod
-    def from_dict(cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> "Analysis":
+    def from_dict(
+        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+    ) -> "Analysis":
         from labgraph.views import ActorView
 
-        actor_view = ActorView(labgraph_mongodb_instance = labgraph_mongodb_instance)
+        entry = deepcopy(entry)
+
+        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
