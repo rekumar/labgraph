@@ -13,15 +13,15 @@ from .actors import Actor, ActorView
 
 
 class MaterialView(BaseNodeView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("materials", Material, labgraph_mongodb_instance=labgraph_mongodb_instance)
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
+        super().__init__("materials", Material, conn=conn)
 
 class BaseNodeWithActorView(BaseNodeView):
     def confirm_actors_are_valid(self, actors: List[Actor]):
         """Checks that all actors are valid (i.e. exist in the database)"""
         from labgraph.views import ActorView
 
-        actor_view = ActorView(labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        actor_view = ActorView(conn=self._conn)
         for actor in actors:
             if not actor_view._exists(actor.id):
                 raise NotFoundInDatabaseError(
@@ -34,12 +34,12 @@ class BaseNodeWithActorView(BaseNodeView):
             raise TypeError("argument `actor` must be an Actor or a list of Actors!")
         
         actor_ids = [a.id for a in actor]
-        return self.filter({"actor_id": {"$in": actor_ids}})
+        return self.find({"actor_id": {"$in": actor_ids}})
     
     def add(self, entry, if_already_in_db: Literal["raise", "skip", "update"] = "raise"):
         from labgraph.views import ActorView
 
-        actor_view = ActorView(labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        actor_view = ActorView(conn=self._conn)
         for actor in entry.actor:
             if not actor_view._exists(actor.id):
                 raise NotFoundInDatabaseError(
@@ -48,14 +48,14 @@ class BaseNodeWithActorView(BaseNodeView):
         super().add(entry, if_already_in_db=if_already_in_db)
         
 class ActionView(BaseNodeWithActorView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("actions", Action, labgraph_mongodb_instance=labgraph_mongodb_instance)
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
+        super().__init__("actions", Action, conn=conn)
         
 
 class MeasurementView(BaseNodeWithActorView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("measurements", Measurement, labgraph_mongodb_instance=labgraph_mongodb_instance)
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
+        super().__init__("measurements", Measurement, conn=conn)
 
 class AnalysisView(BaseNodeWithActorView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("analyses", Analysis, labgraph_mongodb_instance=labgraph_mongodb_instance)
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
+        super().__init__("analyses", Analysis, conn=conn)

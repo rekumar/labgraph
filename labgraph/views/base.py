@@ -20,13 +20,13 @@ class BaseView:
         collection: str,
         entry_class: type,
         allow_duplicate_names: bool = True,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ):
-        if labgraph_mongodb_instance is None:
-            labgraph_mongodb_instance = LabgraphDefaultMongoDB()
+        if conn is None:
+            conn = LabgraphDefaultMongoDB()
 
-        self._labgraph_mongodb_instance = labgraph_mongodb_instance
-        self._collection = labgraph_mongodb_instance.get_collection(collection)
+        self._conn = conn
+        self._collection = conn.get_collection(collection)
         self._entry_class = entry_class
         self.allow_duplicate_names = allow_duplicate_names
 
@@ -129,7 +129,7 @@ class BaseView:
     def remove(self, id: ObjectId):
         raise NotImplementedError()
 
-    def filter(
+    def find(
         self,
         filter_dict: Dict,
         datetime_min: datetime = None,
@@ -145,6 +145,22 @@ class BaseView:
         Returns:
             List[BaseObject]: List of Objects (nodes or samples) that match the filter
         """
+        def prepend_contents(key: str) -> str:
+            """Prepends "contents." to the key if it is not a standard key. This is necessary because we store all additional node data in a "contents" field, so we need to prepend that to the key when querying the database.
+
+            Args:
+                key (str): string of the key to match in the database
+
+            Returns:
+                str: key with any modifications necessary to match the database
+            """
+            if key in ["_id", "name", "tags", "upstream", "downstream", "ingredients", "actor_id", "created_at", "updated_at"]:
+                return key
+            if key.startswith("contents."):
+                return key
+            return f"contents.{key}"  
+        
+        filter_dict = {prepend_contents(k): v for k, v in filter_dict.items()}      
         if datetime_min is not None:
             if "created_at" in filter_dict:
                 filter_dict["created_at"]["$gte"] = datetime_max
@@ -161,23 +177,23 @@ class BaseView:
         )
         return [self._entry_to_object(result) for result in results]
 
-    def filter_one(
+    def find_one(
         self,
         filter_dict: Dict,
         datetime_min: datetime = None,
         datetime_max: datetime = None,
     ):
         """Return only the first entry from BaseView.filter. Useful if only one matching entry is expected."""
-        results = self.filter(filter_dict, datetime_min, datetime_max)
+        results = self.find(filter_dict, datetime_min, datetime_max)
         if len(results) == 0:
             raise NotFoundInDatabaseError(
                 f"Cannot find any {self._entry_class.__name__} with filter: {filter_dict}"
             )
-        return self.filter(filter_dict, datetime_min, datetime_max)[0]
+        return self.find(filter_dict, datetime_min, datetime_max)[0]
 
     def _entry_to_object(self, entry: dict):
         return self._entry_class.from_dict(
-            entry, labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            entry, conn=self._conn
         )
 
     def _exists(self, id: ObjectId) -> bool:
@@ -321,11 +337,11 @@ class BaseNodeView(BaseView):
 
         node_in_question = self.get_by_id(id)
         affected_nodes = get_affected_nodes(
-            node_in_question, labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            node_in_question, conn=self._conn
         )
         affected_samples = get_affected_samples(
             node_in_question
-        )  # , labgraph_mongodb_instance=self._labgraph_mongodb_instance)
+        )  # , conn=self._conn)
 
         if len(affected_nodes) == 0 and len(affected_samples) == 0:
             self._collection.delete_one({"_id": id})
@@ -351,19 +367,19 @@ class BaseNodeView(BaseView):
 
         VIEWS = {
             "Sample": views.SampleView(
-                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                conn=self._conn
             ),
             "Material": views.MaterialView(
-                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                conn=self._conn
             ),
             "Measurement": views.MeasurementView(
-                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                conn=self._conn
             ),
             "Action": views.ActionView(
-                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                conn=self._conn
             ),
             "Analysis": views.AnalysisView(
-                labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                conn=self._conn
             ),
         }
         # ensure samples will maintain valid graphs after node removals

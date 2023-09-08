@@ -1,10 +1,7 @@
 from typing import Optional
 from labgraph.utils.data_objects import LabgraphMongoDB
-from labgraph.views.base import BaseView
 
-
-def drop_collections(labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-    from labgraph.views import (
+from labgraph.views import (
         MaterialView,
         ActionView,
         MeasurementView,
@@ -12,6 +9,10 @@ def drop_collections(labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
         ActorView,
         SampleView,
     )
+import numpy as np
+
+def drop_collections(conn: Optional[LabgraphMongoDB] = None):
+    
 
     for View in [
         MaterialView,
@@ -21,4 +22,5 @@ def drop_collections(labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
         ActorView,
         SampleView,
     ]:
-        View(labgraph_mongodb_instance=labgraph_mongodb_instance)._collection.drop()
+        View(conn=conn)._collection.drop()
+        

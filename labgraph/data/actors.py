@@ -61,8 +61,8 @@ class BaseActor:
         return d
 
     @classmethod
-    def from_dict(cls, entry: Dict[str, Any], labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        """keep labgraph_mongodb_instance arg for compatibility with BaseView"""
+    def from_dict(cls, entry: Dict[str, Any], conn: Optional[LabgraphMongoDB] = None):
+        """keep conn arg for compatibility with BaseView"""
         _id = entry.pop("_id", None)
         entry.pop("created_at", None)
         entry.pop("updated_at", None)
@@ -178,7 +178,7 @@ class BaseActor:
             List[BaseActor]: List of Actors that match the filter
         """
         view = cls.__get_view()
-        return view.filter(filter_dict, datetime_min, datetime_max)
+        return view.find(filter_dict, datetime_min, datetime_max)
 
     @classmethod
     def filter_one(
@@ -198,7 +198,7 @@ class BaseActor:
             BaseActor: Actor that matches the filter
         """
         view = cls.__get_view()
-        return view.filter_one(filter_dict, datetime_min, datetime_max)
+        return view.find_one(filter_dict, datetime_min, datetime_max)
 
     def save(self):
         view = self.__get_view()

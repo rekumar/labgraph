@@ -29,7 +29,7 @@ def _get_affected_nodes(
     return affected_nodes
 
 
-def get_affected_nodes(node: BaseNode, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None) -> NodeList:
+def get_affected_nodes(node: BaseNode, conn: Optional[LabgraphMongoDB] = None) -> NodeList:
     """Get all nodes affected by a change to a given node. This assumes that all nodes downstream of a given node are dependent on it!
 
     Args:
@@ -38,12 +38,12 @@ def get_affected_nodes(node: BaseNode, labgraph_mongodb_instance: Optional[Labgr
     Returns:
         list: List of affected nodes
     """
-    # if node.upstream._labgraph_mongodb_instance is None:
-    node.upstream._labgraph_mongodb_instance = labgraph_mongodb_instance
-    node.downstream._labgraph_mongodb_instance = labgraph_mongodb_instance
+    # if node.upstream._conn is None:
+    node.upstream._conn = conn
+    node.downstream._conn = conn
         
     affected_by_type = _get_affected_nodes(node)
-    affected_nodes = NodeList(labgraph_mongodb_instance=labgraph_mongodb_instance)
+    affected_nodes = NodeList(conn=conn)
     for node_type, node_ids in affected_by_type.items():
         for node_id in node_ids:
             affected_nodes.append(

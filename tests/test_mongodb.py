@@ -47,8 +47,8 @@ def test_NodeViews(add_single_sample):
     for node_class, name in test_guide.items():
         View = view_guide[node_class]
         n1 = View().get_by_name(name)
-        n2 = View(labgraph_mongodb_instance=labgraph_mongo_obj).get_by_name(name)
-        n3 = View(labgraph_mongodb_instance=default_labgraph_mongo_obj).get_by_name(name)
+        n2 = View(conn=labgraph_mongo_obj).get_by_name(name)
+        n3 = View(conn=default_labgraph_mongo_obj).get_by_name(name)
         n4 = node_class.get_by_name(name)
         assert n1 == n2 == n3 == n4
         
@@ -64,7 +64,7 @@ def test_NodeView_AcrossDBs():
     }
     View1 = views.MaterialView()
     db2_instance = LabgraphMongoDB(**second_db_info)
-    View2 = views.MaterialView(labgraph_mongodb_instance=db2_instance)
+    View2 = views.MaterialView(conn=db2_instance)
     
     View1.add(m1)
     View2.add(m2)
@@ -78,7 +78,7 @@ def test_NodeView_AcrossDBs():
     m2.save() #class methods go to the default database defined in Labgraph config
     View1.get_by_id(m2.id)
     
-    drop_collections(labgraph_mongodb_instance=db2_instance)
+    drop_collections(conn=db2_instance)
         
         
 def test_FullSampleAcrossDBs():
@@ -89,7 +89,7 @@ def test_FullSampleAcrossDBs():
         "db_name": "xxxxxxxLabgraph_Test_2",
     }
     db_instance = LabgraphMongoDB(**second_db_info)
-    av = views.ActorView(labgraph_mongodb_instance=db_instance)
+    av = views.ActorView(conn=db_instance)
     
     operator = Actor(name="Operatorr", description="The person who did the work")
     aeris = Actor(name="Aeris", description="The XRD instrument")
@@ -156,7 +156,7 @@ def test_FullSampleAcrossDBs():
     with pytest.raises(NotFoundInDatabaseError):
         views.SampleView().add(alab_sample)
     
-    sample_view = views.SampleView(labgraph_mongodb_instance=db_instance)
+    sample_view = views.SampleView(conn=db_instance)
     sample_view.add(alab_sample)
 
     alab_sample_ = sample_view.get_by_id(alab_sample.id)
@@ -164,10 +164,10 @@ def test_FullSampleAcrossDBs():
 
     # make sure all individual nodes were added successfully
     view_dict = {
-        Measurement: views.MeasurementView(labgraph_mongodb_instance=db_instance),
-        Analysis: views.AnalysisView(labgraph_mongodb_instance=db_instance),
-        Action: views.ActionView(labgraph_mongodb_instance=db_instance),
-        Material: views.MaterialView(labgraph_mongodb_instance=db_instance),
+        Measurement: views.MeasurementView(conn=db_instance),
+        Analysis: views.AnalysisView(conn=db_instance),
+        Action: views.ActionView(conn=db_instance),
+        Material: views.MaterialView(conn=db_instance),
     }
     for node in alab_sample._nodes:
         view = view_dict[type(node)]

@@ -51,9 +51,9 @@ def test_Actor_retrieval(add_actors_to_db):
     for r in results:
         assert r in [labman, tubefurnace, aeris]
 
-    assert av.filter_one({"name": "LabMan"}) == labman
+    assert av.find_one({"name": "LabMan"}) == labman
 
-    assert av.filter({"name": "LabMan"})[0] == labman
+    assert av.find({"name": "LabMan"})[0] == labman
 
     with pytest.raises(NotFoundInDatabaseError):
         av.get_by_name("Random name that doesnt exist")

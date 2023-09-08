@@ -27,11 +27,11 @@ class NodeList(list):
     def __init__(
         self,
         parent_sample: Optional["Sample"] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ):
         super().__init__()
         self._parent_sample = parent_sample
-        self._labgraph_mongodb_instance = labgraph_mongodb_instance
+        self._conn = conn
 
     def _validate_list_entry(self, value: Union["BaseNode", Dict[str, Any]]):
         if isinstance(value, BaseNode):
@@ -93,7 +93,7 @@ class NodeList(list):
             "Action": ActionView,
         }
         view = VIEWS[node_type](
-            labgraph_mongodb_instance=self._labgraph_mongodb_instance
+            conn=self._conn
         )
         return view.get_by_id(id=node_id)
 
@@ -146,12 +146,12 @@ class BaseNode(ABC):
         labgraph_node_type: Literal[
             "Material", "Measurement", "Analysis", "Action"
         ] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ):
         self.name = name
         self._id = ObjectId()
-        self.upstream = NodeList(labgraph_mongodb_instance=labgraph_mongodb_instance)
-        self.downstream = NodeList(labgraph_mongodb_instance=labgraph_mongodb_instance)
+        self.upstream = NodeList(conn=conn)
+        self.downstream = NodeList(conn=conn)
         for us in upstream or []:
             self.upstream.append(us)
         for ds in downstream or []:
@@ -177,7 +177,7 @@ class BaseNode(ABC):
             )
 
         self.__labgraph_node_type = labgraph_node_type
-        self._labgraph_mongodb_instance = labgraph_mongodb_instance
+        self._conn = conn
 
     def add_upstream(self, upstream: "BaseNode"):
         if not isinstance(upstream, BaseNode):
@@ -236,7 +236,7 @@ class BaseNode(ABC):
     def from_dict(
         cls,
         d: Dict[str, Any],
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ):
         raise NotImplementedError
 
@@ -445,7 +445,7 @@ class Material(BaseNode):
         self,
         name: str,
         tags: Optional[Union[List[str], None]] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Initialize a Material node. This creates the node in memory -- it is not added to the database yet!
@@ -459,7 +459,7 @@ class Material(BaseNode):
             name=name,
             tags=tags,
             labgraph_node_type="Material",
-            labgraph_mongodb_instance=labgraph_mongodb_instance,
+            conn=conn,
         )
         self._contents = contents
 
@@ -477,7 +477,7 @@ class Material(BaseNode):
 
     @classmethod
     def from_dict(
-        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        cls, entry: dict, conn: Optional[LabgraphMongoDB] = None
     ) -> "Material":
         entry = deepcopy(entry)
         _id = entry.pop("_id", None)
@@ -490,7 +490,7 @@ class Material(BaseNode):
         ds = entry.pop("downstream")
 
         obj = cls(
-            **entry, **contents, labgraph_mongodb_instance=labgraph_mongodb_instance
+            **entry, **contents, conn=conn
         )
         if _id is not None:
             obj._id = ObjectId(_id)
@@ -542,7 +542,7 @@ class Ingredient:
         self.material_id = material.id
         self.amount = amount
         self.unit = unit
-        self._labgraph_mongodb_instance = None
+        self._conn = None
 
     @property
     def material(self) -> Material:
@@ -551,7 +551,7 @@ class Ingredient:
         if not self.__material:
             try:
                 self.__material = MaterialView(
-                    labgraph_mongodb_instance=self._labgraph_mongodb_instance
+                    conn=self._conn
                 ).get_by_id(self.material_id)
             except:
                 raise NotFoundInDatabaseError(
@@ -567,7 +567,7 @@ class Ingredient:
 
     @classmethod
     def from_dict(
-        cls, d: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        cls, d: dict, conn: Optional[LabgraphMongoDB] = None
     ):
         d = deepcopy(d)
         dummy_material = Material(name="this is ugly and tricky but whatever")
@@ -581,7 +581,7 @@ class Ingredient:
 
         ingredient.__material = None
         ingredient.material_id = ObjectId(d["material_id"])
-        ingredient._labgraph_mongodb_instance = labgraph_mongodb_instance
+        ingredient._conn = conn
         return ingredient
 
     def __repr__(self):
@@ -622,7 +622,7 @@ class BaseNodeWithActor(BaseNode):
         actor: Union[Actor, List[Actor]],
         tags: Optional[List[str]] = None,
         labgraph_node_type: Optional[str] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
 
@@ -635,7 +635,7 @@ class BaseNodeWithActor(BaseNode):
             name=name,
             tags=tags,
             labgraph_node_type=labgraph_node_type,
-            labgraph_mongodb_instance=labgraph_mongodb_instance,
+            conn=conn,
         )
         if isinstance(actor, Actor):
             actor = [actor]
@@ -693,7 +693,7 @@ class Action(BaseNodeWithActor):
         ingredients: List[Ingredient] = [],
         generated_materials: List[Material] = None,
         tags: List[str] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Generates an Action node. Actions create new Material(s), optionally using existing Material(s) in the form of Ingredient(s). Actions are the primary way to create new Material nodes in the database.
@@ -710,7 +710,7 @@ class Action(BaseNodeWithActor):
             tags=tags,
             actor=actor,
             labgraph_node_type="Action",
-            labgraph_mongodb_instance=labgraph_mongodb_instance,
+            conn=conn,
         )
         self._contents = contents
         self.ingredients = []
@@ -822,20 +822,20 @@ class Action(BaseNodeWithActor):
 
     @classmethod
     def from_dict(
-        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        cls, entry: dict, conn: Optional[LabgraphMongoDB] = None
     ) -> "Action":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
         entry = deepcopy(entry)
 
-        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
+        actor_view = ActorView(conn=conn)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
         ingredients = [
             Ingredient.from_dict(
-                this_ingredient, labgraph_mongodb_instance=labgraph_mongodb_instance
+                this_ingredient, conn=conn
             )
             for this_ingredient in entry.pop("ingredients", [])
         ]
@@ -875,7 +875,7 @@ class Measurement(BaseNodeWithActor):
         material: Material = None,
         actor: Union[Actor, List[Actor]] = None,
         tags: List[str] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """A Measurement Node. This is a node that represents a measurement of a material by an actor.
@@ -894,7 +894,7 @@ class Measurement(BaseNodeWithActor):
             tags=tags,
             actor=actor,
             labgraph_node_type="Measurement",
-            labgraph_mongodb_instance=labgraph_mongodb_instance,
+            conn=conn,
         )
         self.__material = None
         if material:
@@ -949,14 +949,14 @@ class Measurement(BaseNodeWithActor):
 
     @classmethod
     def from_dict(
-        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        cls, entry: dict, conn: Optional[LabgraphMongoDB] = None
     ) -> "Measurement":
         from labgraph.views import ActorView
         from labgraph.views import MaterialView
 
         entry = deepcopy(entry)
 
-        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
+        actor_view = ActorView(conn=conn)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]
@@ -994,7 +994,7 @@ class Analysis(BaseNodeWithActor):
         measurements: List[Measurement] = None,
         upstream_analyses: List["Analysis"] = None,
         tags: List[str] = None,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
         **contents,
     ):
         """Creates an Analysis node. This node represents data processing from upstream Measurement(s) and/or Analysis/es node(s). For example, a "Density" Analysis may accept "Mass" and "Volume" measurements to compute density.
@@ -1014,7 +1014,7 @@ class Analysis(BaseNodeWithActor):
             tags=tags,
             actor=actor,
             labgraph_node_type="Analysis",
-            labgraph_mongodb_instance=labgraph_mongodb_instance,
+            conn=conn,
         )
         self.__measurements = []
         self.__upstream_analyses = []
@@ -1117,13 +1117,13 @@ class Analysis(BaseNodeWithActor):
 
     @classmethod
     def from_dict(
-        cls, entry: dict, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None
+        cls, entry: dict, conn: Optional[LabgraphMongoDB] = None
     ) -> "Analysis":
         from labgraph.views import ActorView
 
         entry = deepcopy(entry)
 
-        actor_view = ActorView(labgraph_mongodb_instance=labgraph_mongodb_instance)
+        actor_view = ActorView(conn=conn)
         actor = [
             actor_view.get_by_id(id=actor_id) for actor_id in entry.pop("actor_id")
         ]

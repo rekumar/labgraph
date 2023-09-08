@@ -5,5 +5,5 @@ from labgraph.views.base import BaseActorView
 
 
 class ActorView(BaseActorView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
-        super().__init__("actors", Actor, labgraph_mongodb_instance=labgraph_mongodb_instance, allow_duplicate_names=False)
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
+        super().__init__("actors", Actor, conn=conn, allow_duplicate_names=False)

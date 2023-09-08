@@ -52,16 +52,9 @@ def get_config():
     return config
 
 
-def make_config():
-    """Command line tool to help create a config file for Labgraph. The config file is a TOML file that contains the information needed to connect to a MongoDB instance hosting the Labgraph databa5.
-
-    Raises:
-        ValueError: Invalid file extension. Must be a .toml file.
-        Exception: Unable to write config file to the specified path.
-    """
+def _make_config_with_user_input():
     config_path = os.getenv("LABGRAPH_CONFIG", DEFAULT_CONFIG_PATH)
 
-    filepath = None
     warn_for_envvar = False
     if os.path.exists(config_path):
         print(f"A labgraph config file already exists at {config_path}.\n")
@@ -128,6 +121,59 @@ def make_config():
             "Enter password (typed characters hidden for privacy): "
         )
 
+    validate_config(config_dict)
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            toml.dump(config_dict, f)
+    except Exception as e:
+        raise Exception(
+            "Labgraph was unable to write your config file. Error message: ", e
+        )
+
+    print(
+        f"\nConfig file successfully written to {filepath}. \nWARNING: If you aren't using the default location, please remember to set the environment variable LABGRAPH_CONFIG = {filepath}. \nWARNING: You should restart your Python kernel to ensure that Labgraph uses the new config file."
+    )
+
+
+def make_config(
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    db_name: Optional[str] = None,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    filepath: Optional[str] = None,
+):
+    """Command line tool to help create a config file for Labgraph. The config file is a TOML file that contains the information needed to connect to a MongoDB instance hosting the Labgraph database. if all arguments are set to none, the user will be prompted for the information.
+
+    Args:
+        host (Optional[str], optional): The host of the MongoDB instance. Defaults to None.
+        port (Optional[int], optional): The port of the MongoDB instance. Defaults to None.
+        db_name (Optional[str], optional): The name of the database. Defaults to None.
+        username (Optional[str], optional): The username for the database. Defaults to None.
+        password (Optional[str], optional): The password for the database. Defaults to None.
+        filepath (Optional[str], optional): The path to the config file. Defaults to None.
+
+    Raises:
+        ValueError: Invalid file extension. Must be a .toml file.
+        Exception: Unable to write config file to the specified path.
+    """
+
+    if not any([host, port, db_name, username, password]):
+        _make_config_with_user_input()
+        return
+
+    if filepath is None:
+        filepath = os.getenv("LABGRAPH_CONFIG", DEFAULT_CONFIG_PATH)
+
+    config_dict = {
+        "mongodb": {
+            "host": host,
+            "port": port,
+            "db_name": db_name,
+            "username": username or "",
+            "password": password or "",
+        }
+    }
     validate_config(config_dict)
     try:
         with open(filepath, "w", encoding="utf-8") as f:

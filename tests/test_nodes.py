@@ -229,16 +229,16 @@ def test_NodeFilterByTime():
     )
 
     assert (
-        len(materialview.filter({}, datetime_min=older - datetime.timedelta(minutes=1)))
+        len(materialview.find({}, datetime_min=older - datetime.timedelta(minutes=1)))
         == 2
     )
     assert (
-        len(materialview.filter({}, datetime_min=older + datetime.timedelta(minutes=1)))
+        len(materialview.find({}, datetime_min=older + datetime.timedelta(minutes=1)))
         == 1
     )
 
     assert (
-        len(materialview.filter({}, datetime_max=older + datetime.timedelta(minutes=1)))
+        len(materialview.find({}, datetime_max=older + datetime.timedelta(minutes=1)))
         == 1
     )
 

@@ -16,21 +16,21 @@ from bson import ObjectId
 
 
 class SampleView(BaseView):
-    def __init__(self, labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None):
+    def __init__(self, conn: Optional[LabgraphMongoDB] = None):
         super().__init__(
-            "samples", Sample, labgraph_mongodb_instance=labgraph_mongodb_instance
+            "samples", Sample, conn=conn
         )
         self.actionview = ActionView(
-            labgraph_mongodb_instance=labgraph_mongodb_instance
+            conn=conn
         )
         self.materialview = MaterialView(
-            labgraph_mongodb_instance=labgraph_mongodb_instance
+            conn=conn
         )
         self.analysisview = AnalysisView(
-            labgraph_mongodb_instance=labgraph_mongodb_instance
+            conn=conn
         )
         self.measurementview = MeasurementView(
-            labgraph_mongodb_instance=labgraph_mongodb_instance
+            conn=conn
         )
 
     def add(
@@ -397,7 +397,7 @@ class SampleView(BaseView):
             TypeError: Entry is of wrong type
             NotFoundInDatabaseError: Entry does not exist in the database
         """
-        if remove_nodes and self._labgraph_mongodb_instance != LabgraphDefaultMongoDB():
+        if remove_nodes and self._conn != LabgraphDefaultMongoDB():
             raise NotImplementedError("Sample deletion with node removal is not supported when using a LabgraphMongoDB instance. If you need to do this, please set this DB as the default using a labgraph config file (`labgraph.utils.make_config()`), in which case deletion with node removal is supported. Sorry!")
         if not self._exists(id):
             if _force_dangerous:

@@ -233,7 +233,7 @@ class Sample:
     def from_dict(
         cls,
         sample_dict: dict,
-        labgraph_mongodb_instance: Optional[LabgraphMongoDB] = None,
+        conn: Optional[LabgraphMongoDB] = None,
     ) -> "Sample":
         if "node_contents" not in sample_dict:
             raise ValueError(
@@ -253,7 +253,7 @@ class Sample:
                 nodes.append(
                     NodeClass.from_dict(
                         get_node_contents(node_id),
-                        labgraph_mongodb_instance=labgraph_mongodb_instance,
+                        conn=conn,
                     )
                 )
 
@@ -407,7 +407,7 @@ class Sample:
         """
         from labgraph.views import SampleView
 
-        return SampleView().filter(filter_dict, datetime_min, datetime_max)
+        return SampleView().find(filter_dict, datetime_min, datetime_max)
 
     @classmethod
     def filter_one(
@@ -428,7 +428,7 @@ class Sample:
         """
         from labgraph.views import SampleView
 
-        return SampleView().filter_one(filter_dict, datetime_min, datetime_max)
+        return SampleView().find_one(filter_dict, datetime_min, datetime_max)
 
     @classmethod
     def get_by_node(self, node: Union[BaseNode, List[BaseNode]]) -> List["Sample"]:

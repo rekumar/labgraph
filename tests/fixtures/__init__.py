@@ -45,4 +45,4 @@ def clean_db():
         "port": 27017,
         "db_name": "xxxxxxxLabgraph_Test_2",
     }
-    drop_collections(labgraph_mongodb_instance=LabgraphMongoDB(**second_db_info))
+    drop_collections(conn=LabgraphMongoDB(**second_db_info))
