@@ -1,11 +1,12 @@
 import pytest
 
-from .example_system import *
-from .example_data import *
 import os
 import toml
 import pymongo
+from labgraph.utils.dev import _drop_collections
 
+from .example_system import *
+from .example_data import *
 
 @pytest.fixture(autouse=True)
 def make_config_file():
@@ -34,6 +35,6 @@ def make_config_file():
 
 @pytest.fixture
 def clean_db():
-    drop_collections()
+    _drop_collections()
     yield
-    drop_collections()
+    _drop_collections()

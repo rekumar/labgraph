@@ -1,4 +1,4 @@
-def drop_collections():
+def _drop_collections():
     from labgraph.views import (
         MaterialView,
         ActionView,

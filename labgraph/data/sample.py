@@ -4,7 +4,6 @@ from bson import ObjectId
 import matplotlib.pyplot as plt
 import itertools as itt
 
-from labgraph.utils.graph import hierarchical_layout
 from labgraph.utils.plot import plot_graph
 from .nodes import (
     BaseNode,

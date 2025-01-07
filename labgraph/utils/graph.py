@@ -77,4 +77,3 @@ def hierarchical_layout(graph: nx.DiGraph) -> Dict[str, Tuple[float, float]]:
         reference_x = max_x + offset
 
     return positions
-

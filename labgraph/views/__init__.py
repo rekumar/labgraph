@@ -5,9 +5,8 @@ from .nodes import (
     ActionView,
     MeasurementView,
     AnalysisView,
-    ActorView,
 )
-
+from .actors import ActorView
 
 def get_view(node) -> BaseView:
     """Get the view corresponding to a given node type

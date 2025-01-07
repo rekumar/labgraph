@@ -11,7 +11,7 @@ from labgraph import (
     views,
 )
 from labgraph.views.base import AlreadyInDatabaseError, NotFoundInDatabaseError
-from labgraph.views import get_view, get_view_by_type
+from labgraph.views import get_view
 from bson import ObjectId
 import random
 from labgraph.data.sample import action_sequence_distance

@@ -5,7 +5,9 @@ from getpass import getpass
 from pydantic import BaseModel
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CONFIG_PATH = os.path.join(CURRENT_DIR, "labgraph_config.toml")
+DEFAULT_CONFIG_PATH = os.path.join(
+    os.path.expanduser("~"), ".labgraph", "labgraph_config.toml"
+)
 
 
 class MongoDBConfigValidator(BaseModel):
@@ -130,6 +132,7 @@ def make_config():
 
     validate_config(config_dict)
     try:
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, "w", encoding="utf-8") as f:
             toml.dump(config_dict, f)
     except Exception as e:

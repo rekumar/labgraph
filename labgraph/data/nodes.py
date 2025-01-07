@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, Union, Literal
 
 from .actors import Actor
 from abc import ABC, abstractmethod
-import re
 
 
 class InvalidNodeDefinition(Exception):

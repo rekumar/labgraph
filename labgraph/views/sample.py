@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, Union, cast
+from typing import List, Literal, Optional, cast
 
 import pymongo
 from labgraph.data import Action, Analysis, Material, Measurement, Sample
@@ -236,7 +236,7 @@ class SampleView(BaseView):
         """
         if node_type not in ["Action", "Material", "Measurement", "Analysis"]:
             raise ValueError(
-                f"node_type must be one of 'Action', 'Material', 'Measurement', 'Analysis'"
+                "node_type must be one of 'Action', 'Material', 'Measurement', 'Analysis'"
             )
 
         result = self._collection.find({f"nodes.{node_type}": node_id}).sort(
@@ -274,7 +274,7 @@ class SampleView(BaseView):
             ValueError: Downstream nodes can only be added, not removed! Removing can break the graph.
         """
         if not isinstance(entry, Sample):
-            raise TypeError(f"Entry must be of type Sample!")
+            raise TypeError("Entry must be of type Sample!")
 
         if not entry.has_valid_graph:
             raise ValueError(

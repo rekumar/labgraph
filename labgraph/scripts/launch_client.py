@@ -29,7 +29,6 @@ def launch_dashboard(host: str, port: int, debug: bool = False):
 
 
 def launch_client(host, port, debug):
-
     dashboard_thread = Thread(target=launch_dashboard, args=(host, port, debug))
 
     dashboard_thread.daemon = True

@@ -1,7 +1,6 @@
-from typing import List
 import pytest
 from labgraph import Actor, views
-from labgraph.utils.dev import drop_collections
+from labgraph.utils.dev import _drop_collections
 
 
 @pytest.fixture
@@ -51,4 +50,4 @@ def add_actors_to_db():
 
     yield
 
-    drop_collections()
+    _drop_collections()

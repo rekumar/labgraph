@@ -4,7 +4,7 @@ Useful CLI tools for the alab_management package.
 
 import click
 
-from .launch_client import launch_client, launch_dashboard
+from .launch_client import launch_dashboard
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -12,7 +12,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.group("cli", context_settings=CONTEXT_SETTINGS)
 def cli():
     """ALab Data CLI tools"""
-    click.echo(rf"""---  Labgraph  ---""")
+    click.echo(r"""---  Labgraph  ---""")
 
 
 # @cli.command("init", short_help="Init definition folder with default configuration")

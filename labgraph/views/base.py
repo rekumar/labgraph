@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from bson import ObjectId
 from datetime import datetime
 from typing import Literal, cast, List, Dict

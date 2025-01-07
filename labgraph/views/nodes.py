@@ -4,10 +4,9 @@ from labgraph.data.nodes import (
     Analysis,
     Material,
     Measurement,
-    Ingredient,
 )
 from .base import BaseNodeView
-from .actors import Actor, ActorView
+from .actors import Actor
 
 
 class MaterialView(BaseNodeView):

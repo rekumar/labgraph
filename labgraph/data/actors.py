@@ -1,7 +1,6 @@
-from abc import abstractmethod
 from copy import deepcopy
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from bson import BSON, ObjectId
 
 
